@@ -1,0 +1,8 @@
+# ignore all files
+*
+
+# exclude
+!.gitignore
+!dummy.md
+!c
+!ds/
