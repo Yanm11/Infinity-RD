@@ -1,5 +1,4 @@
 # ignore all files
-*
 
 # exclude
 !.gitignore
@@ -9,4 +8,4 @@
 !*/
 !.h
 !.sh
-
+!.md
