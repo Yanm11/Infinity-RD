@@ -3,6 +3,10 @@
 
 # exclude
 !.gitignore
-!dummy.md
-!c
-!ds/
+!.myfuncs
+!.c
+!.txt
+!*/
+!.h
+!.sh
+
