@@ -5,8 +5,8 @@
 # exclude
 !.gitignore
 !.myfuncs
-!.c
+!*.c
 !*/
-!.h
-!.sh
-!.md
+!*.h
+!*.sh
+!*.md
