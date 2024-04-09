@@ -49,12 +49,13 @@ int main()
 	printf("the character for %c in %s is: %c\n", c,s1,*s2);*/
 	
 	/* **************************************************************** */
-	/* Test for StrDup 
+	/* Test for StrDup */
 	
 	char s[] = "hello";
 	char *ptr_S = StrDup(s);
 	
-	printf("s: %s , duplicate s: %s\n", s, ptr_S);*/
+	printf("s: %s , duplicate s: %s\n", s, ptr_S);
+	free(ptr_S);
 	
 	/* **************************************************************** */
 	/* Test for Strcat and StrNcat
@@ -65,8 +66,8 @@ int main()
 	
 	strncat(s1,s2,0);
 	
-	printf("new string: %s\n", s1);*/
-	
+	printf("new string: %s\n", s1);
+	free(s1);*/
 	/* **************************************************************** */
 	/* Test for StrStr 
 	
@@ -85,15 +86,15 @@ int main()
                s2, s1, p);
     }
     else
-        printf("String not found\n");*/
+        printf("String not found\n");
 	
 	
-	/* Test for StrSpn */
+	/* Test for StrSpn 
 	
 	char s1[] = "hello";
 	char s2[] = "eol";
-	size_t i = strspn(s1,s2);
-	printf("shows: %ld\n",i);
+	size_t i = StrSpn(s1,s2);
+	printf("shows: %ld\n",i);*/
  
 
 
@@ -109,17 +110,14 @@ int main()
 
 char *StrCpy(char *dest, const char *src)
 {
-	char *ptr1 = dest;
-	const char *ptr2 = src;
+	size_t i = 0;
+	size_t j = 0;
 	
-	while (*ptr2)
+	while (src[j])
 	{
-		*ptr1 = *ptr2;
-		++ptr1, ++ptr2;
+		dest[i] = src[j];
+		++i, ++j;
 	}
-	
-	*ptr1 = *ptr2;
-	
 	return dest;
 }
 
@@ -202,7 +200,7 @@ char *StrChr(const char *s, int c)
 
 char *StrDup(const char *s)
 {
-	char *ptr = (char *) malloc(StrLen(s) * sizeof(char));
+	char *ptr = (char *) malloc(StrLen(s) * sizeof(char) + 1);
 	
 	return StrCpy(ptr, s); 
 }
@@ -292,14 +290,6 @@ size_t StrSpn(const char *s, const char *accept)
 	return i;
 
 }
-
-
-
-
-
-
-
-
 
 
 
