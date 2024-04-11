@@ -1,8 +1,8 @@
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* malloc free */
+#include <string.h> /* strlen strcpy */
+#include <ctype.h> /* tolower */
 
 
 void Memory(char **env, int num_env_var);
