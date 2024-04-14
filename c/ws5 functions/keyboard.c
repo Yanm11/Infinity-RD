@@ -1,8 +1,5 @@
-#include <stdio.h> /* printf */
-#include <stdlib.h> /* malloc free */
-
-
-
+#include <stdio.h> /* printf getchar*/
+#include <stdlib.h> /* system */
 
 
 int main(void)
