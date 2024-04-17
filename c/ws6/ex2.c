@@ -4,10 +4,11 @@
 
 
 #define SIZE 5
-
+#define line_size 100
 
 static int FLAG = 1;
-typedef void (*ptr_func_v)(char *, char *);
+enum return_type{success};
+typedef enum return_type (*ptr_func_v)(char *, char *);
 typedef int (*ptr_func_i)(char *, char *, int);
 typedef struct special
 {
@@ -19,16 +20,16 @@ typedef struct special
 
 int StartProgram(char *name, special_arr arr[]);
 int Compare(char *s1, char *s2, int len);
-void Remove(char *file_name, char *line);
-void Count(char *file_name, char *line);
-void Exit(char *file_name, char *line);
-void WriteStart(char *file_name, char *line);
-void Write(char *file_name, char *line);
+enum return_type Remove(char *file_name, char *line);
+enum return_type Count(char *file_name, char *line);
+enum return_type Exit(char *file_name, char *line);
+enum return_type WriteStart(char *file_name, char *line);
+enum return_type Write(char *file_name, char *line);
 
 
 int main(void)
 {
-	char file_name[50];
+	char file_name[line_size];
 	special_arr arr[SIZE] = {{"-remove", &Compare, &Remove},\
 						     {"-count", &Compare, &Count}, \
 					         {"-exit", &Compare, &Exit},\
@@ -37,7 +38,7 @@ int main(void)
 	
 	printf("write the name of a file\n");
 	
-	if (fgets(file_name,50 , stdin) == NULL)
+	if (fgets(file_name,line_size , stdin) == NULL)
 	{
 		perror("Error geting input");
 		return(-1);
@@ -58,9 +59,9 @@ int main(void)
 int StartProgram(char *name, special_arr arr[])
 {
 	int i = 0;
-	char line[100];
+	char line[line_size];
 
-	if (fgets(line, 100, stdin) == NULL)
+	if (fgets(line, line_size, stdin) == NULL)
 	{
 		perror("Error getting input");
 		return(-1);
@@ -90,17 +91,21 @@ int Compare(char *s1, char *s2, int len)
 }
 
 
-void Remove(char *file_name, char *line)
+enum return_type Remove(char *file_name, char *line)
 {
+	enum return_type result = success;
 	remove(file_name);
+	
+	return result;
 }
 
 
-void Count(char *file_name, char *line)
+enum return_type Count(char *file_name, char *line)
 {
 	FILE *fp = fopen(file_name, "a+");
 	int counter = 0;
-	char raw[100];
+	char raw[line_size];
+	enum return_type result = success;
 	
 	/* error handling */
 	if (!fp)
@@ -109,25 +114,34 @@ void Count(char *file_name, char *line)
 		exit(0);
 	}
 	
-	while (fgets(raw, 100, fp) != NULL)
+	while (fgets(raw, line_size, fp) != NULL)
 	{
 		++counter;
 	}	
 	printf("Number of lines written in the file is: %d\n", counter);
 		
 	fclose(fp);
+	
+	return result;
 }
 
 
-void Exit(char *file_name, char *line)
+enum return_type Exit(char *file_name, char *line)
 {
+	enum return_type result = success;
 	FLAG = 0;
+	
+	return result;
 }
 
 
-void WriteStart(char *file_name, char *line)
+enum return_type WriteStart(char *file_name, char *line)
 {
+	enum return_type result = success;
+	
 	FILE *fp = fopen(file_name,"r+");
+	FILE *cp = fopen("copy.txt","w");
+	char raw[line_size];
 	
 	/* error handling */
 	if (!fp)
@@ -140,16 +154,39 @@ void WriteStart(char *file_name, char *line)
 		}
 	}
 	
-	fseek(fp, 0L, SEEK_SET);
+	/* copy file */
+	while (fgets(raw, line_size, fp) != NULL)
+	{
+		fputs(raw,cp);
+	}
+		
+	fclose(cp);
+	fclose(fp);
+	
+	fp = fopen(file_name,"w+");
+	cp = fopen("copy.txt","r");
+	
 	++line;
 	fputs(line,fp);
 	fputs("\n",fp);
+	
+	/* copy file */
+	while (fgets(raw, line_size, cp) != NULL)
+	{
+		fputs(raw,fp);
+	}
+	
 	fclose(fp);
+	fclose(cp);
+	remove("copy.txt");
+
+	return result;
 }
 
 
-void Write(char *file_name, char *line)
+enum return_type Write(char *file_name, char *line)
 {
+	enum return_type result = success;
 	FILE *fp = fopen(file_name,"a");
 	
 	/* error handling */
@@ -160,7 +197,9 @@ void Write(char *file_name, char *line)
 	}
 	fputs(line,fp);
 	fputs("\n",fp);
-	fclose(fp);		
+	fclose(fp);	
+		
+	return result;
 }
 
 
