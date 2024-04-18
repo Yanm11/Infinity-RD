@@ -1,7 +1,6 @@
-
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
+#include <stdlib.h> /* malloc free*/ 
+#include <ctype.h> /* islower toupper */
+#include <string.h> /* strlen strcpy */
 
 int main(void)
 {

@@ -16,7 +16,7 @@ int main(void)
 	for (;i < 10; i++)
 	{
 		arr[i].i = i;
-		arr[i].p = Print;
+		arr[i].p = &Print;
 	}
 	
 	for (i = 0; i < 10; i++)

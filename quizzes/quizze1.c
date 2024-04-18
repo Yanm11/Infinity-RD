@@ -1,4 +1,4 @@
-#include <stdio.h> /* printf scan f */
+#include <stdio.h> /* printf scanf */
  
 int main(void)
 {
