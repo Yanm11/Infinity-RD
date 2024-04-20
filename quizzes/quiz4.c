@@ -1,5 +1,4 @@
-
-#include <stdio.h>/* strlen strcpy */
+#include <stdio.h>/* printf */
 
 typedef struct return_index
 {

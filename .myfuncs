@@ -2,9 +2,9 @@
 # gcc compilation aliases: c89, 99, debug mode, release mode
 
 alias gd='gcc -ansi -pedantic-errors -Wall -Wextra -g' 
-alias gc='gcc -ansi -pedantic-errors -Wall -Wextra -DNDEBUG -o3'
+alias gc='gcc -ansi -pedantic-errors -Wall -Wextra -DNDEBUG -O3'
 alias gd9='gcc -std=c99 -pedantic-errors -Wall -Wextra -g'
-alias gc9='gcc -std=c99 -pedantic-errors -Wall -Wextra -DNDEBUG -03'
+alias gc9='gcc -std=c99 -pedantic-errors -Wall -Wextra -DNDEBUG -O3'
 
 # Valgrind alias
 alias vlg='valgrind --leak-check=yes --track-origins=yes'
@@ -13,3 +13,7 @@ alias vlg='valgrind --leak-check=yes --track-origins=yes'
 alias gadd='git add .'
 alias gcom='git commit -m'
 alias gpush='git push origin master'
+
+# compile with no linking only create objects
+alias gcco='gcc -O -c'
+
