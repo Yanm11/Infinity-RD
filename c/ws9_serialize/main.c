@@ -1,4 +1,4 @@
-#include <stdio.h> /* printf sizeof */
+#include <stdio.h> /* printf */
 #include "students.h"
 
 int test(student_t student1, student_t student2);
@@ -49,8 +49,6 @@ int main(void)
 	yan.last_name = "Meiri";
 	yan.grades = grade;
 	
-	test(gal, yan);
-	
 	SaveStudent(&gal, "test.bin");
 	LoadStudent(&yan, "test.bin");
 	
@@ -64,22 +62,22 @@ int test(student_t student1, student_t student2)
 {
 	int result = 0;
 	
-	result += (student1.first_name == student2.first_name); 
-	result += (student1.last_name == student2.last_name); 
+	result += !(student1.first_name == student2.first_name); 
+	result += !(student1.last_name == student2.last_name); 
 	
-	result += (student1.grades.reals.math == student2.grades.reals.math); 
-	result += (student1.grades.reals.physics == student2.grades.reals.physics);
-	result += (student1.grades.reals.cs == student2.grades.reals.cs);
-	result += (student1.grades.reals.biology == student2.grades.reals.biology);
+	result += !(student1.grades.reals.math == student2.grades.reals.math); 
+	result += !(student1.grades.reals.physics == student2.grades.reals.physics);
+	result += !(student1.grades.reals.cs == student2.grades.reals.cs);
+	result += !(student1.grades.reals.biology == student2.grades.reals.biology);
 	
-	result += (student1.grades.humanistics.sociology == student2.grades.humanistics.sociology);
-	result += (student1.grades.humanistics.psychology == student2.grades.humanistics.psychology);
-	result += (student1.grades.humanistics.literature == student2.grades.humanistics.literature);	
-	result += (student1.grades.humanistics.art == student2.grades.humanistics.art);
+	result += !(student1.grades.humanistics.sociology == student2.grades.humanistics.sociology);
+	result += !(student1.grades.humanistics.psychology == student2.grades.humanistics.psychology);
+	result += !(student1.grades.humanistics.literature == student2.grades.humanistics.literature);	
+	result += !(student1.grades.humanistics.art == student2.grades.humanistics.art);
 	
-	result += (student1.grades.sports == student2.grades.sports);
+	result += !(student1.grades.sports == student2.grades.sports);
 	
-	if (result == 11)
+	if (result == 0)
 	{
 		printf("Pass the test all the fields match\n");
 		return 0;

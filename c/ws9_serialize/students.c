@@ -1,7 +1,5 @@
-#include <stdio.h> /* printf sizeof */
-#include <stdlib.h> /* realloc free */
-#include <string.h> /* strlen */
-#include <assert.h> /* assert */
+#include <stdio.h> /* printf sizeof fopen fwrite fread fclose */
+#include <stdlib.h> /* exit */
 #include "students.h"
 
 void SaveStudent(student_t *student, char *file_name)
@@ -10,7 +8,11 @@ void SaveStudent(student_t *student, char *file_name)
 	
 	fb = fopen(file_name,"wb");
 	
-	assert(NULL != fb);
+	if (NULL == fb)
+	{
+		printf("error with file name\n");
+		exit(-1);
+	}
 	
 	fwrite(student, sizeof(student_t), 1, fb);
 	
@@ -24,7 +26,11 @@ void LoadStudent(student_t *student, char *file_name)
 	
 	fb = fopen(file_name,"rb");
 	
-	assert(NULL != fb);
+	if (NULL == fb)
+	{
+		printf("error with file name\n");
+		exit(-1);
+	}
 	
 	fread(student, sizeof(student_t), 1, fb);
 	
