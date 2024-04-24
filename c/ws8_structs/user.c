@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "structs.h"
 
 void PrintAll(any_element_t arr[], int size)
