@@ -1,6 +1,6 @@
 #include "structs.h"
 
-void PrintAll(any_element_t arr[], int size)
+void PrintAll(any_element_t *arr, int size)
 {
 	int i = 0;
 	
@@ -10,7 +10,7 @@ void PrintAll(any_element_t arr[], int size)
 	}
 }
 
-void AddAll(any_element_t arr[], int size, int num)
+void AddAll(any_element_t *arr, int size, int num)
 {
 	int i = 0;
 	
@@ -20,7 +20,7 @@ void AddAll(any_element_t arr[], int size, int num)
 	}
 }
 
-void CleanAll(any_element_t arr[], int size)
+void CleanAll(any_element_t *arr, int size)
 {
 	int i = 0;
 	

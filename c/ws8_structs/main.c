@@ -23,7 +23,8 @@ int main(void)
 	
 	arr2 = (int*)malloc(sizeof(int)*size);
 	p_str = (char*)malloc(12);
-	assert (NULL != p_str && NULL != arr2);
+	assert (NULL != p_str);
+	assert (NULL != arr2);
 	strcpy(p_str, "hello world");
 	
 	arr_elem.array_int = arr2;

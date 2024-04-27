@@ -2,6 +2,7 @@
 #define __STRUCTS_H__
 
 typedef void (*func_ptr)();
+
 typedef struct any_element
 {
 	void *element;
@@ -9,6 +10,7 @@ typedef struct any_element
 	func_ptr print;
 	func_ptr clean;
 } any_element_t;
+
 typedef struct arr_element
 {
 	int *array_int;
@@ -26,4 +28,5 @@ void PrintElem(arr_element_t *elem);
 void Clean(char **ptr);
 void CleanElem(arr_element_t *elem);
 void DoNothing();
+
 #endif
