@@ -24,6 +24,7 @@ int main(void)
 	char *str_src1 = NULL;
 	char *str_dest2 = NULL;
 	char *str_src2 = NULL;
+	size_t n = 10;
 
 	/* set the str to test memset */
 	str_set1 = (char *)malloc(21);
@@ -32,8 +33,8 @@ int main(void)
 	strcpy(str_set2, "helloworldhelloworld");
 	
 	/* set the str to test memcpy */	
-	str_cpy1 = (char *)malloc(21);
-	str_cpy2 = (char *)malloc(21);
+	str_cpy1 = (char *)calloc(21,1);
+	str_cpy2 = (char *)calloc(21,1);
 	strcpy(str_cpy1, "hello");
 	strcpy(str_cpy2, "hello");
 	
@@ -45,12 +46,16 @@ int main(void)
 	strcpy(str_dest1, "helloworldworldhello");
 	strcpy(str_dest2, "helloworldworldhello");
 	
-	++str_dest1;
-	++str_dest2;
-	
 	TestMemSet(MemSet(str_set1,c1,20),memset(str_set2,c1,20));
 	TestMemCpy(MemCpy(str_cpy1,str_cpy3,14),memcpy(str_cpy2,str_cpy3,14));
-	TestMemMove(MemMove(str_dest1,str_src1,10),memmove(str_dest2,str_src2,10));
+	TestMemMove(MemMove(str_dest1,str_src1,n),memmove(str_dest2,str_src2,n));
+	
+	free(str_set1);
+	free(str_set2);
+	free(str_cpy1);
+	free(str_cpy2);
+	free(str_src1);
+	free(str_src2);
 	
 	return 0;
 }
