@@ -21,7 +21,11 @@ void AddString(char **ptr, int num)
 	int new_size = strlen(*ptr)*sizeof(char) + sizeof(num) + 1;
 	*ptr = (char *)realloc(*ptr,new_size);
 	
-	assert (NULL != *ptr);
+	if (NULL == *ptr)
+	{
+		printf("NULL error realloc\n");
+		exit(-1);
+	}
 	
 	sprintf(*ptr + len, "%d", num);
 }
@@ -30,9 +34,15 @@ void AddElem(arr_element_t *elem, int num)
 {
 	int new_size = (elem -> size * 4) + sizeof(num);
 	elem -> array_int = (int *)realloc((elem -> array_int), new_size);
-	new_size /= 4;
-	assert (NULL != elem -> array_int);
 	
+	if (NULL == elem -> array_int)
+	{
+		printf("NULL error realloc\n");
+		exit(-1);
+	}
+	
+	new_size /= 4;
+		
 	(elem -> array_int)[new_size - 1] = num;
 	elem->size = new_size;
 }
