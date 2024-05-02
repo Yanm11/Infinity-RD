@@ -1,9 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdio.h> /* printf */ 
+#include <stdlib.h> /* malloc free */ 
+#include <string.h> /* strtol strcpy */ 
 #include "ex1.h"
-#include "ex2.h"
-#include "ex3.h"
+
 
 void Test(char *str, int base);
 void Call_test(void);
@@ -18,7 +17,8 @@ int main(void)
 	
 	CheckIfLitEnd();
 	
-	/*Call_test();*/
+	printf("\n\nTest string to int:\n\n");
+	Call_test();
 	return 0;
 }
 

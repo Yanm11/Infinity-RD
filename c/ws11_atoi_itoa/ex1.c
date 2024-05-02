@@ -1,8 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <ctype.h>
+#include "ex1.h"
+
+/*
+yan meiri
+checked by shahar 
+*/
 
 /* ex4 */
 #define ENDIAN_BIG (*(short *)"\0xff" & 0xff) ? printf("Big\n") : printf("Little\n");
