@@ -143,4 +143,24 @@ space O(n)
 */
 char *ToString(bitarray_t data, char *buffer);
 
+/*
+CountBits
+count the number of bits 1 with a LUT
+recieve an array of bits
+return int the number of bits == 1
+time O(1)
+space O(1)
+*/
+int CountBits(bitarray_t data);
+
+/*
+MirrorLut
+mirror an array of bits (10011 -> 11001) using LUT
+recieve an array of bits
+return array of bits
+time O(1)
+space O(1)
+*/
+bitarray_t MirrorLut(bitarray_t data);
+
 #endif
