@@ -18,6 +18,7 @@ stack_t *StackCreate(size_t capacity, size_t element_size)
 	
 	if (NULL == ptr)
 	{
+		free(ptr);
 		return NULL;
 	}
 	
