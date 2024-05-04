@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdio.h> /*printf */
 #include "stack.h"
 
 void TestCreate(stack_t *stack_ptr);

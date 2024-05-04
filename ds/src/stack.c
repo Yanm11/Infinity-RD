@@ -1,4 +1,9 @@
 #include "stack.h"
+/*
+yan meiri
+approved by Or
+4.5.2024
+*/
 
 struct stack
 {
@@ -39,6 +44,12 @@ void StackDestroy(stack_t *stack)
 void StackPop(stack_t *stack)
 {
 	assert(NULL != stack);
+	if (stack -> size == 0)
+	{
+		printf("stack is empty\n");
+		return;
+	}
+	
 	stack -> size -= stack -> element_size; 
 	*((stack -> buffer) + (stack -> size)) = 0;
 }
@@ -49,6 +60,11 @@ void StackPush(stack_t *stack, void *new_element)
 	char *ptr_elem = (char*)new_element;
 	
 	assert(NULL != stack);
+	if (stack -> size == stack -> capacity)
+	{
+		printf("stack is full\n");
+		return;
+	}
 	
 	for (;i < stack -> element_size; ++i)
 	{
@@ -80,5 +96,11 @@ size_t StackGetCapacity(const stack_t *stack)
 void *StackPeek(const stack_t *stack)
 {
 	assert(NULL != stack);
-	return (stack -> buffer + (stack -> size -stack -> element_size));
+	if (stack -> size == 0)
+	{
+		printf("stack is empty\n");
+		return NULL;
+	}
+	
+	return (stack -> buffer + (stack -> size - stack -> element_size));
 }
