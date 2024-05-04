@@ -5,6 +5,13 @@ approved by Or
 4.5.2024
 */
 
+/* 
+compile
+gd stack.c ../test/test_stack.c -I ../include/ -o ../bin/debug/test_stack 
+execute
+ ../bin/debug/test_stack
+  */
+
 struct stack
 {
     size_t capacity;
