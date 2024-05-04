@@ -1,8 +1,8 @@
 #ifndef __STACK_H__
 #define __STACK_H__
 
-#include <stddef.h> /* size_t */
-
+#include <stdlib.h> /* malloc free size_t */
+#include <assert.h> /* assert */
 typedef struct stack stack_t;
 
 /*
