@@ -33,13 +33,13 @@ int main(void)
 	
 	TestIsEmpty(stack_ptr, 0);
 	
-	TestPeek(stack_ptr, 1684);
+	TestPeek(stack_ptr, z);
 	TestPop(stack_ptr);
 	
-	TestPeek(stack_ptr, 35);
+	TestPeek(stack_ptr, y);
 	TestPop(stack_ptr);
 	
-	TestPeek(stack_ptr, 10);
+	TestPeek(stack_ptr, x);
 	TestPop(stack_ptr);
 	
 	TestIsEmpty(stack_ptr, 1);
