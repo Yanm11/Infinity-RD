@@ -51,12 +51,8 @@ void StackDestroy(stack_t *stack)
 void StackPop(stack_t *stack)
 {
 	assert(NULL != stack);
-	if (stack -> size == 0)
-	{
-		printf("stack is empty\n");
-		return;
-	}
-	
+	assert(stack -> size != 0);
+
 	stack -> size -= stack -> element_size; 
 	*((stack -> buffer) + (stack -> size)) = 0;
 }
@@ -67,11 +63,8 @@ void StackPush(stack_t *stack, void *new_element)
 	char *ptr_elem = (char*)new_element;
 	
 	assert(NULL != stack);
-	if (stack -> size == stack -> capacity)
-	{
-		printf("stack is full\n");
-		return;
-	}
+	assert(stack -> size != stack -> capacity);
+
 	
 	for (;i < stack -> element_size; ++i)
 	{
@@ -103,11 +96,8 @@ size_t StackGetCapacity(const stack_t *stack)
 void *StackPeek(const stack_t *stack)
 {
 	assert(NULL != stack);
-	if (stack -> size == 0)
-	{
-		printf("stack is empty\n");
-		return NULL;
-	}
+	assert(stack -> size != 0);
+
 	
 	return (stack -> buffer + (stack -> size - stack -> element_size));
 }
