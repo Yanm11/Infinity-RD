@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "mem.h"
 
 #define SIZE_WORD  (sizeof(size_t))
@@ -12,10 +13,12 @@ void *MemSet(void *s, int c, size_t n)
 	unsigned char *ptr_char = (unsigned char*)s;
 	size_t char_value = (unsigned char)c;
 	
+	assert(NULL != s);
+
 	while (n > 0)
 	{
 		/* check if allined */
-		if (((size_t)ptr_word % SIZE_WORD) == 0 && n > SIZE_WORD)
+		if ((((size_t)ptr_word % SIZE_WORD) == 0) && (n > SIZE_WORD))
 		{
 			/* making sure the charcter is in the right size */
 			size_t i = 1;
@@ -57,12 +60,15 @@ void *MemCpy(void *dest, const void *src, size_t n)
 	size_t *ptr_src_word = (size_t*)src;
 	unsigned char *ptr_src_char = (unsigned char*)src;
 	
+	assert(NULL != dest);
+	assert(NULL != src);
+	
 	while (n > 0)
 	{
 		/* check if allined */
-		if (((size_t)ptr_dest_word % SIZE_WORD) == 0 &&
-			 ((size_t)ptr_src_word % SIZE_WORD) == 0 &&
-			  n > SIZE_WORD)
+		if ((((size_t)ptr_dest_word % SIZE_WORD) == 0) &&
+			 (((size_t)ptr_src_word % SIZE_WORD) == 0) &&
+			  (n > SIZE_WORD))
 		{
 			/* assigning the value at size word until n is smaller */
 			while (n > SIZE_WORD)
@@ -99,9 +105,12 @@ void *MemMove(void *dest, const void *src, size_t n)
 {
 	size_t size_src = strlen(src) + 1;
 	size_t diff_dest_src = (size_t)dest - (size_t)src;
+
+	assert(NULL != dest);
+	assert(NULL != src);
 	
 	/* if overlapping */
-	if (diff_dest_src > 0 && diff_dest_src < size_src)
+	if ((diff_dest_src > 0) && (diff_dest_src < size_src))
 	{
 		size_t *ptr_dest_word = (size_t*)dest + n;
 		unsigned char *ptr_dest_char = (unsigned char*)dest + n;
