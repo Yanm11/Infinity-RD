@@ -1,5 +1,4 @@
 #include <stdlib.h> /* size_t malloc() realloc() free() */
-#include <stdio.h> /* perror() */
 #include <assert.h> /* assert() */
 
 #include "dvector.h"
@@ -22,7 +21,6 @@ dvector_t *DvectorCreate(size_t capacity, size_t element_size)
 	
 	if (NULL == vector_ptr)
 	{
-		free(vector_ptr);
 		return NULL;
 	}
 	
@@ -33,7 +31,7 @@ dvector_t *DvectorCreate(size_t capacity, size_t element_size)
 	
 	if (NULL == vector_ptr -> buffer)
 	{
-		free(vector_ptr -> buffer);
+		free(vector_ptr);
 		return NULL;
 	}
 	
@@ -53,6 +51,7 @@ int DvectorPushBack(dvector_t *vector, const void *new_element)
 	char *ptr_elem = (char*)new_element;
 	
 	assert(NULL != vector);
+	
 	if (vector->size == vector->capacity)
 	{
 		int status = DvectorReserve(vector, vector->capacity * GROWTHFACTOR);
@@ -88,13 +87,14 @@ int DvectorShrink(dvector_t *vector)
 int DvectorReserve(dvector_t *vector, size_t new_size)
 {
 	size_t total_size = new_size * vector->element_size;
-	vector->buffer = (char*)realloc(vector->buffer, total_size);
+	char *ptr_realloc =(char*)realloc(vector->buffer, total_size);
 	
-	if (NULL == vector->buffer)
+	if (NULL == ptr_realloc)
 	{
-		free(vector->buffer);
 		return -1;
 	}
+	
+	vector->buffer = ptr_realloc;
 	
 	vector->capacity = new_size;
 	
