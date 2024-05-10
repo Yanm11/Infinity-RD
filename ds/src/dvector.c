@@ -5,6 +5,11 @@
 
 #define GROWTHFACTOR 2
 
+/*
+yan meiri
+checked by or
+*/
+
 struct dvector
 {
     size_t capacity;
