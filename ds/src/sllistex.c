@@ -49,3 +49,18 @@ int HasLoop(const node_t *head)
 	
 	return 0;
 }
+
+node_t *FindIntersection(node_t *head_1, node_t *head_2)
+{
+
+
+
+
+}
+
+
+
+
+
+
+

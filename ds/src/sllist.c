@@ -18,7 +18,7 @@ struct sllist
 
 static int Counter(void *data, void *param);
 static sllist_node_t *CreateNode(void *data, sllist_node_t *next);
-static int IsNextDummy(sllist_node_t *iter);
+static int IsDummy(sllist_node_t *iter);
 
 sllist_t *SllistCreate(void)
 {
@@ -51,7 +51,7 @@ void SllistDestroy(sllist_t *sllist)
 	
 	node = sllist->head;
 	
-	while (!IsNextDummy(node))
+	while (!IsDummy(node))
 	{
 		SllistRemove(node);
 	}
@@ -62,9 +62,8 @@ void SllistDestroy(sllist_t *sllist)
 
 sllist_iter_t SllistNext(sllist_iter_t iter)
 {
-	/*
 	assert(NULL != iter);
-	*/
+	
 	return iter->next;
 }
 
@@ -91,11 +90,11 @@ sllist_iter_t SllistInsertBefore(sllist_t *sllist, void *data, sllist_iter_t whe
 	new_node = CreateNode(where->data, where->next);
 	if (NULL == new_node)
 	{
-		return NULL;
+		return sllist->tail;
 	}
 	
 	/* only if its the element before the tail */
-	if(IsNextDummy(where))
+	if(IsDummy(where))
 	{
 		sllist->tail = new_node;
 	}
@@ -108,14 +107,12 @@ sllist_iter_t SllistInsertBefore(sllist_t *sllist, void *data, sllist_iter_t whe
 }
 
 sllist_iter_t SllistRemove(sllist_iter_t where)
-{
-	/*
-	assert(NULL != where);
-	*/
-	
+{	
 	sllist_node_t *temp_node = where->next;
+
+	assert(NULL != where);
 	
-	if(IsNextDummy(where->next))
+	if(IsDummy(where->next))
 	{
 		((sllist_t *)where->next->data)->tail = where;
 	}
@@ -143,17 +140,15 @@ size_t SllistCount(const sllist_t *sllist)
 
 void *SllistGetData(sllist_iter_t iterator)
 {
-	/*
-	assert(NULL != iterator->next);
-	*/
+	assert(NULL != iterator);
+
 	return iterator->data;
 }
 
 sllist_iter_t SllistSetData(sllist_iter_t iterator, void *new_data)
 {
-	/*
 	assert(NULL != iterator);
-	*/
+	
 	iterator->data = new_data;
 	
 	return iterator;
@@ -161,11 +156,9 @@ sllist_iter_t SllistSetData(sllist_iter_t iterator, void *new_data)
 
 sllist_iter_t SllistFind(void *param, sllist_iter_t from, sllist_iter_t to, match_func_t is_match)
 {
-	sllist_node_t *dummy = NULL;
-	/*
 	assert(NULL != to);
 	assert(NULL != from);
-	*/
+	
 	while (!SllistIterIsEqual(from,to))
 	{
 		if (is_match(from->data,param))
@@ -175,16 +168,14 @@ sllist_iter_t SllistFind(void *param, sllist_iter_t from, sllist_iter_t to, matc
 		from = from->next;
 	}
 	
-	dummy = CreateNode(NULL,NULL);
-	return dummy;
+	return to;
 }
 
 int SllistIterIsEqual(sllist_iter_t iterator1, sllist_iter_t iterator2)
 {
-	/*
 	assert(NULL != iterator1);
 	assert(NULL != iterator2);
-	*/
+	
 	return (iterator1 == iterator2);
 }
 
@@ -195,13 +186,11 @@ int SllistIsEmpty(const sllist_t *sllist)
 }
 
 int SllistForEach(sllist_iter_t from, sllist_iter_t to, action_func_t action, void *param)
-{	
-	/*
+{		
+	int status = 0;
+	
 	assert(NULL != from);
 	assert(NULL != to);
-	*/
-	
-	int status = 0;
 	
 	while (!SllistIterIsEqual(from,to))
 	{
@@ -236,7 +225,7 @@ static sllist_node_t *CreateNode(void *data, sllist_node_t *next)
 	return ptr_node;
 }
 
-static int IsNextDummy(sllist_node_t *iter)
+static int IsDummy(sllist_node_t *iter)
 {
 	return (iter->next == NULL);
 }
