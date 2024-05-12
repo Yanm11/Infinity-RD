@@ -46,19 +46,16 @@ sllist_t *SllistCreate(void)
 void SllistDestroy(sllist_t *sllist)
 {
 	sllist_node_t *node = NULL;
-	sllist_node_t *node_next = NULL;
-	
+
 	assert(NULL != sllist);
 	
 	node = sllist->head;
-	node_next = node->next;
 	
 	while (!IsNextDummy(node))
 	{
-		free(node);
-		node = node_next;
-		node_next = node->next;
+		SllistRemove(node);
 	}
+	
 	free(node);
 	free(sllist);
 }
@@ -127,6 +124,7 @@ sllist_iter_t SllistRemove(sllist_iter_t where)
 	where->next = where->next->next;
 	
 	free(temp_node);
+	temp_node = NULL;
 	
 	return where;	
 }

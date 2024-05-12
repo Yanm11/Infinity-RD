@@ -32,7 +32,7 @@ void TestInsertRemove()
     assert(SllistGetData(iter) == &data1);
     
     iter = SllistRemove(iter);
-    assert(SllistCount(list) == 0);
+	assert(SllistCount(list) == 0);
 
     SllistDestroy(list);
 }
