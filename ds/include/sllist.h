@@ -148,4 +148,14 @@ space complexity: O(1)
 */
 int SllistForEach(sllist_iter_t from, sllist_iter_t to, action_func_t action, void *param);
 
+/*
+SllistAppend
+description: concat two lists
+input: destination and source lists
+return: nothing
+time complexity: O(1)
+space complexity: O(1)
+*/
+void SllistAppend(sllist_t *dest, sllist_t *src);
+
 #endif /*__SLLIST_H__*/ 

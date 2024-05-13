@@ -1,5 +1,6 @@
 #include "sllist.h"
 #include <stdio.h> /* printf */
+#include <stdlib.h> /* free */
 #include <assert.h> /* assert */
 
 /* Function to match data in the linked list */
@@ -54,6 +55,9 @@ void TestFindSetData()
 
     SllistSetData(iter1, &not_found);
     assert(*(int *)SllistGetData(iter1) == not_found);
+    
+	iter1 = SllistFind(&data1, SllistBegin(list), SllistEnd(list), MatchInt);
+    assert(iter1 == SllistEnd(list));
 
     SllistDestroy(list);
 }
@@ -153,6 +157,49 @@ void TestForEach()
     SllistDestroy(list);
 }
 
+void TestAppend() 
+{
+    sllist_t *list_dest = SllistCreate();
+    sllist_t *list_src = SllistCreate();
+    int data[] = {10,20,30,40,50,60};
+	sllist_iter_t iter;
+	
+    SllistInsertBefore(list_dest, data, SllistBegin(list_dest));
+    SllistInsertBefore(list_dest, data+1, SllistEnd(list_dest));
+    SllistInsertBefore(list_dest, data+2, SllistEnd(list_dest));
+    assert(*(int *)SllistGetData(SllistBegin(list_dest)) == 10);
+	assert(SllistCount(list_dest) == 3);
+	
+    SllistInsertBefore(list_src, data+3, SllistBegin(list_src));
+    SllistInsertBefore(list_src, data+4, SllistEnd(list_src));
+    SllistInsertBefore(list_src, data+5, SllistEnd(list_src));
+    assert(SllistCount(list_src) == 3);
+    
+    SllistAppend(list_dest,list_src);
+    iter = SllistBegin(list_dest);
+    assert(*(int *)SllistGetData(iter) == 10);
+    iter = SllistNext(iter);
+    
+    assert(*(int *)SllistGetData(iter) == 20);
+    iter = SllistNext(iter);
+    
+    assert(*(int *)SllistGetData(iter) == 30);
+    iter = SllistNext(iter);
+    
+    assert(*(int *)SllistGetData(iter) == 40);
+    iter = SllistNext(iter);
+    
+    assert(*(int *)SllistGetData(iter) == 50);
+    iter = SllistNext(iter);
+    
+    assert(*(int *)SllistGetData(iter) == 60);
+    iter = SllistNext(iter);   
+     
+	assert(SllistCount(list_dest) == 6);
+	
+    SllistDestroy(list_dest);
+    SllistDestroy(list_src);
+}
 
 void TestAll() 
 {
@@ -164,6 +211,7 @@ void TestAll()
     TestIterativeNavigation();
     TestIterIsEqual();
     TestForEach();
+    TestAppend();
     printf("All tests passed.\n");
 }
 

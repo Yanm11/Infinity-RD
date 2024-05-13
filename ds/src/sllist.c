@@ -3,6 +3,10 @@
 
 #include "sllist.h"
 
+/*
+yan meiri
+checked and reviewed by many but mainly oded
+*/
 
 typedef struct sllist_node 
 {
@@ -108,9 +112,11 @@ sllist_iter_t SllistInsertBefore(sllist_t *sllist, void *data, sllist_iter_t whe
 
 sllist_iter_t SllistRemove(sllist_iter_t where)
 {	
-	sllist_node_t *temp_node = where->next;
+	sllist_node_t *temp_node = NULL;
 
 	assert(NULL != where);
+	
+	temp_node = where->next;
 	
 	if(IsDummy(where->next))
 	{
@@ -201,8 +207,24 @@ int SllistForEach(sllist_iter_t from, sllist_iter_t to, action_func_t action, vo
 	return status;
 }
 
+void SllistAppend(sllist_t *dest, sllist_t *src)
+{	
+	assert(NULL != dest);
+	assert(NULL != src);
+	
+	dest->tail->next = src->head->next;
+	dest->tail->data = src->head->data;
+	
+	dest->tail = src->tail;
+	
+	src->head->next = NULL;
+	src->head->data = (void*)src;
+	src->tail = src->head;
+}
+
 static int Counter(void *data, void *param)
 {
+	assert(NULL != param);
 	(void)data;
 	
 	*(size_t*)param += 1;
@@ -227,5 +249,6 @@ static sllist_node_t *CreateNode(void *data, sllist_node_t *next)
 
 static int IsDummy(sllist_node_t *iter)
 {
+	assert(NULL != iter);
 	return (iter->next == NULL);
 }
