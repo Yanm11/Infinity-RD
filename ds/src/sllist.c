@@ -216,6 +216,7 @@ void SllistAppend(sllist_t *dest, sllist_t *src)
 	dest->tail->data = src->head->data;
 	
 	dest->tail = src->tail;
+	dest->tail->data = (void*)dest;
 	
 	src->head->next = NULL;
 	src->head->data = (void*)src;

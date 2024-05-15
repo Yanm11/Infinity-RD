@@ -1,7 +1,15 @@
+/* 
+yan meiri
+checked by ido
+*/
+
 #include <stdlib.h> /* size_t malloc() free() */
 #include <assert.h> /* assert() */
+
 #include "sllist.h"
 #include "queue.h"
+
+
 struct queue
 {
 	sllist_t *list;
@@ -21,6 +29,7 @@ queue_t *QCreate(void)
 	if (NULL == ptr_queue->list)
 	{
 		free(ptr_queue);
+		
 		return NULL;
 	}
 	
@@ -59,18 +68,21 @@ void QDequeue(queue_t *queue)
 size_t QSize(const queue_t *queue)
 {
 	assert(NULL != queue);
+	
 	return SllistCount(queue->list);
 }
 
 void *QPeek(const queue_t *queue)
 {
 	assert(NULL != queue);
+	
 	return SllistGetData(SllistBegin(queue->list));
 }
 
 int QIsEmpty(const queue_t *queue)
 {
 	assert(NULL != queue);
+	
 	return SllistIsEmpty(queue->list);
 }
 
