@@ -43,7 +43,7 @@ $(FILE_SRC).o : $(FILE_SRC).c $(INCLUDE_DIR)/$(FILE_ICLUDE)
 	$(CC) $(CFLAGS) -c $(FILE_SRC).c -I $(INCLUDE_DIR)
 
 $(FILE_SRC2).o : $(FILE_SRC2).c $(INCLUDE_DIR)/$(FILE_ICLUDE2)
-	$(CC) $(CFLAGS) -c $(FILE_SRC).c -I $(INCLUDE_DIR)
+	$(CC) $(CFLAGS) -c $(FILE_SRC2).c -I $(INCLUDE_DIR)
 
 
 libfoo.a: $(libobjects)
