@@ -2,14 +2,15 @@
 #include <stdio.h> /*printf*/
 
 #include "queue.h"
-void TestAll();
-void TestCreateDestroy();
-void TestEnqueue();
-void TestDequeue();
-void TestQSize();
-void TestQPeek();
-void TestQIsEmpty();
-void TestAppend();
+
+void TestAll(void);
+void TestCreateDestroy(void);
+void TestEnqueue(void);
+void TestDequeue(void);
+void TestQSize(void);
+void TestQPeek(void);
+void TestQIsEmpty(void);
+void TestAppend(void);
 
 int main(void)
 {
@@ -17,7 +18,7 @@ int main(void)
 	return 0;
 }
 
-void TestAll() 
+void TestAll(void) 
 {
     /* Call all test functions */
     TestCreateDestroy();
@@ -31,7 +32,7 @@ void TestAll()
     printf("All tests passed.\n");
 }
 
-void TestCreateDestroy() 
+void TestCreateDestroy(void) 
 {
 	queue_t *queue = QCreate();
 	if (NULL == queue)
@@ -45,7 +46,7 @@ void TestCreateDestroy()
 	printf("Test Create Destroy PASSED!\n");
 }
 
-void TestEnqueue() 
+void TestEnqueue(void) 
 {
 	queue_t *queue = QCreate();
 	int data[] = {10,20,30,40};
@@ -78,7 +79,7 @@ void TestEnqueue()
 	printf("Test Enqueue PASSED!\n");
 }
 
-void TestDequeue() 
+void TestDequeue(void) 
 {
 	queue_t *queue = QCreate();
 	int data[] = {10,20,30,40};
@@ -114,7 +115,7 @@ void TestDequeue()
 	printf("Test Dequeue PASSED!\n");
 }
 
-void TestQSize() 
+void TestQSize(void) 
 {
 	queue_t *queue = QCreate();
 	int data[] = {10,20,30,40};
@@ -164,7 +165,7 @@ void TestQSize()
 	printf("Test QSize PASSED!\n");
 }
 
-void TestQPeek() 
+void TestQPeek(void) 
 {
 	queue_t *queue = QCreate();
 	int data[] = {10,20,30,40};
@@ -215,7 +216,7 @@ void TestQPeek()
 }
 
 
-void TestQIsEmpty() 
+void TestQIsEmpty(void) 
 {
 	queue_t *queue = QCreate();
 	int data[] = {10,20,30,40};
@@ -249,7 +250,7 @@ void TestQIsEmpty()
 	printf("Test QIsEmpty PASSED!\n");
 }
 
-void TestAppend() 
+void TestAppend(void) 
 {
 	queue_t *queue_dest = QCreate();
 	queue_t *queue_src = QCreate();
