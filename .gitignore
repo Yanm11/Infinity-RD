@@ -1,7 +1,6 @@
 # ignore all files
 *
 
-
 # exclude
 !.gitignore
 !.myfuncs
@@ -10,3 +9,4 @@
 !*.h
 !*.sh
 !*.md
+!Makefile
