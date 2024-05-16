@@ -3,12 +3,12 @@ CFLAGS = -ansi -pedantic-errors -Wall -Wextra
 CC = gcc
 
 # file names
-FILE_SRC = queue
-FILE_SRC2 = sllist
-FILE_ICLUDE = queue.h
-FILE_ICLUDE2 = sllist.h
-FILE_TEST = test_queue
-FILE_OUT = test_queue
+FILE_SRC = cbuffer
+# FILE_SRC2 = sllist
+FILE_ICLUDE = cbuffer.h
+# FILE_ICLUDE2 = sllist.h
+FILE_TEST = test_cbuffer
+FILE_OUT = test_cbuffer
 
 
 # dir locations
@@ -17,7 +17,9 @@ BIN_DIR = ../bin/debug
 INCLUDE_DIR = ../include
 
 # objects
-objects = $(TEST_DIR)/$(FILE_TEST).o $(FILE_SRC).o $(FILE_SRC2).o 
+objects = $(TEST_DIR)/$(FILE_TEST).o $(FILE_SRC).o
+# $(FILE_SRC2).o 
+
 libobjects = dvector.o
 
 
@@ -42,8 +44,8 @@ $(TEST_DIR)/$(FILE_TEST).o : $(TEST_DIR)/$(FILE_TEST).c $(INCLUDE_DIR)/$(FILE_IC
 $(FILE_SRC).o : $(FILE_SRC).c $(INCLUDE_DIR)/$(FILE_ICLUDE)
 	$(CC) $(CFLAGS) -c $(FILE_SRC).c -I $(INCLUDE_DIR)
 
-$(FILE_SRC2).o : $(FILE_SRC2).c $(INCLUDE_DIR)/$(FILE_ICLUDE2)
-	$(CC) $(CFLAGS) -c $(FILE_SRC2).c -I $(INCLUDE_DIR)
+# $(FILE_SRC2).o : $(FILE_SRC2).c $(INCLUDE_DIR)/$(FILE_ICLUDE2)
+#	$(CC) $(CFLAGS) -c $(FILE_SRC2).c -I $(INCLUDE_DIR)
 
 
 libfoo.a: $(libobjects)
