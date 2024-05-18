@@ -2,9 +2,15 @@
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 #include <string.h> /* strcpy */
+
 #include "structs.h"
 #include "user.h"
 
+#define MAX2(a,b) (a>b?a:b)
+#define MAX3(a,b,c) (a>b?MAX2(a,c):MAX2(b,c))
+
+#define SIZEOF_VAR(var) ((size_t)(&(var)+1)-(size_t)(&(var)))
+#define SIZEOF_TYPE(type) ((size_t)((type*)0 + 1) - (size_t)((type*)0))
 
 int main(void)
 {

@@ -2,57 +2,32 @@
 #include <stdlib.h> /* exit */
 #include <string.h> /* strlen strncmp strcspn*/
 
+#include "ws5.h"
 
 #define SIZE 5
 #define line_size 100
 
-static int FLAG = 1;
-enum return_type{success};
-typedef enum return_type (*ptr_func_v)(char *, char *);
-typedef int (*ptr_func_i)(char *, char *, int);
-typedef struct special
+int Ex1()
 {
-  char *s;
-  ptr_func_i comp;
-  ptr_func_v op;
-}special_arr;
-
-
-int StartProgram(char *name, special_arr arr[]);
-int Compare(char *s1, char *s2, int len);
-enum return_type Remove(char *file_name, char *line);
-enum return_type Count(char *file_name, char *line);
-enum return_type Exit(char *file_name, char *line);
-enum return_type WriteStart(char *file_name, char *line);
-enum return_type Write(char *file_name, char *line);
-
-
-int main(void)
-{
-	char file_name[line_size];
-	special_arr arr[SIZE] = {{"-remove", &Compare, &Remove},\
-						     {"-count", &Compare, &Count}, \
-					         {"-exit", &Compare, &Exit},\
-					         {"<", &Compare, &WriteStart},\
-					         {"", &Compare, &Write}};
-	
-	printf("write the name of a file\n");
-	
-	if (fgets(file_name,line_size , stdin) == NULL)
+	print_me arr[10];
+	int i = 0;
+	for (;i < 10; i++)
 	{
-		perror("Error geting input");
-		return(-1);
-     }
-    
-    file_name[strcspn(file_name,"\n")] = 0;
-    
-	printf("start writing:\n");
-	
-	while (FLAG)
-	{
-		StartProgram(file_name, arr);
+		arr[i].i = i;
+		arr[i].p = &Print;
 	}
+	
+	for (i = 0; i < 10; i++)
+	{
+		arr[i].p(arr[i].i);
+	}
+	
 	return 0;
+}
+
+void Print(int x)
+{
+	printf("%d\n", x);
 }
 
 
@@ -95,6 +70,7 @@ enum return_type Remove(char *file_name, char *line)
 {
 	enum return_type result = success;
 	remove(file_name);
+	(void)line;
 	
 	return result;
 }
@@ -106,6 +82,8 @@ enum return_type Count(char *file_name, char *line)
 	int counter = 0;
 	char raw[line_size];
 	enum return_type result = success;
+	
+	(void)line;
 	
 	/* error handling */
 	if (!fp)
@@ -130,6 +108,9 @@ enum return_type Exit(char *file_name, char *line)
 {
 	enum return_type result = success;
 	FLAG = 0;
+	
+	(void)file_name;
+	(void)line;
 	
 	return result;
 }
@@ -201,29 +182,3 @@ enum return_type Write(char *file_name, char *line)
 		
 	return result;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
