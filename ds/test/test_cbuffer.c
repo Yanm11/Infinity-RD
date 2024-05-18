@@ -1,356 +1,248 @@
-#include <stdio.h> /* printf() */
-#include <string.h>  /* strcat() */
+#include <stdio.h> /*printf*/
+#include <stddef.h> /*size_t*/
 
 #include "cbuffer.h"
 
-#define TESTNUM 5
 
-static char failed_tests_print[200] = {'\0'};
+void test_CBuffCreate(void);
+void test_CBuffSize(void);
+void test_CBuffWrite(void);
+void test_CBuffRead(void);
+void test_CBuffIsEmpty(void);
+void test_CBuffFreeSpace(void);
 
-int TestFreeSpace();
-int TestSize();
-int TestRead();
-int TestWrite();
-int TestIsEmpty();
 
-void AddFailedTest(const char *str);
+static size_t checker = 0;
+
+
 
 int main(void)
 {
-	int failed_tests_num = 0;
 	
-	failed_tests_num += TestFreeSpace();
-	printf("Tested FreeSpace\n");
-	failed_tests_num += TestSize();
-	printf("Tested Size\n");
-	failed_tests_num += TestRead();
-	printf("Tested Read\n");
-	failed_tests_num += TestWrite();
-	printf("Tested Write\n");
-	failed_tests_num += TestIsEmpty();
-	printf("Tested IsEmpty\n");
+	test_CBuffCreate();
+	test_CBuffSize();
+	test_CBuffWrite();
+	test_CBuffRead();
+	test_CBuffIsEmpty();
+	test_CBuffFreeSpace();
 	
-	if (failed_tests_num)
+	if(0 == checker)
 	{
-		printf("%d out %d tests failed\nFailed tests:\n%s"
-		, failed_tests_num, TESTNUM, failed_tests_print);
-		return failed_tests_num;
+		printf("\nAll tests passed\n");
 	}
-	
-	printf("All Tests Passed!\n");
-	
-    return 0;
-}
-
-
-void AddFailedTest(const char *str)
-{
-	strcat(failed_tests_print, str);
-}
-
-int TestFreeSpace()
-{
-	cbuffer_t *buffer = CBuffCreate(5);
-	size_t get_free_space = 0;
-	char src[] = "Hello1234?!";
-	char dest[5] = {'\0'};
-	int one = 1;
-	
-	get_free_space = CBuffFreeSpace(buffer);
-	
-	if (5 != get_free_space)
-	{
-		AddFailedTest("TestFreeSpace1\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffWrite(buffer, src, 5);
-	get_free_space = CBuffFreeSpace(buffer);
-	
-	if (0 != get_free_space)
-	{
-		AddFailedTest("TestFreeSpace2\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffRead(buffer, dest, 3);
-	get_free_space = CBuffFreeSpace(buffer);
-	
-	if (3 != get_free_space)
-	{
-		AddFailedTest("TestFreeSpace3\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffWrite(buffer, src+5, 4);
-	get_free_space = CBuffFreeSpace(buffer);
-	
-	if (0 != get_free_space)
-	{
-		AddFailedTest("TestFreeSpace4\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffRead(buffer, dest, 3);
-	get_free_space = CBuffFreeSpace(buffer);
-	
-	if (3 != get_free_space)
-	{
-		AddFailedTest("TestFreeSpace5\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffWrite(buffer, src+9, 2);
-	get_free_space = CBuffFreeSpace(buffer);
-	
-	if (1 != get_free_space)
-	{
-		AddFailedTest("TestFreeSpace6\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffRead(buffer, dest, 1);
-	CBuffWrite(buffer, &one, 4);
-	CBuffWrite(buffer, src, 1);
-	
-	get_free_space = CBuffFreeSpace(buffer);
-	
-	if (0 != get_free_space)
-	{
-		AddFailedTest("TestFreeSpace6\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffDestroy(buffer);
-	return 0;
-}
-
-int TestSize()
-{
-	cbuffer_t *buffer = CBuffCreate(5);
-	size_t get_size = 0;
-	char src[] = "Hello1234?!";
-	char dest[5] = {'\0'};
-	
-	get_size = CBuffSize(buffer);
-	
-	if (5 != get_size)
-	{
-		AddFailedTest("TestSize\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffWrite(buffer, src, 5);
-	get_size = CBuffSize(buffer);
-	
-	if (5 != get_size)
-	{
-		AddFailedTest("TestSize\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffRead(buffer, dest, 3);
-	get_size = CBuffSize(buffer);
-	
-	if (5 != get_size)
-	{
-		AddFailedTest("TestSize\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffWrite(buffer, src+5, 4);
-	get_size = CBuffSize(buffer);
-	
-	if (5 != get_size)
-	{
-		AddFailedTest("TestSize\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffRead(buffer, dest, 3);
-	get_size = CBuffSize(buffer);
-	
-	if (5 != get_size)
-	{
-		AddFailedTest("TestSize\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffDestroy(buffer);
-	return 0;
-}
-
-int TestRead()
-{
-	cbuffer_t *buffer = CBuffCreate(5);
-	char src[] = "Hello1234?!";
-	char dest[5] = {'\0'};
-	
-	CBuffWrite(buffer, src, 5);
-	CBuffRead(buffer, dest, 3);
-	
-	if (0 != strncmp(dest, src, 3))
-	{
-		AddFailedTest("TestRead1\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffWrite(buffer, src+5, 4);
-	CBuffRead(buffer, dest, 3);
-
-	if (0 != strncmp(dest, src+4, 3))
-	{
-		AddFailedTest("TestRead2\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffWrite(buffer, src+9, 2);
-	CBuffRead(buffer, dest, 12);
-
-	if (0 != strncmp(dest, src+7, 3))
-	{
-		AddFailedTest("TestRead3\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffDestroy(buffer);
-	return 0;
-}
-
-int TestWrite()
-{
-	cbuffer_t *buffer = CBuffCreate(5);
-	char src[] = "Hello1234?!";
-	char dest[5] = {'\0'};
-	
-	CBuffWrite(buffer, src, 5);
-	CBuffWrite(buffer, src+5, 4);
-	CBuffRead(buffer, dest, 4);
-
-	if (0 != strncmp(dest, src+4, 4))
-	{
-		AddFailedTest("TestWrite1\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffWrite(buffer, src, 5);
-	CBuffRead(buffer, dest, 5);
-
-	if (0 != strncmp(dest, src, 5))
-	{
-		AddFailedTest("TestWrite2\n");
-		CBuffDestroy(buffer);
-		return 1;
-	}
-	
-	CBuffDestroy(buffer);
 	return 0;
 }
 
 
-int TestIsEmpty()
+void test_CBuffCreate(void)
 {
-	cbuffer_t *buffer = CBuffCreate(5);
-	int is_empty = 0;
-	char src[] = "Hello1234?!";
-	int one = 1;
-	char dest[5] = {'\0'};
-	
-	is_empty = CBuffIsEmpty(buffer);
-	
-	if (1 != is_empty)
+	cbuffer_t *buffer = CBuffCreate(30);
+	if(NULL == buffer)
 	{
-		AddFailedTest("TestIsEmpty1\n");
-		CBuffDestroy(buffer);
-		return 1;
+		printf("CBuffCreate test failed\n");
+		++checker;
+		return;
+	}
+	printf("CBuffCreate test passed\n");
+	CBuffDestroy(buffer);
+}
+	
+	
+	
+void test_CBuffSize(void)
+{
+	cbuffer_t *buffer = CBuffCreate(30);
+	if(NULL == buffer)
+	{
+		printf("CBuffSize malloc failed\n");
+		++checker;
+		return;
+	}
+	if(CBuffSize(buffer) == 30)
+	{
+		printf("CBuffSize test passed\n");
+	}
+	else
+	{
+		printf("CBuffSize test failed\n");
+		++checker;
+	}
+	CBuffDestroy(buffer);
+}
+	
+	
+void test_CBuffWrite(void)
+{
+	cbuffer_t *buffer = CBuffCreate(30);
+	char *str = "hello";
+	char str2[50];
+	CBuffWrite(buffer, str, 2);
+	if(28 == CBuffFreeSpace(buffer))
+	{
+		printf("CBuffWrite test passed\n");
+	}
+	else
+	{
+		printf("CBuffWrite test failed\n");
+		++checker;
 	}
 	
-	CBuffWrite(buffer, src, 4);
-	is_empty = CBuffIsEmpty(buffer);
-	
-	if (0 != is_empty)
+	CBuffWrite(buffer, str, 5);
+	if(23 == CBuffFreeSpace(buffer))
 	{
-		AddFailedTest("TestIsEmpty2\n");
-		CBuffDestroy(buffer);
-		return 1;
+		printf("CBuffWrite test 2 passed\n");
+	}
+	else
+	{
+		printf("CBuffWrite test 2 failed\n");
+		++checker;
 	}
 	
-	CBuffRead(buffer, dest, 3);
-	is_empty = CBuffIsEmpty(buffer);
-	
-	if (0 != is_empty)
+	CBuffRead(buffer, str2, 7);
+	CBuffWrite(buffer, str, 30);
+	if(0 == CBuffFreeSpace(buffer))
 	{
-		AddFailedTest("TestIsEmpty3\n");
-		CBuffDestroy(buffer);
-		return 1;
+		printf("CBuffWrite test 3 passed\n");
+	}
+	else
+	{
+		printf("CBuffWrite test 3 failed\n");
+		++checker;
 	}
 	
-	CBuffRead(buffer, dest, 1);
-	is_empty = CBuffIsEmpty(buffer);
-	
-	if (1 != is_empty)
+	CBuffWrite(buffer, str, 13);
+	if(0 == CBuffFreeSpace(buffer))
 	{
-		AddFailedTest("TestIsEmpty4\n");
-		CBuffDestroy(buffer);
-		return 1;
+		printf("CBuffWrite test 4 passed\n");
+	}
+	else
+	{
+		printf("CBuffWrite test 4 failed\n");
+		++checker;
 	}
 	
-	CBuffWrite(buffer, src+4, 4);
-	is_empty = CBuffIsEmpty(buffer);
 	
-	if (0 != is_empty)
+	
+	CBuffDestroy(buffer);
+}
+	
+	
+void test_CBuffRead(void)
+{
+	cbuffer_t *buffer = CBuffCreate(13);
+	char str[15] = {'\0'};
+	char str2[10] = {'\0'};
+	char *string = "hello world!";
+	
+	CBuffWrite(buffer, string, 12);
+	CBuffRead(buffer, str, 5);
+	
+	if('o' == str[4] && 'h' == str[0])
 	{
-		AddFailedTest("TestIsEmpty5\n");
-		CBuffDestroy(buffer);
-		return 1;
+		printf("CBuffRead test passed\n");
+	}
+	else
+	{
+		printf("CBuffRead test failed\n");
+		++checker;
 	}
 	
-	CBuffRead(buffer, dest, 4);
-	is_empty = CBuffIsEmpty(buffer);
-	
-	if (1 != is_empty)
+	CBuffRead(buffer, str, 2);
+	if('w' == str[1])
 	{
-		AddFailedTest("TestIsEmpty6\n");
-		CBuffDestroy(buffer);
-		return 1;
+		printf("CBuffRead test 2 passed\n");
+	}
+	else
+	{
+		printf("CBuffRead test 2 failed\n");
+		++checker;
 	}
 	
-	CBuffWrite(buffer, &one, 4);
-	CBuffWrite(buffer, src, 1);
-	is_empty = CBuffIsEmpty(buffer);
-	
-	if (0 != is_empty)
+	CBuffRead(buffer, str2, 64);
+	if('!' == str2[4])
 	{
-		AddFailedTest("TestIsEmpty6\n");
-		CBuffDestroy(buffer);
-		return 1;
+		printf("CBuffRead test 3 passed\n");
+	}
+	else
+	{
+		printf("CBuffRead test 3 failed\n");
+		++checker;
 	}
 	
 	CBuffDestroy(buffer);
-	return 0;
 }
+	
+	
+void test_CBuffIsEmpty(void)
+{
+	cbuffer_t *buffer = CBuffCreate(30);
+	char str[15];
+	char *string = "hello world!";
+	
+	if( 1 != CBuffIsEmpty(buffer))
+	{
+		++checker;
+	}
+	
+	CBuffWrite(buffer, string, 11);
+	if( 0 != CBuffIsEmpty(buffer))
+	{
+		++checker;
+	}
+	
+	CBuffRead(buffer, str, 14);
+	if( 1 != CBuffIsEmpty(buffer))
+	{
+		++checker;
+	}
+	
+	if(0 != checker)
+	{
+		printf("CBuffIsEmpty test failed\n");
+	}
+	else
+	{
+		printf("CBuffIsEmpty test passed\n");
+	}
+	
+	CBuffDestroy(buffer);
+}
+	
 
 
-
-
-
-
-
+void test_CBuffFreeSpace(void)
+{
+	cbuffer_t *buffer = CBuffCreate(30);
+	char str[15];
+	char *string = "hello world!";
+	
+	if( 30 != CBuffFreeSpace(buffer))
+	{
+		++checker;
+	}
+	
+	CBuffWrite(buffer, string, 11);
+	if( 19 != CBuffFreeSpace(buffer))
+	{
+		++checker;
+	}
+	
+	CBuffRead(buffer, str, 3);
+	if( 22 != CBuffFreeSpace(buffer))
+	{
+		++checker;
+	}
+	
+	if(0 != checker)
+	{
+		printf("CBuffFreeSpace test failed\n");
+	}
+	else
+	{
+		printf("CBuffFreeSpace test passed\n");
+	}
+	
+	CBuffDestroy(buffer);
+}
 
 
