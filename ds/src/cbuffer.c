@@ -47,15 +47,19 @@ size_t CBuffFreeSpace(const cbuffer_t *buffer)
 	
     assert(NULL != buffer);
     
+    /* when they are both equal */
     if (CBuffIsEmpty(buffer))
     {
         return cap;
     }
+    
+    /* when read offset is smaller than write offset */
     else if ((buffer->r_ofst % cap) < (buffer->w_ofst % cap))
     {
         return (cap - (buffer->w_ofst % cap) + (buffer->r_ofst % cap));
     }
     
+    /* when read offset is bigger than write offset */
     return ((buffer->r_ofst % cap) - (buffer->w_ofst % cap));
 }
 
@@ -88,6 +92,7 @@ ssize_t CBuffRead(cbuffer_t *buffer, void * dest, size_t count)
         return 0;
     }
     
+    /* making sure to not read more than cap */
     if (count > cap)
     {
         count = count % cap + 1;
@@ -128,6 +133,7 @@ ssize_t CBuffWrite(cbuffer_t *buffer, const void *src, size_t count)
     
     diff_w_r = buffer->w_ofst - buffer->r_ofst;
     
+    /* updating the read offset only when write passes him i a full lap or more */
     if (diff_w_r > cap)
     {
     	buffer->r_ofst += ((buffer->w_ofst % cap) - buffer->r_ofst);
