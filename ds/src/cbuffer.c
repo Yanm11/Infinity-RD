@@ -18,7 +18,7 @@ struct cbuffer
     size_t cap;
     char buff_data[1];
 };
-
+ 
 cbuffer_t *CBuffCreate(size_t capacity)
 {
     cbuffer_t *cbuffer = NULL;
@@ -43,16 +43,20 @@ void CBuffDestroy(cbuffer_t *buffer)
 
 size_t CBuffFreeSpace(const cbuffer_t *buffer)
 {
+	size_t cap = buffer->cap;
+	
     assert(NULL != buffer);
+    
     if (CBuffIsEmpty(buffer))
     {
-        return buffer->cap;
+        return cap;
     }
-    else if (buffer->r_ofst < buffer->w_ofst)
+    else if ((buffer->r_ofst % cap) < (buffer->w_ofst % cap))
     {
-        return (buffer->cap - buffer->w_ofst + buffer->r_ofst - 1);
+        return (cap - (buffer->w_ofst % cap) + (buffer->r_ofst % cap));
     }
-    return buffer->w_ofst - buffer->r_ofst;
+    
+    return ((buffer->r_ofst % cap) - (buffer->w_ofst % cap));
 }
 
 size_t CBuffSize(const cbuffer_t *buffer)
@@ -73,6 +77,7 @@ ssize_t CBuffRead(cbuffer_t *buffer, void * dest, size_t count)
 {
     char *new_dest = (char *)dest;
     ssize_t num_bytes_read = count;
+    size_t cap = buffer->cap;
     
     assert(NULL != buffer);
     assert(NULL != dest);
@@ -83,16 +88,16 @@ ssize_t CBuffRead(cbuffer_t *buffer, void * dest, size_t count)
         return 0;
     }
     
-    if (count > buffer->cap)
+    if (count > cap)
     {
-        count %= buffer->cap;
+        count = count % cap + 1;
     }
     
-    while ((0 < count) && (buffer->r_ofst != buffer->w_ofst))
+    while ((0 < count) && (buffer->r_ofst < buffer->w_ofst))
     {
-        *new_dest = buffer->buff_data[buffer->r_ofst];
+        *new_dest = buffer->buff_data[buffer->r_ofst % cap];
     
-        buffer->r_ofst = (buffer->r_ofst + 1) % buffer->cap;
+        ++buffer->r_ofst;
         ++new_dest;
         --count;
     }
@@ -102,32 +107,30 @@ ssize_t CBuffRead(cbuffer_t *buffer, void * dest, size_t count)
 
 ssize_t CBuffWrite(cbuffer_t *buffer, const void *src, size_t count)
 {
-    int flag = 0;
     ssize_t num_bytes_wrote = count;
-    size_t end_index = count + buffer->w_ofst;
     char *new_src = (char *)src;
-       
+    size_t cap = buffer->cap;
+    size_t diff_w_r = 0;
+    
     assert(NULL != buffer);
     assert(NULL != src);
     assert(0 < count);
     
-    if (buffer->w_ofst < buffer->r_ofst && end_index > buffer->r_ofst)
-    {
-        flag = 1;
-    }
-    
     while (0 < count)
     {
-        buffer->buff_data[buffer->w_ofst] = *new_src;
+        buffer->buff_data[buffer->w_ofst % cap] = *new_src;
         
-        buffer->w_ofst = (buffer->w_ofst + 1) % buffer->cap;
+        ++buffer->w_ofst;
         ++new_src;
         --count;
     }
     
-    if (flag)
+    
+    diff_w_r = buffer->w_ofst - buffer->r_ofst;
+    
+    if (diff_w_r > cap)
     {
-        buffer->r_ofst = buffer->w_ofst + 1;
+    	buffer->r_ofst += ((buffer->w_ofst % cap) - buffer->r_ofst);
     }
     
     return (num_bytes_wrote - count);

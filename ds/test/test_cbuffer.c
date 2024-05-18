@@ -7,11 +7,11 @@
 
 static char failed_tests_print[200] = {'\0'};
 
-int TestFreeSpace(void);
-int TestSize(void);
-int TestRead(void);
-int TestWrite(void);
-int TestIsEmpty(void);
+int TestFreeSpace();
+int TestSize();
+int TestRead();
+int TestWrite();
+int TestIsEmpty();
 
 void AddFailedTest(const char *str);
 
@@ -48,12 +48,13 @@ void AddFailedTest(const char *str)
 	strcat(failed_tests_print, str);
 }
 
-int TestFreeSpace(void)
+int TestFreeSpace()
 {
 	cbuffer_t *buffer = CBuffCreate(5);
 	size_t get_free_space = 0;
 	char src[] = "Hello1234?!";
 	char dest[5] = {'\0'};
+	int one = 1;
 	
 	get_free_space = CBuffFreeSpace(buffer);
 	
@@ -114,11 +115,24 @@ int TestFreeSpace(void)
 		return 1;
 	}
 	
+	CBuffRead(buffer, dest, 1);
+	CBuffWrite(buffer, &one, 4);
+	CBuffWrite(buffer, src, 1);
+	
+	get_free_space = CBuffFreeSpace(buffer);
+	
+	if (0 != get_free_space)
+	{
+		AddFailedTest("TestFreeSpace6\n");
+		CBuffDestroy(buffer);
+		return 1;
+	}
+	
 	CBuffDestroy(buffer);
 	return 0;
 }
 
-int TestSize(void)
+int TestSize()
 {
 	cbuffer_t *buffer = CBuffCreate(5);
 	size_t get_size = 0;
@@ -178,7 +192,7 @@ int TestSize(void)
 	return 0;
 }
 
-int TestRead(void)
+int TestRead()
 {
 	cbuffer_t *buffer = CBuffCreate(5);
 	char src[] = "Hello1234?!";
@@ -218,7 +232,7 @@ int TestRead(void)
 	return 0;
 }
 
-int TestWrite(void)
+int TestWrite()
 {
 	cbuffer_t *buffer = CBuffCreate(5);
 	char src[] = "Hello1234?!";
@@ -250,11 +264,12 @@ int TestWrite(void)
 }
 
 
-int TestIsEmpty(void)
+int TestIsEmpty()
 {
 	cbuffer_t *buffer = CBuffCreate(5);
 	int is_empty = 0;
 	char src[] = "Hello1234?!";
+	int one = 1;
 	char dest[5] = {'\0'};
 	
 	is_empty = CBuffIsEmpty(buffer);
@@ -316,9 +331,21 @@ int TestIsEmpty(void)
 		return 1;
 	}
 	
+	CBuffWrite(buffer, &one, 4);
+	CBuffWrite(buffer, src, 1);
+	is_empty = CBuffIsEmpty(buffer);
+	
+	if (0 != is_empty)
+	{
+		AddFailedTest("TestIsEmpty6\n");
+		CBuffDestroy(buffer);
+		return 1;
+	}
+	
 	CBuffDestroy(buffer);
 	return 0;
 }
+
 
 
 

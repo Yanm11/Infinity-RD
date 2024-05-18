@@ -30,7 +30,7 @@ struct s1
 	int *j;
 };
 
-/*struct s2
+struct s2
 {
 	unsigned int i:2;
 	unsigned char c:1;
@@ -38,7 +38,7 @@ struct s1
 	int *j;
 	unsigned char x:2;
 };
-*/
+
 union
 {
 	char arr[7];
@@ -159,7 +159,7 @@ int main(void)
 	
 	/* q21-23 */
 	printf("q21-23\n");
-	/*printf("size of s1:%ld, size of s2: %ld, size of jack: %ld\n",sizeof(struct s1),sizeof(struct s2), sizeof(jack));*/
+	printf("size of s1:%ld, size of s2: %ld, size of jack: %ld\n",sizeof(struct s1),sizeof(struct s2), sizeof(jack));
 	jack.i = 30;
 	printf("i: %d\n",jack.i);
 	return 0;
