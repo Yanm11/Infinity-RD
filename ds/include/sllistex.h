@@ -19,5 +19,4 @@ int HasLoop(const node_t *head);
 /* Returns a pointer to a first node mutual to both slists, if any. */ 
 node_t *FindIntersection(node_t *head_1, node_t *head_2);
 
-
 #endif /*__SLLISTEX_H__*/ 
