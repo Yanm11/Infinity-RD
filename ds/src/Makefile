@@ -3,12 +3,12 @@ CFLAGS = -ansi -pedantic-errors -Wall -Wextra
 CC = gcc
 
 # file names
-FILE_SRC = sllistex
+FILE_SRC = cbuffer
 # FILE_SRC2 = sllist
-FILE_ICLUDE = sllistex.h
+FILE_ICLUDE = cbuffer.h
 # FILE_ICLUDE2 = sllist.h
-FILE_TEST = test_sllistex
-FILE_OUT = test_sllistex
+FILE_TEST = test_cbuffer
+FILE_OUT = test_cbuffer
 
 
 # dir locations
