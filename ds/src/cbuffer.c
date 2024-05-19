@@ -1,7 +1,7 @@
 /*
 yan meiri
 15.05.2024
-reviwed by _______
+reviwed by amit
 */
 
 #include <stdio.h> 
