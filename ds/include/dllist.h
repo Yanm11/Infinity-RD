@@ -99,6 +99,15 @@ space complexity: O(1)
 size_t DllistSize(const dllist_t *list);
 
 /*
+Description: Set the data for specfic element in the list
+Params: (iterator - where to set the new data and  new data) ,
+Return Value: void 
+Time Complexity: O(1)
+Space: O(1)
+*/
+void DllistSetData(dllist_iter_t iterator, void* data);
+
+/*
 DllistGetData
 description: get data from iterator
 input: iterator to get the data from it

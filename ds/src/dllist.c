@@ -22,7 +22,7 @@ struct dllist
     dllist_node_t *tail;
 };
 
-static dllist_node_t *CreateNode(void *data, dllist_node_t *next);
+static dllist_node_t *CreateNode(void *data, dllist_node_t *next, dllist_node_t *prev);
 static int IsDummy(dllist_iter_t iter);
 
 
@@ -45,7 +45,8 @@ static dllist_node_t *CreateNode(void *data, dllist_node_t *next, dllist_node_t 
 static int IsDummy(dllist_iter_t iter)
 {
 	assert(iter);
-	return (iter->next == NULL);
+	
+	return (iter->next == NULL || iter->prev == NULL);
 }
 
 dllist_t *DllistCreate(void)
@@ -59,7 +60,7 @@ dllist_t *DllistCreate(void)
 	}
 	
 	/* alocating memory to a dummy node that head point to*/
-	ptr_dllist->head = CreateNode((void*)ptr_dllist, ptr_dllist->tail, NULL);
+	ptr_dllist->head = CreateNode((void*)ptr_dllist, NULL, NULL);
 	if (NULL == ptr_dllist->head)
 	{
 		free(ptr_dllist);
@@ -67,31 +68,36 @@ dllist_t *DllistCreate(void)
 	}
 	
 	/* alocating memory to a dummy node that tail point to*/
-	ptr_dllist->tail = CreateNode((void*)ptr_dllist,NULL, ptr_dllist->head);
+	ptr_dllist->tail = CreateNode((void*)ptr_dllist,NULL, NULL);
 	if (NULL == ptr_dllist->tail)
 	{
 		free(ptr_dllist->head);
 		free(ptr_dllist);
 		return NULL;
 	}
+	
+	ptr_dllist->head->next = ptr_dllist->tail;
+	ptr_dllist->tail->prev = ptr_dllist->head;
+	
 
 	return ptr_dllist;
 }
 
-void DllistDestroy(dllist_t *list);
+void DllistDestroy(dllist_t *list)
 {
 	dllist_node_t *node = NULL;
 
 	assert(list);
 	
-	node = dllist->head;
+	node = list->head->next;
 	
 	while (!IsDummy(node))
 	{
-		SllistRemove(node);
+		node = DllistRemove(node);
 	}
 	
-	free(node);
+	free(list->head);
+	free(list->tail);
 	free(list);
 }
 
@@ -125,7 +131,7 @@ dllist_iter_t DllistGetEnd(const dllist_t *list)
 
 dllist_iter_t DllistInsertBefore(dllist_t *list, void *data, dllist_iter_t where)
 {	
-	dllist_node_t new_node = NULL;
+	dllist_node_t *new_node = NULL;
 	
 	assert(where);
 	assert(list);
@@ -144,7 +150,7 @@ dllist_iter_t DllistInsertBefore(dllist_t *list, void *data, dllist_iter_t where
 
 dllist_iter_t DllistRemove(dllist_iter_t where)
 {
-	dllist_iter_t *tmp_node = NULL;
+	dllist_iter_t tmp_node = NULL;
 	
 	assert(where);
 	
@@ -152,19 +158,19 @@ dllist_iter_t DllistRemove(dllist_iter_t where)
 	where->prev->next = where->next;
 	where->next->prev = where->prev;
 	
-	free(where)
+	free(where);
 	
 	return tmp_node;
 }
 
 size_t DllistSize(const dllist_t *list)
 {
-	size_t count;
+	size_t count = 0;
 	dllist_node_t *node = NULL;
 	
 	assert(list);
 	
-	node = list->head;
+	node = list->head->next;
 	
 	while (NULL != node->next)
 	{
@@ -174,6 +180,13 @@ size_t DllistSize(const dllist_t *list)
 	}
 	
 	return count;
+}
+
+void DllistSetData(dllist_iter_t iter, void* data)
+{
+	assert(iter);
+	
+	iter->data = data;
 }
 
 void *DllistGetData(dllist_iter_t iter)
@@ -187,6 +200,7 @@ dllist_iter_t DllistFind(void *param, dllist_iter_t from, dllist_iter_t to, matc
 {
 	assert(from);
 	assert(to);
+	assert(is_match);
 	
 	while (!DllistIsSameIter(from,to))
 	{
@@ -223,6 +237,7 @@ int DllistForEach(dllist_iter_t from, dllist_iter_t to, action_func_t action, vo
 	
 	assert(from);
 	assert(to);
+	assert(action);
 	
 	while (!DllistIsSameIter(from,to))
 	{
@@ -237,14 +252,14 @@ dllist_iter_t DllistPushFront(dllist_t *list, void *data)
 {
 	assert(list);
 	
-	return (DllistInsertBefore(list, data, DllistGetBegin(list)));
+	return (DllistInsertBefore(list, data, list->head->next));
 }
 
 dllist_iter_t DllistPushBack(dllist_t *list, void *data)
 {
 	assert(list);
 	
-	return (DllistInsertBefore(list, data, DllistGetEnd(list)));
+	return (DllistInsertBefore(list, data, list->tail));
 }
 
 void *DllistPopFront(dllist_t *list)
@@ -277,4 +292,52 @@ void *DllistPopBack(dllist_t *list)
 	return data;
 }
 
+dllist_iter_t DllistSplice(dllist_iter_t where, dllist_iter_t from, dllist_iter_t to)
+{
+	dllist_iter_t tmp = NULL;
+	
+	assert(from);
+	assert(to);
+	assert(where);
+	
+	where->prev->next = from;
+	tmp = where->prev;
+	where->prev = to->prev;
+	to->prev->next = where;
+	to->prev = from->prev;
+	from->prev->next = to;
+	from->prev = tmp;
+	
+	return where->prev;
+
+}
+
+int DllistMultiFind(dllist_iter_t from, dllist_iter_t to, match_func_t is_match, void *param, dllist_t *output)
+{
+	int count = 0;
+	dllist_iter_t status = NULL;
+	
+	assert(from);
+	assert(to);
+	assert(is_match);
+	assert(output);
+	
+	while (!DllistIsSameIter(from,to))
+	{
+		if (is_match(from->data,param))
+		{
+			status = DllistInsertBefore(output, from->data, output->tail);
+			if (NULL == status)
+			{
+				return -1;
+			}
+			
+			++count;
+		}
+		
+		from = from->next;
+	}
+	
+	return count;
+}
 
