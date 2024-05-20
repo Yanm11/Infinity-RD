@@ -3,19 +3,19 @@ CFLAGS = -ansi -pedantic-errors -Wall -Wextra
 CC = gcc
 
 # file names
-FILE_SRC = dllist
+FILE_SRC = stack
 #FILE_SRC2 = sllist
-FILE_ICLUDE = dllist.h
+FILE_ICLUDE = stack.h
 # FILE_ICLUDE2 = sllist.h
-FILE_TEST = test_dllist
-FILE_OUT = test_dllist
+FILE_TEST = quiz14
+FILE_OUT = quiz14
 
 
 # dir locations
-SRC_DIR = ./src
-TEST_DIR = ./test
-BIN_DIR = ./bin/debug
-INCLUDE_DIR = ./include
+SRC_DIR = ~/git/ds/src
+TEST_DIR = .
+BIN_DIR = .
+INCLUDE_DIR = ~/git/ds/include
 
 # objects
 objects = $(TEST_DIR)/$(FILE_TEST).o $(SRC_DIR)/$(FILE_SRC).o
