@@ -12,12 +12,13 @@ FILE_OUT = test_cbuffer
 
 
 # dir locations
-TEST_DIR = ../test
-BIN_DIR = ../bin/debug
-INCLUDE_DIR = ../include
+SRC_DIR = ./src
+TEST_DIR = ./test
+BIN_DIR = ./bin/debug
+INCLUDE_DIR = ./include
 
 # objects
-objects = $(TEST_DIR)/$(FILE_TEST).o $(FILE_SRC).o
+objects = $(TEST_DIR)/$(FILE_TEST).o $(SRC_DIR)/$(FILE_SRC).o
 # $(FILE_SRC2).o 
 
 libobjects = dvector.o
@@ -41,8 +42,8 @@ $(BIN_DIR)/$(FILE_OUT) : $(objects)
 $(TEST_DIR)/$(FILE_TEST).o : $(TEST_DIR)/$(FILE_TEST).c $(INCLUDE_DIR)/$(FILE_ICLUDE) 
 	$(CC) $(CFLAGS) -c $(TEST_DIR)/$(FILE_TEST).c -o $@ -I $(INCLUDE_DIR)
 
-$(FILE_SRC).o : $(FILE_SRC).c $(INCLUDE_DIR)/$(FILE_ICLUDE)
-	$(CC) $(CFLAGS) -c $(FILE_SRC).c -I $(INCLUDE_DIR)
+$(SRC_DIR)/$(FILE_SRC).o : $(SRC_DIR)/$(FILE_SRC).c $(INCLUDE_DIR)/$(FILE_ICLUDE)
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/$(FILE_SRC).c -I $(INCLUDE_DIR)
 
 # $(FILE_SRC2).o : $(FILE_SRC2).c $(INCLUDE_DIR)/$(FILE_ICLUDE2)
 #	$(CC) $(CFLAGS) -c $(FILE_SRC2).c -I $(INCLUDE_DIR)

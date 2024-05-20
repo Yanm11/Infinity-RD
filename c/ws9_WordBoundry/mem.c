@@ -9,12 +9,15 @@
 void *MemSet(void *s, int c, size_t n)
 {
 	
-	size_t *ptr_word = (size_t*)s;
-	unsigned char *ptr_char = (unsigned char*)s;
+	size_t *ptr_word = NULL;
+	unsigned char *ptr_char = NULL;
 	size_t char_value = (unsigned char)c;
 	
 	assert(NULL != s);
 
+	ptr_word = (size_t*)s;
+	ptr_char = (unsigned char*)s;
+	
 	while (n > 0)
 	{
 		/* check if allined */
@@ -54,14 +57,20 @@ void *MemSet(void *s, int c, size_t n)
 
 void *MemCpy(void *dest, const void *src, size_t n)
 {
-	size_t *ptr_dest_word = (size_t*)dest;
-	unsigned char *ptr_dest_char = (unsigned char*)dest;
+	size_t *ptr_dest_word = NULL;
+	unsigned char *ptr_dest_char = NULL;
 	
-	size_t *ptr_src_word = (size_t*)src;
-	unsigned char *ptr_src_char = (unsigned char*)src;
+	size_t *ptr_src_word = NULL;
+	unsigned char *ptr_src_char = NULL;
 	
 	assert(NULL != dest);
 	assert(NULL != src);
+	
+	ptr_dest_word = (size_t*)dest;
+	ptr_dest_char = (unsigned char*)dest;
+	
+	ptr_src_word = (size_t*)src;
+	ptr_src_char = (unsigned char*)src;
 	
 	while (n > 0)
 	{
@@ -103,11 +112,14 @@ void *MemCpy(void *dest, const void *src, size_t n)
 
 void *MemMove(void *dest, const void *src, size_t n)
 {
-	size_t size_src = strlen(src) + 1;
-	size_t diff_dest_src = (size_t)dest - (size_t)src;
+	size_t size_src = 0;
+	size_t diff_dest_src = 0;
 
 	assert(NULL != dest);
 	assert(NULL != src);
+	
+	size_src = strlen(src) + 1;
+	diff_dest_src = (size_t)dest - (size_t)src;
 	
 	/* if overlapping */
 	if ((diff_dest_src > 0) && (diff_dest_src < size_src))
