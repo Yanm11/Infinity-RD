@@ -3,12 +3,12 @@ CFLAGS = -ansi -pedantic-errors -Wall -Wextra
 CC = gcc
 
 # file names
-FILE_SRC = dllist
-#FILE_SRC2 = sllist
-FILE_ICLUDE = dllist.h
-# FILE_ICLUDE2 = sllist.h
-FILE_TEST = test_dllist
-FILE_OUT = test_dllist
+FILE_SRC = sortedlist
+FILE_SRC2 = dllist
+FILE_ICLUDE = sortedlist.h
+FILE_ICLUDE2 = dllist.h
+FILE_TEST = test_sortedlist
+FILE_OUT = test_sortedlist
 
 
 # dir locations
@@ -18,8 +18,9 @@ BIN_DIR = ./bin/debug
 INCLUDE_DIR = ./include
 
 # objects
-objects = $(TEST_DIR)/$(FILE_TEST).o $(SRC_DIR)/$(FILE_SRC).o
-# $(FILE_SRC2).o 
+objects = $(TEST_DIR)/$(FILE_TEST).o\
+		  $(SRC_DIR)/$(FILE_SRC).o \
+		  $(SRC_DIR)/$(FILE_SRC2).o 
 
 libobjects = dvector.o
 
@@ -45,8 +46,8 @@ $(TEST_DIR)/$(FILE_TEST).o : $(TEST_DIR)/$(FILE_TEST).c $(INCLUDE_DIR)/$(FILE_IC
 $(SRC_DIR)/$(FILE_SRC).o : $(SRC_DIR)/$(FILE_SRC).c $(INCLUDE_DIR)/$(FILE_ICLUDE)
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/$(FILE_SRC).c -o $@ -I $(INCLUDE_DIR)
 
-# $(FILE_SRC2).o : $(FILE_SRC2).c $(INCLUDE_DIR)/$(FILE_ICLUDE2)
-#	$(CC) $(CFLAGS) -c $(FILE_SRC2).c -I $(INCLUDE_DIR)
+$(SRC_DIR)/$(FILE_SRC2).o : $(SRC_DIR)/$(FILE_SRC2).c $(INCLUDE_DIR)/$(FILE_ICLUDE2)
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/$(FILE_SRC2).c $@ -I $(INCLUDE_DIR)
 
 
 libfoo.a: $(libobjects)

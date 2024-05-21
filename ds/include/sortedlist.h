@@ -45,7 +45,7 @@ return: iterator of next element
 time complexity: O(1)
 space complexity: O(1)
 */
-sortedlist_iter_t SortedlistNext(sorted_iter_t iter);
+sortedlist_iter_t SortedlistNext(sortedlist_iter_t iter);
 
 /*
 SortedlistPrev
@@ -55,7 +55,7 @@ return: a pointer to previos iterator
 time complexity: O(1)
 space complexity: O(1)
 */
-sortedlist_iter_t SortedlistPrev(sorted_iter_t iter);
+sortedlist_iter_t SortedlistPrev(sortedlist_iter_t iter);
 
 /*
 SlistBegin
@@ -95,7 +95,7 @@ return: the next iterator
 time complexity: O(1)
 space complexity: O(1)
 */
-sortedlist_iter_t SortedlistRemove(sorted_iter_t where);
+sortedlist_iter_t SortedlistRemove(sortedlist_iter_t where);
 
 /*
 SortedlistSize
@@ -115,7 +115,7 @@ return: pointer to data
 time complexity: O(1)
 space complexity: O(1)
 */
-void *SortedlistGetData(sorted_iter_t iter);
+void *SortedlistGetData(sortedlist_iter_t iter);
 
 /*
 SortedlistFind
@@ -127,8 +127,8 @@ space complexity: O(1)
 */
 sortedlist_iter_t SortedlistFind(
     sortedlist_t *list,
-    sorted_iter_t from, 
-    sorted_iter_t to, 
+    sortedlist_iter_t from, 
+    sortedlist_iter_t to, 
     const void *param);
 
 /*
@@ -140,9 +140,9 @@ time complexity: O(n)
 space complexity: O(1)
 */
 sortedlist_iter_t SortedlistFindIf(
-    sorted_iter_t from, 
-    sorted_iter_t to, 
-    int (*is_match)(const void *data,const void *param), 
+    sortedlist_iter_t from, 
+    sortedlist_iter_t to, 
+    int (*is_match)(const void *data, void *param), 
     void *param
     );
     
@@ -154,7 +154,7 @@ return: 1 if same iterator, 0 if not
 time complexity: O(1)
 space complexity: O(1)
 */
-int SortedlistIsSameIter(sorted_iter_t iter1, sorted_iter_t iter2);
+int SortedlistIsSameIter(sortedlist_iter_t iter1, sortedlist_iter_t iter2);
 
 /*
 SortedlistIsEmpty
@@ -205,8 +205,8 @@ time complexity: O(n)
 space complexity: O(1)
 */
 int SortedlistForEach(
-    sorted_iter_t from, 
-    sorted_iter_t to, 
+    sortedlist_iter_t from, 
+    sortedlist_iter_t to, 
     int (*action)(void *data, void *param), 
     void *param
     );

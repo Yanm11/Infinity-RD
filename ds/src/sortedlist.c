@@ -7,8 +7,8 @@
 struct sortedlist
 {
     dllist_t *list;
-    comp_func_t compare;
-}
+    sortedlist_cmp_func_t compare;
+};	
 
 sortedlist_t *SortedlistCreate(sortedlist_cmp_func_t compare)
 {
@@ -30,6 +30,8 @@ sortedlist_t *SortedlistCreate(sortedlist_cmp_func_t compare)
 	}
 	
 	ptr_list->compare = compare;
+	
+	return ptr_list;
 }
 
 void SortedlistDestroy(sortedlist_t *list)
@@ -41,7 +43,7 @@ void SortedlistDestroy(sortedlist_t *list)
 	free(list);
 }
 
-sortedlist_iter_t SortedlistNext(sorted_iter_t iter)
+sortedlist_iter_t SortedlistNext(sortedlist_iter_t iter)
 {	
 	assert(iter.iter);
 	
@@ -50,7 +52,7 @@ sortedlist_iter_t SortedlistNext(sorted_iter_t iter)
 	return iter;
 }
 
-sortedlist_iter_t SortedlistPrev(sorted_iter_t iter)
+sortedlist_iter_t SortedlistPrev(sortedlist_iter_t iter)
 {	
 	assert(iter.iter);
 	
@@ -66,7 +68,7 @@ sortedlist_iter_t SortedlistGetBegin(const sortedlist_t *list)
 	assert(list);
 	
 	#ifndef NDEBUG
-        iter.list = list;
+        iter.list = (sortedlist_t*)list;
     #endif
 	
 	iter.iter = DllistGetBegin(list->list);
@@ -81,7 +83,7 @@ sortedlist_iter_t SortedlistGetEnd(const sortedlist_t *list)
 	assert(list);
 	
 	#ifndef NDEBUG
-        iter.list = list;
+        iter.list = (sortedlist_t*)list;
     #endif
     
 	iter.iter = DllistGetEnd(list->list);
@@ -96,26 +98,25 @@ sortedlist_iter_t SortedlistInsert(sortedlist_t *list, void *data)
 	assert(list);
 	
 	where = SortedlistGetBegin(list);
-	
-	while (NULL != where.iter->next)
+
+	while (NULL != DllistNext(where.iter))
 	{
-		if (0 < compare(where.iter->data, data))
+		if (0 < list->compare(DllistGetData(where.iter), data))
 		{
-			where.iter = DllistInsertBefore(list, data, where.iter);
-			
+			where.iter = DllistInsertBefore(list->list, data, where.iter);
 			return where;
 		}
 		
-		where.iter = where.iter->next;
+		where.iter = DllistNext(where.iter);
 	}
-	
-	where.iter = DllistInsertBefore(list, data, where.iter);
+
+	where.iter = DllistInsertBefore(list->list, data, where.iter);
 	
 	return where;
 	
 }
 
-sortedlist_iter_t SortedlistRemove(sorted_iter_t where)
+sortedlist_iter_t SortedlistRemove(sortedlist_iter_t where)
 {
 	assert(where.iter);
 
@@ -131,17 +132,17 @@ size_t SortedlistSize(const sortedlist_t *list)
 	return DllistSize(list->list);
 }
 
-void *SortedlistGetData(sorted_iter_t iter)
+void *SortedlistGetData(sortedlist_iter_t iter)
 {
 	assert(iter.iter);
 	
-	return iter.iter->data;
+	return DllistGetData(iter.iter);
 }
 
 sortedlist_iter_t SortedlistFind(
     sortedlist_t *list,
-    sorted_iter_t from, 
-    sorted_iter_t to, 
+    sortedlist_iter_t from, 
+    sortedlist_iter_t to, 
     const void *param)
 {
 	sortedlist_iter_t where;
@@ -152,25 +153,117 @@ sortedlist_iter_t SortedlistFind(
 	#ifndef NDEBUG
 		assert(from.list);
 		assert(to.list);
-        assert(from.list == to.list)
+        assert(from.list == to.list);
     #endif
     
     while (!DllistIsSameIter(from.iter,to.iter))
 	{
-		if (0 == list.compare(from.iter->data,param))
+		if (0 == list->compare(DllistGetData(from.iter), param))
 		{
 			where.iter = from.iter;
 			
 			return where;
 		}
 		
-		from.iter = from.iter->next;
+		from.iter = DllistNext(from.iter);
 	}
 	
 	where.iter = to.iter;
 	
 	return where;
 }
+
+sortedlist_iter_t SortedlistFindIf(
+    sortedlist_iter_t from, 
+    sortedlist_iter_t to, 
+    int (*is_match)(const void *data, void *param), 
+    void *param
+    )
+{
+	sortedlist_iter_t where;
+	
+	assert(from.iter);
+	assert(to.iter);
+	#ifndef NDEBUG
+		assert(from.list);
+		assert(to.list);
+        assert(from.list == to.list);
+    #endif
+    
+   where.iter =  DllistFind(param, from.iter, to.iter, is_match);
+   
+   return where;
+}
+
+int SortedlistIsSameIter(sortedlist_iter_t iter1, sortedlist_iter_t iter2)
+{
+	assert(iter1.iter);
+	assert(iter2.iter);
+	
+	return (iter1.iter == iter2.iter);
+}
+
+int SortedlistIsEmpty(const sortedlist_t *list)
+{
+	assert(list);
+	
+	return DllistIsEmpty(list->list);
+}
+
+void *SortedlistPopFront(sortedlist_t *list)
+{
+	assert(list);
+	
+	return DllistPopFront(list->list);
+
+}
+
+void *SortedlistPopBack(sortedlist_t *list)
+{
+	assert(list);
+	
+	return DllistPopBack(list->list);
+}
+
+void SortedlistMerge(sortedlist_t *dest, sortedlist_t *src)
+{
+	sortedlist_iter_t where_dest_from;
+	sortedlist_iter_t where_dest_to;
+	sortedlist_iter_t where_src;_from;
+	sortedlist_iter_t where_src;_to;
+	
+	assert(dest);
+	assert(src);
+	
+	where_dest_from = SortedlistGetBegin(dest);
+	where_src_from = SortedlistGetBegin(src);
+	where_dest_to = DllistGetBegin(dest->list);
+	where_src_to = DllistGetBegin(dest->list);	
+	
+	while (dest
+}
+
+int SortedlistForEach(
+    sortedlist_iter_t from, 
+    sortedlist_iter_t to, 
+    int (*action)(void *data, void *param), 
+    void *param
+    )
+{
+	assert(from.iter);
+	assert(to.iter);
+	#ifndef NDEBUG
+		assert(from.list);
+		assert(to.list);
+        assert(from.list == to.list);
+    #endif
+    
+    return DllistForEach(from.iter, to.iter, action, param);
+}
+
+
+
+
 
 
 
