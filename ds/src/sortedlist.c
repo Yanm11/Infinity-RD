@@ -1,8 +1,10 @@
-#include <stdlib.h> /* size_t malloc() free() */
-#include <assert.h> /* assert() */
+#include <stdlib.h> /* malloc free */
+#include <assert.h> /* assert */
 
 #include "dllist.h"
 #include "sortedlist.h"
+
+static int IsDummy(sortedlist_iter_t iter);
 
 struct sortedlist
 {
@@ -96,10 +98,11 @@ sortedlist_iter_t SortedlistInsert(sortedlist_t *list, void *data)
 	sortedlist_iter_t where;
 	
 	assert(list);
+	assert(data);
 	
 	where = SortedlistGetBegin(list);
 
-	while (NULL != DllistNext(where.iter))
+	while (!IsDummy(where))
 	{
 		if (0 < list->compare(DllistGetData(where.iter), data))
 		{
@@ -150,6 +153,7 @@ sortedlist_iter_t SortedlistFind(
 	assert(list);
 	assert(from.iter);
 	assert(to.iter);
+	assert(param);
 	#ifndef NDEBUG
 		assert(from.list);
 		assert(to.list);
@@ -184,6 +188,7 @@ sortedlist_iter_t SortedlistFindIf(
 	
 	assert(from.iter);
 	assert(to.iter);
+	assert(param);
 	#ifndef NDEBUG
 		assert(from.list);
 		assert(to.list);
@@ -225,22 +230,61 @@ void *SortedlistPopBack(sortedlist_t *list)
 	return DllistPopBack(list->list);
 }
 
+static int IsDummy(sortedlist_iter_t iter)
+{
+	assert(iter.iter);
+	
+	return (NULL == SortedlistNext(iter).iter);
+}
+
+
+
 void SortedlistMerge(sortedlist_t *dest, sortedlist_t *src)
 {
 	sortedlist_iter_t where_dest_from;
 	sortedlist_iter_t where_dest_to;
-	sortedlist_iter_t where_src;_from;
-	sortedlist_iter_t where_src;_to;
+	sortedlist_iter_t where_src_from;
+	sortedlist_iter_t where_src_to;
 	
 	assert(dest);
 	assert(src);
 	
 	where_dest_from = SortedlistGetBegin(dest);
 	where_src_from = SortedlistGetBegin(src);
-	where_dest_to = DllistGetBegin(dest->list);
-	where_src_to = DllistGetBegin(dest->list);	
+	where_dest_to = where_dest_from;
+	where_src_to = SortedlistNext(where_src_from);	
+
+	while ((!IsDummy(where_dest_to)) && (!IsDummy(where_src_to)))
+	{
+		while ((0 < dest->compare(SortedlistGetData(where_dest_to)
+							, SortedlistGetData(where_src_to))) &&
+							(!IsDummy(where_src_to)))
+		{
+			where_src_to = SortedlistNext(where_src_to);
+		}
+		
+		if ((0 < dest->compare(SortedlistGetData(where_dest_to)
+							, SortedlistGetData(where_src_from))))
+		{
+			DllistSplice(where_dest_to.iter,
+						 where_src_from.iter,
+						 where_src_to.iter);
+						 		
+			where_src_from = where_src_to;
+		}
+		
+		where_dest_to = SortedlistNext(where_dest_to);
+	}
 	
-	while (dest
+	if ((IsDummy(where_dest_to)) && (!IsDummy(where_src_to)))
+	{
+		where_src_to = SortedlistGetEnd(src);
+		
+		DllistSplice(where_dest_to.iter,
+					 where_src_from.iter,
+					 where_src_to.iter);
+	}
+
 }
 
 int SortedlistForEach(
