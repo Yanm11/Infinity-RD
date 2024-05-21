@@ -10,6 +10,8 @@ yan meiri
 checked by or
 */
 
+static int IsDvectorFull(dvector_t *vector);
+
 struct dvector
 {
     size_t capacity;
@@ -21,7 +23,10 @@ struct dvector
 dvector_t *DvectorCreate(size_t capacity, size_t element_size)
 {
 	dvector_t *vector_ptr = NULL;
-
+	
+	assert(0 < element_size);
+	assert(0 < capacity);
+	
 	vector_ptr = (dvector_t*)malloc(sizeof(dvector_t));
 	
 	if (NULL == vector_ptr)
@@ -53,11 +58,14 @@ void DvectorDestroy(dvector_t *vector)
 int DvectorPushBack(dvector_t *vector, const void *new_element)
 {
 	size_t i = 0;
-	char *ptr_elem = (char*)new_element;
+	char *ptr_elem = NULL;
 	
-	assert(NULL != vector);
+	assert(vector);
+	assert(new_element);
 	
-	if (vector->size == vector->capacity)
+	ptr_elem = (char*)new_element;
+	
+	if (IsDvectorFull(vector))
 	{
 		int status = DvectorReserve(vector, vector->capacity * GROWTHFACTOR);
 		if (status == -1)
@@ -69,7 +77,7 @@ int DvectorPushBack(dvector_t *vector, const void *new_element)
 	
 	for (;i < vector->element_size; ++i)
 	{
-		*((vector->buffer) + (vector->size) * (vector->element_size) + i) = *ptr_elem;
+		*((vector->buffer)+(vector->size)*(vector->element_size)+i)=*ptr_elem;
 		++ptr_elem;
 	}
 	
@@ -78,25 +86,45 @@ int DvectorPushBack(dvector_t *vector, const void *new_element)
 	return 0; 	
 }
 
+static int IsDvectorFull(dvector_t *vector)
+{
+	assert(vector);
+	
+	return (vector->size == vector->capacity);
+}
+
 void DvectorPopBack(dvector_t *vector)
 {
-	assert(NULL != vector);
+	assert(vector);
 	vector->size -= 1;	
 }
 
 int DvectorShrink(dvector_t *vector)
 {
+	assert(vector);
+	
 	return DvectorReserve(vector, vector->size);
 }
 
 int DvectorReserve(dvector_t *vector, size_t new_size)
 {
-	size_t total_size = new_size * vector->element_size;
-	char *ptr_realloc =(char*)realloc(vector->buffer, total_size);
+	size_t total_size = 0;
+	char *ptr_realloc = NULL;
+	
+	assert(vector);
+	assert(0 <= new_size);
+	
+	total_size = new_size * vector->element_size;
+	ptr_realloc =(char*)realloc(vector->buffer, total_size);
 	
 	if (NULL == ptr_realloc)
 	{
 		return -1;
+	}
+	
+	if (new_size > vector->size)
+	{
+		vector->size = new_size;
 	}
 	
 	vector->buffer = ptr_realloc;
@@ -121,6 +149,8 @@ size_t DvectorCapacity(const dvector_t *vector)
 void *DvectorGetElement(const dvector_t *vector, size_t index)
 {
 	assert(NULL != vector);
+	assert(vector->size >= index);
+	
 	return (vector->buffer + vector->element_size * index);
 }
 
