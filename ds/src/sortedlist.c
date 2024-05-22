@@ -65,7 +65,7 @@ sortedlist_iter_t SortedlistPrev(sortedlist_iter_t iter)
 
 sortedlist_iter_t SortedlistGetBegin(const sortedlist_t *list)
 {
-	sortedlist_iter_t iter;
+	sortedlist_iter_t iter = {NULL};
 	
 	assert(list);
 	
@@ -80,7 +80,7 @@ sortedlist_iter_t SortedlistGetBegin(const sortedlist_t *list)
 
 sortedlist_iter_t SortedlistGetEnd(const sortedlist_t *list)
 {
-	sortedlist_iter_t iter;
+	sortedlist_iter_t iter = {NULL};
 	
 	assert(list);
 	
@@ -95,7 +95,7 @@ sortedlist_iter_t SortedlistGetEnd(const sortedlist_t *list)
 
 sortedlist_iter_t SortedlistInsert(sortedlist_t *list, void *data)
 {
-	sortedlist_iter_t where;
+	sortedlist_iter_t where = {NULL};
 	
 	assert(list);
 	assert(data);
@@ -148,17 +148,15 @@ sortedlist_iter_t SortedlistFind(
     sortedlist_iter_t to, 
     const void *param)
 {
-	sortedlist_iter_t where;
+	sortedlist_iter_t where = {NULL};
 	
 	assert(list);
 	assert(from.iter);
 	assert(to.iter);
 	assert(param);
-	#ifndef NDEBUG
-		assert(from.list);
-		assert(to.list);
-        assert(from.list == to.list);
-    #endif
+	assert(from.list);
+	assert(to.list);
+    assert(from.list == to.list);
     
     while (!DllistIsSameIter(from.iter,to.iter))
 	{
@@ -184,16 +182,14 @@ sortedlist_iter_t SortedlistFindIf(
     void *param
     )
 {
-	sortedlist_iter_t where;
+	sortedlist_iter_t where = {NULL};
 	
 	assert(from.iter);
 	assert(to.iter);
 	assert(param);
-	#ifndef NDEBUG
-		assert(from.list);
-		assert(to.list);
-        assert(from.list == to.list);
-    #endif
+	assert(from.list);
+	assert(to.list);
+    assert(from.list == to.list);
     
    where.iter =  DllistFind(param, from.iter, to.iter, is_match);
    
@@ -241,13 +237,14 @@ static int IsDummy(sortedlist_iter_t iter)
 
 void SortedlistMerge(sortedlist_t *dest, sortedlist_t *src)
 {
-	sortedlist_iter_t where_dest_from;
-	sortedlist_iter_t where_dest_to;
-	sortedlist_iter_t where_src_from;
-	sortedlist_iter_t where_src_to;
+	sortedlist_iter_t where_dest_from = {NULL}; 
+	sortedlist_iter_t where_dest_to = {NULL};
+	sortedlist_iter_t where_src_from = {NULL};
+	sortedlist_iter_t where_src_to = {NULL};
 	
 	assert(dest);
 	assert(src);
+	assert(dest->compare == src->compare);
 	
 	where_dest_from = SortedlistGetBegin(dest);
 	where_src_from = SortedlistGetBegin(src);
@@ -257,8 +254,8 @@ void SortedlistMerge(sortedlist_t *dest, sortedlist_t *src)
 	while ((!IsDummy(where_dest_to)) && (!IsDummy(where_src_to)))
 	{
 		while ((0 < dest->compare(SortedlistGetData(where_dest_to)
-							, SortedlistGetData(where_src_to))) &&
-							(!IsDummy(where_src_to)))
+							    , SortedlistGetData(where_src_to))) &&
+				(!IsDummy(where_src_to)))
 		{
 			where_src_to = SortedlistNext(where_src_to);
 		}
@@ -296,12 +293,10 @@ int SortedlistForEach(
 {
 	assert(from.iter);
 	assert(to.iter);
-	#ifndef NDEBUG
-		assert(from.list);
-		assert(to.list);
-        assert(from.list == to.list);
-    #endif
-    
+	assert(from.list);
+	assert(to.list);
+    assert(from.list == to.list);
+        
     return DllistForEach(from.iter, to.iter, action, param);
 }
 

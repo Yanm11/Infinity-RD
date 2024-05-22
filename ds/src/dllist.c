@@ -147,7 +147,7 @@ dllist_iter_t DllistInsertBefore(dllist_t *list,
 	new_node = CreateNode(data, where, where->prev);
 	if (NULL == new_node)
 	{
-		return NULL;
+		return list->tail;
 	}
 	
 	where->prev->next = new_node;
