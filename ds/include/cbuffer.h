@@ -33,7 +33,7 @@ Returns: The number of free bytes to write
 Time Complexity:O(1)
 Space Complexity:O(1)
 */
-size_t CBuffFreeSpace(cbuffer_t *buffer);
+size_t CBuffFreeSpace(const cbuffer_t *buffer);
 
 /*
 CBuffSize
@@ -73,7 +73,7 @@ Returns: 1 if empty, 0 if not
 Time Complexity: O(1)
 Space Complexity: O(1)
 */
-int CBuffIsEmpty(cbuffer_t *buffer);
+int CBuffIsEmpty(const cbuffer_t *buffer);
 
 
 #endif /*__CIRCULAR_BUFFER_H__*/

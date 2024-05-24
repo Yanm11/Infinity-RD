@@ -1,12 +1,15 @@
-/*
-yan meiri
-15.05.2024
-reviwed by amit
-*/
+/********************************** 
+   Code by: Yan Meiri	
+   Project: Circular buffer data structure
+   Date: 15/05/24
+   Review by: Amit
+   Review Date: 18/05/24
+   Approved by: Amit
+   Approval Date: 18/05/24
+**********************************/
 
-#include <stdio.h> 
 #include <stdlib.h> /* malloc free */
-#include <stddef.h> /* size_t ssize_t offsetof */
+#include <stddef.h> /* offsetof */
 #include <assert.h> /* assert */
 
 #include "cbuffer.h"
@@ -19,17 +22,18 @@ struct cbuffer
     char buff_data[1];
 };
  
-cbuffer_t *CBuffCreate(size_t capacityacity)
+cbuffer_t *CBuffCreate(size_t capacity)
 {
     cbuffer_t *cbuffer = NULL;
     
-    assert(0 < capacityacity);
+    assert(0 < capacity);
     
-    cbuffer = (cbuffer_t*)malloc(offsetof(cbuffer_t, buff_data) + (capacityacity * sizeof(char)));
+    cbuffer = (cbuffer_t*)malloc(offsetof(cbuffer_t, buff_data) +
+    							 (capacity * sizeof(char)));
     
     cbuffer->write_offset = 0;
     cbuffer->read_offset = 0;
-    cbuffer->capacity = capacityacity;
+    cbuffer->capacity = capacity;
     
     return cbuffer;
 }
@@ -41,7 +45,7 @@ void CBuffDestroy(cbuffer_t *buffer)
      free(buffer);
 }
 
-size_t CBuffFreeSpace(cbuffer_t *buffer)
+size_t CBuffFreeSpace(const cbuffer_t *buffer)
 {
 	size_t capacity = buffer->capacity;
 	
@@ -54,13 +58,14 @@ size_t CBuffFreeSpace(cbuffer_t *buffer)
     }
     
     /* when read offset is smaller than write offset */
-    else if ((buffer->read_offset % capacity) < (buffer->write_offset % capacity))
+    else if ((buffer->read_offset % capacity)<(buffer->write_offset % capacity))
     {
-        return (capacity - (buffer->write_offset % capacity) + (buffer->read_offset % capacity));
+        return (capacity - (buffer->write_offset % capacity) +
+        				   (buffer->read_offset % capacity));
     }
     
     /* when read offset is bigger than write offset */
-    return ((buffer->read_offset % capacity) - (buffer->write_offset % capacity));
+    return ((buffer->read_offset % capacity)-(buffer->write_offset % capacity));
 }
 
 size_t CBuffSize(const cbuffer_t *buffer)
@@ -70,19 +75,11 @@ size_t CBuffSize(const cbuffer_t *buffer)
     return buffer->capacity;
 }
 
-int CBuffIsEmpty(cbuffer_t *buffer)
+int CBuffIsEmpty(const cbuffer_t *buffer)
 {
     assert(buffer);
     
-    if (buffer->write_offset == buffer->read_offset)
-    {
-    	buffer->read_offset = buffer->read_offset % buffer->capacity;
-    	buffer->write_offset = buffer->write_offset % buffer->capacity;
-    	
-    	return 1;
-    }
-    
-    return 0;
+    return (buffer->write_offset == buffer->read_offset);
 }
 
 ssize_t CBuffRead(cbuffer_t *buffer, void * dest, size_t count)
@@ -97,15 +94,18 @@ ssize_t CBuffRead(cbuffer_t *buffer, void * dest, size_t count)
     
     if (CBuffIsEmpty(buffer))
     {
+    	/* updating the offsets to reduce their size */
+    	buffer->read_offset = buffer->read_offset % buffer->capacity;
+    	buffer->write_offset = buffer->write_offset % buffer->capacity;
+    	
         return 0;
     }
     
-    /* making sure to not read more than capacity */
-    if (count > capacity)
-    {
-        count = count % capacity + 1;
-    }
-    
+	if(count > (capacity - CBuffFreeSpace(buffer)))
+	{
+		count = (capacity - CBuffFreeSpace(buffer));
+	}
+
     while ((0 < count) && (buffer->read_offset < buffer->write_offset))
     {
         *new_dest = buffer->buff_data[buffer->read_offset % capacity];
@@ -123,7 +123,7 @@ ssize_t CBuffWrite(cbuffer_t *buffer, const void *src, size_t count)
     ssize_t num_bytes_wrote = count;
     char *new_src = (char *)src;
     size_t capacity = buffer->capacity;
-    size_t diff_w_r = 0;
+    size_t diff_write_read = 0;
     
     assert(buffer);
     assert(src);
@@ -138,11 +138,10 @@ ssize_t CBuffWrite(cbuffer_t *buffer, const void *src, size_t count)
         --count;
     }
     
+    diff_write_read = buffer->write_offset - buffer->read_offset;
     
-    diff_w_r = buffer->write_offset - buffer->read_offset;
-    
-    /* updating the read offset only when write passes him i a full lap or more */
-    if (diff_w_r > capacity)
+    /* updating the read offset only when write passes him by a lap or more */
+    if (diff_write_read > capacity)
     {
     	buffer->read_offset = (buffer->write_offset % capacity);
     }
