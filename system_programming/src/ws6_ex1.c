@@ -2,7 +2,7 @@
 
 #include "ws6_ex1.h"
 
-x = 40;
+int x = 40;
 
 void PrintGlobalVariableAddress()
 {

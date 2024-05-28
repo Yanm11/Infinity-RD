@@ -11,8 +11,11 @@
 #include <stdlib.h> /* malloc free */
 #include <stddef.h> /* offsetof */
 #include <assert.h> /* assert */
+#include <string.h> /* memcpy */
 
 #include "cbuffer.h"
+
+#define MIN2(a,b) ((a < b) ? (a) : (b))
 
 struct cbuffer
 {
@@ -86,17 +89,22 @@ ssize_t CBuffRead(cbuffer_t *buffer, void * dest, size_t count)
 {
     char *new_dest = (char *)dest;
     ssize_t num_bytes_read = count;
-    size_t capacity = buffer->capacity;
-    
+    size_t capacity = 0;
+    size_t remain_right = 0;
+    size_t remain_left = 0;   
+     
     assert(buffer);
     assert(dest);
     assert(0 < count);
     
+	capacity = buffer->capacity;
+
+	
     if (CBuffIsEmpty(buffer))
     {
     	/* updating the offsets to reduce their size */
-    	buffer->read_offset = buffer->read_offset % buffer->capacity;
-    	buffer->write_offset = buffer->write_offset % buffer->capacity;
+    	buffer->read_offset = buffer->read_offset % capacity;
+    	buffer->write_offset = buffer->write_offset % capacity;
     	
         return 0;
     }
@@ -105,15 +113,26 @@ ssize_t CBuffRead(cbuffer_t *buffer, void * dest, size_t count)
 	{
 		count = (capacity - CBuffFreeSpace(buffer));
 	}
-
-    while ((0 < count) && (buffer->read_offset < buffer->write_offset))
-    {
-        *new_dest = buffer->buff_data[buffer->read_offset % capacity];
-    
-        ++buffer->read_offset;
-        ++new_dest;
-        --count;
-    }
+	
+	remain_right = MIN2(count, (capacity - (buffer->read_offset % capacity)));
+	remain_left = count - remain_right;
+	
+	memcpy(new_dest,
+		   (buffer->buff_data + (buffer->read_offset % capacity)), 
+		   remain_right);
+	
+	buffer->read_offset += remain_right;
+	new_dest += remain_right;
+	
+	if (0 < remain_left)
+	{
+		memcpy(new_dest,
+		      (buffer->buff_data + (buffer->read_offset % capacity)), 
+		      remain_left);
+	
+		buffer->read_offset += remain_left;
+		new_dest += remain_left;
+	}
     
     return (num_bytes_read - count);
 }
@@ -122,22 +141,36 @@ ssize_t CBuffWrite(cbuffer_t *buffer, const void *src, size_t count)
 {
     ssize_t num_bytes_wrote = count;
     char *new_src = (char *)src;
-    size_t capacity = buffer->capacity;
+    size_t capacity = 0;
     size_t diff_write_read = 0;
+    size_t remain_right = 0;
+    size_t remain_left = 0; 
     
     assert(buffer);
     assert(src);
     assert(0 < count);
     
-    while (0 < count)
-    {
-        buffer->buff_data[buffer->write_offset % capacity] = *new_src;
-        
-        ++buffer->write_offset;
-        ++new_src;
-        --count;
-    }
-    
+    capacity = buffer->capacity;
+    remain_right = MIN2(count, (capacity - (buffer->write_offset % capacity)));
+	remain_left = count - remain_right;
+	
+	memcpy((buffer->buff_data + (buffer->write_offset % capacity)),
+		   new_src,
+		   remain_right);
+	
+	buffer->write_offset += remain_right;
+	new_src += remain_right;
+	
+	if (0 < remain_left)
+	{
+		memcpy((buffer->buff_data + (buffer->write_offset % capacity)),
+		        new_src,
+		        remain_right);
+	
+		buffer->write_offset += remain_right;
+		new_src += remain_right;
+	}
+
     diff_write_read = buffer->write_offset - buffer->read_offset;
     
     /* updating the read offset only when write passes him by a lap or more */
