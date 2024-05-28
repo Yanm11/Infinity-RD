@@ -3,12 +3,12 @@ CFLAGS = -ansi -pedantic-errors -Wall -Wextra
 CC = gcc
 
 # file names
-FILE_SRC = cbuffer
+FILE_SRC = uid
 #FILE_SRC2 = dllist
-FILE_ICLUDE = cbuffer.h
+FILE_ICLUDE = uid.h
 #FILE_ICLUDE2 = dllist.h
-FILE_TEST = test_cbuffer
-FILE_OUT = test_cbuffer
+FILE_TEST = test_uid
+FILE_OUT = test_uid
 
 
 # dir locations
