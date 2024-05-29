@@ -1,3 +1,14 @@
+/********************************** 
+   Code by: Yan Meiri	
+   Project: Priority queue
+   Date: 29/05/24
+   Review by: 
+   Review Date: 
+   Approved by: 
+   Approval Date: 
+**********************************/
+
+
 #include <stddef.h> /* size_t */
 #include <assert.h> /* assert */
 #include <stdlib.h> /* malloc free */
