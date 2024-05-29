@@ -1,6 +1,6 @@
 #include <stdio.h> /* printf */
 #include <time.h> /* time */
-#include <unistd.h>
+#include <unistd.h> /* getpid */
 
 #include "uid.h"
 
@@ -48,22 +48,22 @@ void TestCreate()
 		return;
 	}
 	
-	if (UID.timestamp != time(NULL) - (time_t)1 &&
+	if (UID.timestamp != time(NULL) &&
 		UID.counter != 1 &&
-		UID.pid != (getpid() ^ 1))
+		UID.pid != getpid())
 	{
 		printf("test Create FAILED2!\n");
 		++check;
 		return;
 	}
 	
-	sleep(2);
+	sleep(1);
 	
 	UID = UIDCreate();
 	
-	if (UID.timestamp != time(NULL) - (time_t)1 &&
+	if (UID.timestamp != time(NULL) &&
 		UID.counter != 2 &&
-		UID.pid != (getpid() ^ 2))
+		UID.pid != getpid())
 	{
 		printf("test Create FAILED3!\n");
 		++check;
@@ -76,7 +76,9 @@ void TestCreate()
 void TestIsSame()
 {
 	ilrd_uid_t UID = UIDCreate();
+	
 	ilrd_uid_t UID2 = UIDCreate();
+	
 	ilrd_uid_t UID3 = UIDCreate();
 	
 	if (!IsSameUID(UID, UID))
