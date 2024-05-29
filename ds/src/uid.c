@@ -4,8 +4,8 @@
    Date: 28/05/24
    Review by: amit
    Review Date: 29/05/2024
-   Approved by: 
-   Approval Date: 
+   Approved by: amit
+   Approval Date: 29/05/204
 **********************************/
 
 #include <time.h> /* time */
@@ -22,6 +22,11 @@ ilrd_uid_t UIDCreate(void)
 	static size_t counter = 1;
 	
 	UID.timestamp = time(NULL);
+	if ((time_t)-1 == UID.timestamp)
+	{
+		return BadUID;
+	}
+	
 	UID.counter = counter;
 	UID.pid = getpid();
 	
