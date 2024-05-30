@@ -2,10 +2,10 @@
    Code by: Yan Meiri	
    Project: Priority queue
    Date: 29/05/24
-   Review by: 
-   Review Date: 
-   Approved by: 
-   Approval Date: 
+   Review by: ido
+   Review Date: 30/05/2024
+   Approved by: ido
+   Approval Date: 30/05/2024
 **********************************/
 
 
@@ -24,14 +24,17 @@ struct pq
 
 pq_t *PQCreate(pq_compare_func_t cmp_func)
 {
-	pq_t *pq_ptr = (pq_t*)malloc(sizeof(pq_t));
+	pq_t *pq_ptr = NULL;
 	
+	assert(cmp_func);
+
+	pq_ptr = (pq_t*)malloc(sizeof(pq_t));
+
 	if (NULL ==pq_ptr)
 	{
 		return NULL;
 	}
 	
-	assert(cmp_func);
 	
 	pq_ptr->list = SortedlistCreate(cmp_func);
 	
@@ -51,6 +54,7 @@ void PQDestroy(pq_t *queue)
 	assert(queue->list);
 	
 	SortedlistDestroy(queue->list);
+	free(queue);
 }
 
 int PQEnqueue(pq_t *queue, void *data)
@@ -70,17 +74,10 @@ int PQEnqueue(pq_t *queue, void *data)
 
 void *PQDequeue(pq_t *queue)
 {
-	void *data = NULL;
-	sortedlist_iter_t iter = {NULL};
-	
 	assert(queue);
 	assert(queue->list);
 	
-	iter = SortedlistGetBegin(queue->list);
-	data = SortedlistGetData(iter);
-	SortedlistRemove(iter);
-	
-	return data;
+	return SortedlistPopFront(queue->list);;
 }
 
 void *PQPeek(const pq_t *queue)
@@ -132,6 +129,8 @@ void *PQErase(pq_t *queue, pq_match_func_t is_match, void *param)
 	
 	assert(queue);
 	assert(queue->list);
+	assert(is_match);
+	assert(param);
 	
 	from = SortedlistGetBegin(queue->list);
 	to = SortedlistGetEnd(queue->list);
