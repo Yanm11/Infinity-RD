@@ -1,3 +1,4 @@
+
 # flags and compiler
 CFLAGS = -ansi -pedantic-errors -Wall -Wextra
 CC = gcc
@@ -61,3 +62,4 @@ libfoo.a: $(libobjects)
 .PHONY : clean
 clean :
 	rm $(BIN_DIR)/$(FILE_OUT) ../bin/release//$(FILE_OUT)  $(objects) libfoo.a
+

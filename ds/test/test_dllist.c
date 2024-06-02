@@ -16,7 +16,7 @@ void test_DllistForEachFind(void);
 void test_DllistSplice(void);
 void test_DllistMultiFind(void);
 
-int isEqual(const void *data, void *param);
+int isEqual(const void *data,const void *param);
 int Multipli(void *data, void *param);
 
 
@@ -484,7 +484,7 @@ void test_DllistMultiFind(void)
 
 
 
-int isEqual(const void *data, void *param)
+int isEqual(const void *data, const void *param)
 {	
 	return (*(int *)data == *(int *)param);
 }

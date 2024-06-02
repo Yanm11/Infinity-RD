@@ -6,7 +6,7 @@
 typedef struct dllist dllist_t;
 typedef struct dllist_node *dllist_iter_t;
 typedef int (*action_func_t)(void *data, void *param);
-typedef int (*match_func_t)(const void *data, void *param);
+typedef int (*match_func_t)(const void *data, const void *param);
 
 /*
 DllistCreate

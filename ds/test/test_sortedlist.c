@@ -5,7 +5,7 @@
 
 void TestSortedList();
 static int CompareInt(const void *data1, const void *data2);
-static int IsMatch(const void *data, void *param);
+static int IsMatch(const void *data, const void *param);
 static int PrintInt(void *data, void *param);
 
 int main(void)
@@ -21,7 +21,7 @@ static int CompareInt(const void *data1, const void *data2)
     return (*(int *)data1 - *(int *)data2);
 }
 
-static int IsMatch(const void *data, void *param)
+static int IsMatch(const void *data, const void *param)
 {
     return (*(int *)data == *(int *)param);
 }

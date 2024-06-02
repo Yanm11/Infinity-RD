@@ -21,7 +21,7 @@ Description: typedef to pointer function that checks if the two arguments are a 
 Params: (void *, void *) two elements to compare
 Return Value: int that represent the status of the matching, non-zero for a match, 0 for not match
 */
-typedef int (*pq_match_func_t)(const void*, void*);
+typedef int (*pq_match_func_t)(const void*, const void*);
 
 
 /*

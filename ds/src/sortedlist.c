@@ -142,11 +142,10 @@ void *SortedlistGetData(sortedlist_iter_t iter)
 	return DllistGetData(iter.iter);
 }
 
-sortedlist_iter_t SortedlistFind(
-    sortedlist_t *list,
-    sortedlist_iter_t from, 
-    sortedlist_iter_t to, 
-    const void *param)
+sortedlist_iter_t SortedlistFind(sortedlist_t *list,
+    							 sortedlist_iter_t from, 
+    							 sortedlist_iter_t to, 
+    							 const void *param)
 {
 	sortedlist_iter_t where = {NULL};
 	
@@ -178,7 +177,7 @@ sortedlist_iter_t SortedlistFind(
 sortedlist_iter_t SortedlistFindIf(
     sortedlist_iter_t from, 
     sortedlist_iter_t to, 
-    int (*is_match)(const void *data, void *param), 
+    int (*is_match)(const void *data, const void *param), 
     void *param
     )
 {

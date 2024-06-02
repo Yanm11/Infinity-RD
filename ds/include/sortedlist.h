@@ -142,7 +142,7 @@ space complexity: O(1)
 sortedlist_iter_t SortedlistFindIf(
     sortedlist_iter_t from, 
     sortedlist_iter_t to, 
-    int (*is_match)(const void *data, void *param), 
+    int (*is_match)(const void *data, const void *param), 
     void *param
     );
     

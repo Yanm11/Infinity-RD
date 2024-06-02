@@ -1,5 +1,6 @@
 #include <stdio.h> /*printf */
 #include <stddef.h> /*size_t */
+
 #include "stack.h"
 
 #define CAP 20
