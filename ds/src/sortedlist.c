@@ -157,7 +157,8 @@ sortedlist_iter_t SortedlistFind(sortedlist_t *list,
 	assert(to.list);
     assert(from.list == to.list);
     
-    while (!DllistIsSameIter(from.iter,to.iter))
+    while ((!DllistIsSameIter(from.iter,to.iter)) &&
+     	  (0 >= list->compare(DllistGetData(from.iter), param)))
 	{
 		if (0 == list->compare(DllistGetData(from.iter), param))
 		{
