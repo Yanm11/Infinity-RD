@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "fsa.h"
 
 static int checker = 0;
@@ -12,6 +13,7 @@ void TestFSASuggestSize()
     if (suggested_size != (320 + 16 + 10*8 ))
     {
         printf("TestFSASuggestSize failed for 32, 10\n");
+        printf("got: %ld\n", suggested_size);
         ++checker;
     }
     else
@@ -57,6 +59,8 @@ void TestFSAAllocFree()
     void *block2 = NULL;
     void *block3 = NULL;
 	size_t free_blocks = 0;
+	
+	printf("size: %ld\n", total_size);
 	
     if (fsa == NULL)
     {
