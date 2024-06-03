@@ -11,6 +11,7 @@
 
 #include <sys/types.h> /* ssize_t */
 #include <assert.h> /* assert */
+
 #include "fsa.h"
 
 struct fsa
@@ -45,9 +46,9 @@ fsa_t *FSAInit(void *memory, size_t total_size, size_t block_size)
 {
 	fsa_t *fsa = NULL;
 	size_t i = 0;
-	size_t size_struct = sizeof(fsa_t);
+	size_t struct_size = sizeof(fsa_t);
 	size_t actual_block_size = 0;
-	
+	size_t number_of_blocks = 0;
 	
 	assert(memory);
 	assert(0 < total_size);
@@ -55,14 +56,15 @@ fsa_t *FSAInit(void *memory, size_t total_size, size_t block_size)
 	
 	block_size = aligned_block_size(block_size);
 
-	fsa = (fsa_t*)memory;
 	actual_block_size = block_size + WORD_SIZE;
-	total_size -= size_struct;
+	total_size -= struct_size;
+	number_of_blocks = total_size / actual_block_size;
 	
+	fsa = (fsa_t*)memory;
 	fsa->head = 0;
-	fsa->memory_pool = (char*)memory + size_struct ;
+	fsa->memory_pool = (char*)memory + struct_size ;
 	
-	for (;i < ((total_size / actual_block_size)- 1); ++i)
+	for (;i < (number_of_blocks - 1); ++i)
 	{
 		*(size_t*)(fsa->memory_pool + (i * actual_block_size)) = 
 													((i+1) * (actual_block_size));
