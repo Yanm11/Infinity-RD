@@ -3,14 +3,14 @@ CFLAGS = -ansi -pedantic-errors -Wall -Wextra
 CC = gcc
 
 # file names
-FILE_SRC = fsa
+FILE_SRC = vsa
 #FILE_SRC2 = sortedlist
 #FILE_SRC3 = dllist
-FILE_ICLUDE = fsa.h
+FILE_ICLUDE = vsa.h
 #FILE_ICLUDE2 = sortedlist.h
 #FILE_ICLUDE3 = dllist.h
-FILE_TEST = test_fsa
-FILE_OUT = test_fsa
+FILE_TEST = test_vsa
+FILE_OUT = test_vsa
 
 
 # dir locations
