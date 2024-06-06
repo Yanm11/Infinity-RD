@@ -22,6 +22,7 @@ static size_t Aligned_end(size_t total_size);
 static void CreateBlock(void *address, long size);
 static void DeFrag(vsa_t *address);
 static long Abs(long size);
+static vsa_t *NextBlock(vsa_t *address);
 
 vsa_t *VSAInit(void *memory, size_t total_size)
 {
@@ -49,10 +50,10 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 {
 	void *return_address = NULL;
 	vsa_t *runner = NULL;
-	int flag = 1;
 	
 	assert(vsa);
-
+	
+	/* allign the block size*/
 	if (0 != block_size % WORD_SIZE)
 	{
 		block_size += (WORD_SIZE - (block_size % WORD_SIZE)); 
@@ -60,7 +61,7 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 	
 	runner = vsa;
 	
-	while (0 != runner->size && flag)
+	while (0 != runner->size)
 	{
 		DeFrag(runner);
 		
@@ -73,7 +74,6 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 			if (remain_size < (long)MIN_BLOCK_SIZE)
 			{
 				block_size = runner->size;
-				runner = (vsa_t*)((char*)runner + block_size + STRUCT_SIZE);
 			}
 			else
 			{
@@ -84,26 +84,21 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 				runner->size = CONVERT_FROM_EMPTY(block_size);
 			}
 			
-			flag = 0;
+			return return_address;
 		}
 		else
 		{
-			runner = (vsa_t*)((char*)runner + Abs(runner->size) + STRUCT_SIZE); 
+			runner = NextBlock(runner); 
 		}
 	}
 	
-	if (1 == flag)
-	{
-		return NULL;
-	}
-	
-	return return_address;
+	return NULL;
 }
 
 void VSAFree(void *block_ptr)
 {
 	assert(block_ptr);
-	assert(11 == *((char*)block_ptr - WORD_SIZE));
+	assert(11 == *(long*)((char*)block_ptr - WORD_SIZE));
 	
 	block_ptr =	(void*)((char*)block_ptr - STRUCT_SIZE);
 	((vsa_t*)block_ptr)->size = CONVERT_TO_EMPTY(*(long*)block_ptr);
@@ -113,6 +108,7 @@ size_t LargestChunkAvailable(const vsa_t *vsa)
 {	
 	vsa_t *runner = NULL;
 	long max_block = 0;
+	long curr_size = 0;
 	
 	assert(vsa);
 
@@ -122,12 +118,14 @@ size_t LargestChunkAvailable(const vsa_t *vsa)
 	{
 		DeFrag(runner);
 		
-		if (Abs(runner->size) > max_block && IS_FREE(runner->size))
+		curr_size = Abs(runner->size);
+		
+		if (curr_size > max_block && IS_FREE(runner->size))
 		{
-			max_block = runner->size;
+			max_block = curr_size;
 		}
 		
-		runner = (vsa_t*)((char*)runner + Abs(runner->size) + STRUCT_SIZE);
+		runner = NextBlock(runner);
 	}
 	
 	return max_block;
@@ -136,12 +134,11 @@ size_t LargestChunkAvailable(const vsa_t *vsa)
 
 static void DeFrag(vsa_t *address)
 {
-	vsa_t *runner = (vsa_t*)address;
-	vsa_t *next = (vsa_t*)((char*)runner + runner->size + STRUCT_SIZE);
+	vsa_t *next = NextBlock(address);
 	
-	if (IS_FREE(runner->size) && IS_FREE(next->size))
+	if (IS_FREE(address->size) && IS_FREE(next->size))
 	{
-		runner->size += (next->size + STRUCT_SIZE);
+		address->size += (next->size + STRUCT_SIZE);
 	} 
 	
 }
@@ -185,5 +182,10 @@ static long Abs(long size)
 	}
 	
 	return size;
+}
+
+static vsa_t *NextBlock(vsa_t *address)
+{
+	return ((vsa_t*)((char*)address + Abs(address->size) + STRUCT_SIZE));
 }
 
