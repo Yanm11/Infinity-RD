@@ -1,211 +1,178 @@
-#include <stdio.h> /* printf() */
-#include <string.h>  /* strcat() */
-#include <stdlib.h>
+#include <stdlib.h> /* size_t malloc free*/
+#include <stdio.h> /* printf */
 
 #include "vsa.h"
 
-#define TESTNUM 3
+static void TestFlow1(void);
+static void TestFlow2(void);
 
-static char failed_tests_print[200] = {'\0'};
-
-static int TestVSAAlloc(void);
-static int TestVSAFree(void);
-static int TestLargestChunkAvailable(void);
-
-void AddFailedTest(const char *str);
+static size_t checker = 0;
 
 int main(void)
 {
-	int failed_tests_num = 0;
 	
-	failed_tests_num += TestVSAAlloc();
-	printf("Tested VSAAlloc\n");
-	failed_tests_num += TestVSAFree();
-	printf("Tested VSAFree\n");
-	failed_tests_num += TestLargestChunkAvailable();
-	printf("Tested LargestChunkAvailable\n");
-
+	TestFlow1();
+	TestFlow2();
 	
-	if (failed_tests_num)
+	if(0 == checker)
 	{
-		printf("%d out %d tests failed\nFailed tests:\n%s"
-		, failed_tests_num, TESTNUM, failed_tests_print);
-		return failed_tests_num;
+		printf("\nAll tests passed\n");
 	}
 	
-	printf("All Tests Passed!\n");
-	
-    return 0;
-}
-
-
-void AddFailedTest(const char *str)
-{
-	strcat(failed_tests_print, str);
-}
-
-static int TestVSAAlloc(void)
-{
-	void *allocated_space = NULL;
-	vsa_t *memory_pool = NULL;
-	size_t total_size = 1000;
-	size_t *elements[20] = {NULL};
-	size_t *block = NULL;
-	size_t loop_count = 0;
-	size_t inside_loop_count = 0;
-	size_t blocks_allocated = 0;
-	
-	allocated_space = malloc(total_size);
-	memory_pool = VSAInit(allocated_space, total_size);
-	
-	while(80 < LargestChunkAvailable(memory_pool))
-	{
-		elements[loop_count] = (size_t *)VSAAlloc(memory_pool, 80);
-		++loop_count;
-	}
-	
-	/* checks if VSAAlloc succeded allocating all blocks*/
-	blocks_allocated = loop_count;
-	loop_count = 0;
-	while(loop_count < blocks_allocated)
-	{
-		if (!elements[loop_count])
-		{
-			AddFailedTest("TestVSAAlloc1\n");
-			free(allocated_space);
-			return 1;
-		}
-		++loop_count;
-	}
-	
-	/* checks if VSAAlloc allocated different address each time*/
-	loop_count = 0;
-	while(loop_count < blocks_allocated)
-	{
-		inside_loop_count = loop_count + 1;
-		while(inside_loop_count < blocks_allocated)
-		{
-			if (elements[loop_count] == elements[inside_loop_count])
-			{
-				AddFailedTest("TestVSAAlloc2\n");
-				free(allocated_space);
-				return 1;
-			}
-			++inside_loop_count;
-		}
-		++loop_count;
-	}
-	
-	/* checks if VSAAlloc doesn't allocate when there is no free space*/
-	block = (size_t *)VSAAlloc(memory_pool, 80);
-	if (block)
-	{
-		AddFailedTest("TestVSAAlloc3\n");
-		free(allocated_space);
-		return 1;
-	}
-	
-	/* checks if the defragmentation of the free blocks is successful*/
-	VSAFree(elements[2]);
-	VSAFree(elements[3]);
-	
-	block = (size_t *)VSAAlloc(memory_pool, 160);
-	if (!block)
-	{
-		AddFailedTest("TestVSAAlloc4\n");
-		free(allocated_space);
-		return 1;
-	}
-
-	
-	free(allocated_space);
 	return 0;
 }
 
-static int TestVSAFree(void)
-{
-	void *allocated_space = NULL;
-	vsa_t *memory_pool = NULL;
-	size_t total_size = 1000;
-	size_t *elements[20] = {NULL};
-	size_t *block = NULL;
-	size_t loop_count = 0;
-	
-	allocated_space = malloc(total_size);
-	memory_pool = VSAInit(allocated_space, total_size);
-	
-	while(80 < LargestChunkAvailable(memory_pool))
-	{
-		elements[loop_count] = (size_t *)VSAAlloc(memory_pool, 80);
-		++loop_count;
-	}
-	
-	/* checks if VSAFree actually frees the block*/
-	VSAFree(elements[0]);
-	
-	block = (size_t *)VSAAlloc(memory_pool, 80);
-	if (!block)
-	{
-		AddFailedTest("TestVSAFree\n");
-		free(allocated_space);
-		return 1;
-	}
-	
-	free(allocated_space);
-	return 0;
-}
 
-static int TestLargestChunkAvailable(void)
-{
-	
-	void *allocated_space = NULL;
-	vsa_t *memory_pool = NULL;
-	size_t total_size = 1000;
-	size_t *elements[20] = {NULL};
-	size_t loop_count = 0;
-	size_t previous_largest_chunk = 0;
-	
-	allocated_space = malloc(total_size);
-	memory_pool = VSAInit(allocated_space, total_size);
-	
-	
-	/* checks if LargestChunkAvailable decreases after every alloc */
-	
-	previous_largest_chunk = LargestChunkAvailable(memory_pool);
-	while(loop_count < 6)
-	{
-		elements[loop_count] = (size_t *)VSAAlloc(memory_pool, 80);
-		++loop_count;
-		
-		if (previous_largest_chunk <= LargestChunkAvailable(memory_pool))
-		{
-			AddFailedTest("TestLargestChunkAvailable1\n");
-			free(allocated_space);
-			return 1;
-		}
-		previous_largest_chunk = LargestChunkAvailable(memory_pool);
-	}
-	
-	/* checks if LargestChunkAvailable increases after every free */
-	
-	previous_largest_chunk = LargestChunkAvailable(memory_pool);
-	--loop_count;
-	while(loop_count > 0)
-	{
-		VSAFree(elements[loop_count]);
-		--loop_count;
-		
-		if (previous_largest_chunk >= LargestChunkAvailable(memory_pool))
-		{
-			AddFailedTest("TestLargestChunkAvailable2\n");
-			free(allocated_space);
-			return 1;
-		}
-		previous_largest_chunk = LargestChunkAvailable(memory_pool);
-	}
-	
-	free(allocated_space);
 
-	return 0;
+static void TestFlow1(void)
+{
+	int *b1 = NULL;
+	int *b2 = NULL;
+	int *b3 = NULL;
+	int *b4 = NULL;
+	int *b5 = NULL;
+	
+	int *ptr = (int *)malloc(300);
+	vsa_t *vsa = VSAInit(ptr, 300);
+	if(264 != LargestChunkAvailable(vsa))
+	{
+		printf("VSAInit failed\n");
+		++checker;
+		return;
+	}
+	
+	
+	b1 = (int *)VSAAlloc(vsa, 39);
+	if(208 != LargestChunkAvailable(vsa) || b1 != (int *)vsa + 4)
+	{
+		printf("VSAAlloc 1 failed\n");
+		++checker;
+		return;
+	}
+	
+	
+	b2 = (int *)VSAAlloc(vsa, 80);
+	if(112 != LargestChunkAvailable(vsa) || b2 != (int *)vsa + 18)
+	{
+		printf("VSAAlloc 2 failed\n");
+		++checker;
+		return;
+	}
+	
+
+	*b1 = 45;
+	VSAFree(b1);
+	b3 = (int *)VSAAlloc(vsa, 12);
+	if(112 != LargestChunkAvailable(vsa) || b3 != (int *)vsa + 4 || *b3 != 45)
+	{
+		printf("VSAAlloc 3 failed\n");
+		printf("LargestChunkAvailable 3 failed\n");
+		printf("VSAFree 3 failed\n");
+		++checker;
+		return;
+	}
+	
+	b4 = (int *)VSAAlloc(vsa, 112);
+	if(8 != LargestChunkAvailable(vsa) || b4 != (int *)vsa + 42)
+	{
+		printf("VSAAlloc 4 failed\n");
+		printf("LargestChunkAvailable 4 failed\n");
+		++checker;
+		return;
+	}
+	
+
+	b5 = (int *)VSAAlloc(vsa, 8);
+	if(0 != LargestChunkAvailable(vsa) || b5 != (int *)vsa + 12)
+	{
+		printf("VSAAlloc 5 failed\n");
+		printf("LargestChunkAvailable 5 failed\n");
+		++checker;
+		return;
+	}
+	
+
+	VSAFree(b2);
+	if(80 != LargestChunkAvailable(vsa))
+	{
+		printf("LargestChunkAvailable 6 failed\n");
+		++checker;
+		return;
+	}
+	
+	VSAFree(b5);
+	if(104 != LargestChunkAvailable(vsa))
+	{
+		printf("LargestChunkAvailable 7 failed\n");
+		++checker;
+		return;
+	}
+	
+	b5 = (int *)VSAAlloc(vsa, 148);
+	if(104 != LargestChunkAvailable(vsa) || b5 != NULL)
+	{
+		printf("VSAAlloc 8 failed\n");
+		++checker;
+		return;
+	}
+	
+	VSAFree(b3);
+	if(136 != LargestChunkAvailable(vsa))
+	{
+		printf("VSAFree 9 failed\n");
+		++checker;
+		return;
+	}
+	
+	VSAFree(b4);
+
+	if(264 != LargestChunkAvailable(vsa))
+	{
+		printf("LargestChunkAvailable 10 failed\n");
+		++checker;
+		return;
+	}
+	
+	
+	printf("TestFlow1 passed\n");
+	free(ptr);
 }
+	
+	
+	
+static void TestFlow2(void)
+{
+	int *b1 = NULL;
+	int *b2 = NULL;
+	int *b3 = NULL;
+	
+	int *ptr = (int *)malloc(250);
+	vsa_t *vsa = VSAInit(ptr, 250);
+	if(216 != LargestChunkAvailable(vsa))
+	{
+		printf("VSAInit failed\n");
+		++checker;
+		return;
+	}
+	
+	b1 = (int *)VSAAlloc(vsa, 40);
+	b2 = (int *)VSAAlloc(vsa, 80);
+	b3 = (int *)VSAAlloc(vsa, 48);
+	
+	VSAFree(b1);
+	VSAFree(b2);
+	b2 = (int *)VSAAlloc(vsa, 104);
+	if(b2 != (int *)vsa + 4)
+	{
+		printf("VSAAlloc 2 - 1 failed\n");
+		++checker;
+		return;
+	}
+	
+	(void)b3;
+	printf("TestFlow2 passed\n");
+	free(ptr);
+}
+	
+	
 

@@ -79,10 +79,9 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 			{
 				void *new_block_address = (char*)return_address + block_size;
 				long new_block_size = remain_size - STRUCT_SIZE;
-				CreateBlock(new_block_address, new_block_size);
-				
-				runner->size = CONVERT_FROM_EMPTY(block_size);
+				CreateBlock(new_block_address, new_block_size);				
 			}
+			runner->size = CONVERT_FROM_EMPTY(block_size);
 			
 			return return_address;
 		}
@@ -129,7 +128,6 @@ size_t LargestChunkAvailable(const vsa_t *vsa)
 	}
 	
 	return max_block;
-	
 }
 
 static void DeFrag(vsa_t *address)
