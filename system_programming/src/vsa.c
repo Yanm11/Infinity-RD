@@ -1,3 +1,14 @@
+/********************************** 
+   Code by: Yan Meiri	
+   Project: variable size allocator
+   Date: 4/06/24
+   Review by: 
+   Review Date: 
+   Approved by: 
+   Approval Date: 
+**********************************/
+
+
 #include <assert.h> /* assert*/
 
 #include "vsa.h"
@@ -17,8 +28,9 @@ struct vsa
 #define CONVERT_FROM_EMPTY(size) (size * -1)
 #define CONVERT_TO_EMPTY(size) (size * -1)
 
-static void *Aligned_start(char *memory);
-static size_t Aligned_end(size_t total_size);
+static void *AlignedStart(char *memory);
+static size_t AlignedEnd(size_t total_size);
+static size_t AlignedBlockSize(size_t block_size);
 static void CreateBlock(void *address, long size);
 static void DeFrag(vsa_t *address);
 static long Abs(long size);
@@ -28,36 +40,37 @@ vsa_t *VSAInit(void *memory, size_t total_size)
 {
 		long size = 0;
 		void *end_memory = NULL;
+		void *allign_memory = NULL;
 		
 		assert(memory);
+		assert((MIN_BLOCK_SIZE + STRUCT_SIZE) < total_size);
 		
-		/* allign memory */
-		memory = Aligned_start(memory);
-		total_size = Aligned_end(total_size);
+		/* allign memory and total size */
+		allign_memory = AlignedStart(memory);
+		total_size -= (size_t)((size_t)allign_memory - (size_t)memory);
+		total_size = AlignedEnd(total_size);
 		
 		/* creating the first block */
 		size = (long)(total_size - (2 * STRUCT_SIZE));
-		CreateBlock(memory, size);
+		CreateBlock(allign_memory, size);
 		
 		/* creating the last block */
-		end_memory = (char*)memory + STRUCT_SIZE + size;
+		end_memory = (char*)allign_memory + STRUCT_SIZE + size;
 		CreateBlock(end_memory, 0);
 				
-		return (vsa_t *)memory;
+		return (vsa_t *)allign_memory;
 }
 
 void *VSAAlloc(vsa_t *vsa, size_t block_size)
 {
 	void *return_address = NULL;
 	vsa_t *runner = NULL;
+	long curr_size = 0; 
 	
 	assert(vsa);
 	
 	/* allign the block size*/
-	if (0 != block_size % WORD_SIZE)
-	{
-		block_size += (WORD_SIZE - (block_size % WORD_SIZE)); 
-	} 
+	block_size = AlignedBlockSize(block_size);
 	
 	runner = vsa;
 	
@@ -65,15 +78,19 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 	{
 		DeFrag(runner);
 		
-		if ((runner->size >= (long)block_size) && (IS_FREE(runner->size)))
+		curr_size = Abs(runner->size);
+		
+		/* check if block size is enogh and if its free */
+		if ((curr_size >= (long)block_size) && (IS_FREE(runner->size)))
 		{
-			long remain_size = runner->size - (long)block_size;
+			long remain_size = curr_size - (long)block_size;
 			
 			return_address = (void*)((char*)runner + STRUCT_SIZE);
-
+			
+			/* check if the size that remain is big enogh for another block */
 			if (remain_size < (long)MIN_BLOCK_SIZE)
 			{
-				block_size = runner->size;
+				block_size = curr_size;
 			}
 			else
 			{
@@ -81,6 +98,7 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 				long new_block_size = remain_size - STRUCT_SIZE;
 				CreateBlock(new_block_address, new_block_size);				
 			}
+			
 			runner->size = CONVERT_FROM_EMPTY(block_size);
 			
 			return return_address;
@@ -141,7 +159,7 @@ static void DeFrag(vsa_t *address)
 	
 }
 
-static void *Aligned_start(char *memory)
+static void *AlignedStart(char *memory)
 {
 	if (0 != ((size_t)memory % WORD_SIZE))
 	{
@@ -151,7 +169,7 @@ static void *Aligned_start(char *memory)
 	return memory;
 }
 
-static size_t Aligned_end(size_t total_size)
+static size_t AlignedEnd(size_t total_size)
 {
 	if (0 != total_size % WORD_SIZE)
 	{
@@ -159,6 +177,16 @@ static size_t Aligned_end(size_t total_size)
 	}
 	
 	return total_size;
+}
+
+static size_t AlignedBlockSize(size_t block_size)
+{
+	if (0 != block_size % WORD_SIZE)
+	{
+		block_size += (WORD_SIZE - (block_size % WORD_SIZE)); 
+	} 
+	
+	return block_size;
 }
 
 static void CreateBlock(void *address, long size)

@@ -32,9 +32,9 @@ static void TestFlow1(void)
 	int *b4 = NULL;
 	int *b5 = NULL;
 	
-	int *ptr = (int *)malloc(300);
-	vsa_t *vsa = VSAInit(ptr, 300);
-	if(264 != LargestChunkAvailable(vsa))
+	int *ptr = (int *)malloc(296);
+	vsa_t *vsa = VSAInit(ptr + 5, 276);
+	if(240 != LargestChunkAvailable(vsa))
 	{
 		printf("VSAInit failed\n");
 		++checker;
@@ -43,7 +43,7 @@ static void TestFlow1(void)
 	
 	
 	b1 = (int *)VSAAlloc(vsa, 39);
-	if(208 != LargestChunkAvailable(vsa) || b1 != (int *)vsa + 4)
+	if(184 != LargestChunkAvailable(vsa) || b1 != (int *)vsa + 4)
 	{
 		printf("VSAAlloc 1 failed\n");
 		++checker;
@@ -52,7 +52,7 @@ static void TestFlow1(void)
 	
 	
 	b2 = (int *)VSAAlloc(vsa, 80);
-	if(112 != LargestChunkAvailable(vsa) || b2 != (int *)vsa + 18)
+	if(88 != LargestChunkAvailable(vsa) || b2 != (int *)vsa + 18)
 	{
 		printf("VSAAlloc 2 failed\n");
 		++checker;
@@ -63,7 +63,7 @@ static void TestFlow1(void)
 	*b1 = 45;
 	VSAFree(b1);
 	b3 = (int *)VSAAlloc(vsa, 12);
-	if(112 != LargestChunkAvailable(vsa) || b3 != (int *)vsa + 4 || *b3 != 45)
+	if(88 != LargestChunkAvailable(vsa) || b3 != (int *)vsa + 4 || *b3 != 45)
 	{
 		printf("VSAAlloc 3 failed\n");
 		printf("LargestChunkAvailable 3 failed\n");
@@ -72,7 +72,7 @@ static void TestFlow1(void)
 		return;
 	}
 	
-	b4 = (int *)VSAAlloc(vsa, 112);
+	b4 = (int *)VSAAlloc(vsa, 88);
 	if(8 != LargestChunkAvailable(vsa) || b4 != (int *)vsa + 42)
 	{
 		printf("VSAAlloc 4 failed\n");
@@ -126,7 +126,7 @@ static void TestFlow1(void)
 	
 	VSAFree(b4);
 
-	if(264 != LargestChunkAvailable(vsa))
+	if(240 != LargestChunkAvailable(vsa))
 	{
 		printf("LargestChunkAvailable 10 failed\n");
 		++checker;
