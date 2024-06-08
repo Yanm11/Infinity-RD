@@ -1,6 +1,6 @@
 /********************************** 
    Code by: Yan Meiri	
-   Project: task.h
+   Project: task part of scheduler
    Date: 30/05/24
    Review by: 
    Review Date: 
@@ -45,10 +45,10 @@ task_t *TaskCreate(time_t exe_time, time_t interval_in_seconds, void (*action)(v
 		return NULL;
 	}
 	
-	task_t->exe_time = exe_time;
-	task_t->interval_in_seconds = interval_in_seconds;
-	task_t->action = action;
-	task_t->params = params;
+	task->exe_time = exe_time;
+	task->interval_in_seconds = interval_in_seconds;
+	task->action = action;
+	task->params = params;
 	
 	return task;
 }
@@ -60,14 +60,12 @@ void TaskDestroy(task_t *task)
 	free(task);
 }
 
-int TaskRun(task_t *task)
+void TaskRun(task_t *task)
 {
 	assert(task);
 	assert(task->action);
 	
 	task->action(task->params);
-	
-	return 0; /*  check what to do if fails */
 }
 
 ilrd_uid_t GetUid(const task_t *task)
@@ -89,6 +87,20 @@ time_t IntervalTime(const task_t *task)
 	assert(task);
 	
 	return task->interval_in_seconds;
+}
+
+void *GetParams(const task_t *task)
+{
+	assert(task);
+	
+	return task->params;
+}
+
+void (*GetActionFunc(const task_t *task))(void *params) 
+{
+	assert(task);
+	
+	return task->action;
 }
 
 void UpdateExecTime(task_t *task, time_t new_exec_time)

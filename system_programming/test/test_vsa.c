@@ -31,9 +31,11 @@ static void TestFlow1(void)
 	int *b3 = NULL;
 	int *b4 = NULL;
 	int *b5 = NULL;
+	int *ptr2 = NULL;
 	
 	int *ptr = (int *)malloc(296);
 	vsa_t *vsa = VSAInit(ptr + 5, 276);
+	ptr2 = (int *)malloc(296);
 	if(240 != LargestChunkAvailable(vsa))
 	{
 		printf("VSAInit failed\n");
@@ -91,7 +93,14 @@ static void TestFlow1(void)
 		return;
 	}
 	
-
+	ptr2 = (int *)VSAAlloc(vsa, 8);
+	if(0 != LargestChunkAvailable(vsa) || ptr2 != NULL)
+	{
+		printf("VSAAlloc 5 failed\n");
+		printf("LargestChunkAvailable 5 failed\n");
+		++checker;
+		return;
+	}
 	VSAFree(b2);
 	if(80 != LargestChunkAvailable(vsa))
 	{

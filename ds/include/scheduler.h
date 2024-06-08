@@ -55,7 +55,7 @@ SchedulerRemove
 description: removes a task from the scheduler
 input: a pointer to a scheduler, uid
 return: a status (0 means success, otherwise means fail)
-time complexity: O(1)
+time complexity: O(n)
 space complexity: O(1)
 */
 int SchedulerRemove(scheduler_t *scheduler, ilrd_uid_t uid);
@@ -64,7 +64,7 @@ int SchedulerRemove(scheduler_t *scheduler, ilrd_uid_t uid);
 SchedulerRun
 description: Run the scheduler until stop/ end of tasks/ error.
 input: pointer to scheduler
-return: a status (0 means success, otherwise means fail)
+return: a status (SUCCESS if finished and scheduler is empty, FAILURE if failed in some way during the run, SCHEDULER_STOP if we stoped the scheduler and there are still task in it
 time complexity: O(n)
 space complexity: O(n)
 */

@@ -30,11 +30,11 @@ void TaskDestroy(task_t *task);
 TaskRun
 description: run the task's function
 input: a pointer to a task
-return: a status (0 means success, otherwise means fail)
+return: nothing
 time complexity: O(1)
 space complexity: O(1)
 */
-int TaskRun(task_t *task);
+void TaskRun(task_t *task);
 
 /*
 GetUid
@@ -67,6 +67,26 @@ space complexity: O(1)
 time_t IntervalTime(const task_t *task);
 
 /*
+GetParams
+description: get the params of a specific task
+input: pointer to task
+return: pointer to the params
+time complexity: O(1)
+space complexity: O(1)
+*/
+void *GetParams(const task_t *task);
+
+/*
+GetActionFunc
+description: get the action function of a specific task
+input: pointer to task
+return: pointer to the action function
+time complexity: O(1)
+space complexity: O(1)
+*/
+void (*GetActionFunc(const task_t *task))(void *params);
+
+/*
 UpdateExecTime
 description: update the execution time of a task
 input: pointer to task, new execution time to be set
@@ -75,7 +95,6 @@ time complexity: O(1)
 space complexity: O(1)
 */
 void UpdateExecTime(task_t *task, time_t new_exec_time);
-
 
 #endif /*__TASK_H__*/
 
