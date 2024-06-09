@@ -2,10 +2,10 @@
    Code by: Yan Meiri	
    Project: variable size allocator
    Date: 4/06/24
-   Review by: avshalom
+   Review by: Avshalom
    Review Date: 07/06/2024
-   Approved by: 
-   Approval Date: 
+   Approved by: Avshalom
+   Approval Date: 09/06/2024 
 **********************************/
 
 
