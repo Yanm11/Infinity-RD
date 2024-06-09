@@ -2,8 +2,8 @@
    Code by: Yan Meiri	
    Project: variable size allocator
    Date: 4/06/24
-   Review by: 
-   Review Date: 
+   Review by: avshalom
+   Review Date: 07/06/2024
    Approved by: 
    Approval Date: 
 **********************************/
@@ -27,6 +27,7 @@ struct vsa
 #define WORD_SIZE sizeof(size_t)
 #define CONVERT_FROM_EMPTY(size) (size * -1)
 #define CONVERT_TO_EMPTY(size) (size * -1)
+#define MAGIC_NUMBER 11
 
 static void *AlignedStart(char *memory);
 static size_t AlignedEnd(size_t total_size);
@@ -35,6 +36,10 @@ static void CreateBlock(void *address, long size);
 static void DeFrag(vsa_t *address);
 static long Abs(long size);
 static vsa_t *NextBlock(vsa_t *address);
+
+
+/******** API Functions *********/
+
 
 vsa_t *VSAInit(void *memory, size_t total_size)
 {
@@ -47,7 +52,7 @@ vsa_t *VSAInit(void *memory, size_t total_size)
 		
 		/* allign memory and total size */
 		allign_memory = AlignedStart(memory);
-		total_size -= (size_t)((size_t)allign_memory - (size_t)memory);
+		total_size -= ((size_t)allign_memory - (size_t)memory);
 		total_size = AlignedEnd(total_size);
 		
 		/* creating the first block */
@@ -115,7 +120,7 @@ void *VSAAlloc(vsa_t *vsa, size_t block_size)
 void VSAFree(void *block_ptr)
 {
 	assert(block_ptr);
-	assert(11 == *(long*)((char*)block_ptr - WORD_SIZE));
+	assert(MAGIC_NUMBER == *(long*)((char*)block_ptr - WORD_SIZE));
 	
 	block_ptr =	(void*)((char*)block_ptr - STRUCT_SIZE);
 	((vsa_t*)block_ptr)->size = CONVERT_TO_EMPTY(*(long*)block_ptr);
@@ -148,19 +153,29 @@ size_t LargestChunkAvailable(const vsa_t *vsa)
 	return max_block;
 }
 
+
+/******** Help Functions *********/
+
+
 static void DeFrag(vsa_t *address)
 {
-	vsa_t *next = NextBlock(address);
+	vsa_t *next = NULL;
 	
-	if (IS_FREE(address->size) && IS_FREE(next->size))
+	assert(address);
+	
+	next = NextBlock(address);
+	
+	while (IS_FREE(address->size) && IS_FREE(next->size))
 	{
 		address->size += (next->size + STRUCT_SIZE);
+		next = NextBlock(next);
 	} 
 	
 }
 
 static void *AlignedStart(char *memory)
 {
+	assert(memory);
 	if (0 != ((size_t)memory % WORD_SIZE))
 	{
 		memory += (WORD_SIZE - ((size_t)memory % WORD_SIZE)); 
@@ -192,9 +207,12 @@ static size_t AlignedBlockSize(size_t block_size)
 static void CreateBlock(void *address, long size)
 {
 	vsa_t block = {0};
+
+	assert(address);
+	
 	block.size = size;
 	#ifndef NDEBUG
-		block.magic = 11;
+		block.magic = MAGIC_NUMBER;
 	#endif
 	
 	*(vsa_t *)address = block;
@@ -212,6 +230,8 @@ static long Abs(long size)
 
 static vsa_t *NextBlock(vsa_t *address)
 {
+	assert(address);
+	
 	return ((vsa_t*)((char*)address + Abs(address->size) + STRUCT_SIZE));
 }
 

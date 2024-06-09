@@ -2,10 +2,10 @@
    Code by: Yan Meiri	
    Project: scheduler data structer
    Date: 30/05/24
-   Review by: 
-   Review Date: 
-   Approved by: 
-   Approval Date: 
+   Review by: Or the king
+   Review Date: 9/6/2024
+   Approved by: Or the king
+   Approval Date: 9/6/2024 
 **********************************/
 
 
@@ -55,6 +55,7 @@ scheduler_t *SchedulerCreate(void)
 void SchedulerDestroy(scheduler_t *scheduler)
 {
 	assert(scheduler);
+	assert(scheduler->task_queue);
 	
 	SchedulerClear(scheduler);
 	PQDestroy(scheduler->task_queue);
@@ -71,6 +72,7 @@ ilrd_uid_t SchedulerAdd(scheduler_t *scheduler,
 	int status = 0;
 	
 	assert(scheduler);
+	assert(scheduler->task_queue);
 	assert(0 < exec_time);
 	assert(0 <= interval_in_seconds);
 	assert(action);
@@ -99,6 +101,7 @@ int SchedulerRemove(scheduler_t *scheduler, ilrd_uid_t uid)
 	void *task = NULL;
 	
 	assert(scheduler);
+	assert(scheduler->task_queue);
 	
 	task = PQErase(scheduler->task_queue, &MatchTask, &uid);
 	if (NULL == task)
@@ -114,6 +117,7 @@ int SchedulerRemove(scheduler_t *scheduler, ilrd_uid_t uid)
 int SchedulerRun(scheduler_t *scheduler)
 {
 	assert(scheduler);
+	assert(scheduler->task_queue);
 	
 	scheduler->stop_flag = 0;
 	
@@ -121,31 +125,38 @@ int SchedulerRun(scheduler_t *scheduler)
 	{
 		task_t *task = (task_t*)PQDequeue(scheduler->task_queue);
 		
-		if (time(NULL) == GetExecTime(task))
+		if (time(NULL) > GetExecTime(task))
 		{
-			TaskRun(task);
-		}
-		else if (time(NULL) < GetExecTime(task))
-		{
-			sleep(GetExecTime(task) - time(NULL));
-			TaskRun(task);
-		}
-		
-		if (IntervalTime(task))
-		{
-			int status = 0;
-			time_t new_exec_time = time(NULL) + IntervalTime(task);
-			UpdateExecTime(task,new_exec_time);
-			
-			status = PQEnqueue(scheduler->task_queue, task);
-			if (0 != status)
-			{
-				return FAILURE;
-			}
+			TaskDestroy(task);
 		}
 		else
 		{
-			TaskDestroy(task);
+			if (time(NULL) == GetExecTime(task))
+			{
+				TaskRun(task);
+			}
+			else
+			{
+				sleep(GetExecTime(task) - time(NULL));
+				TaskRun(task);
+			}
+		
+			if (IntervalTime(task))
+			{
+				int status = 0;
+				time_t new_exec_time = time(NULL) + IntervalTime(task);
+				UpdateExecTime(task,new_exec_time);
+			
+				status = PQEnqueue(scheduler->task_queue, task);
+				if (0 != status)
+				{
+					return FAILURE;
+				}
+			}
+			else
+			{
+				TaskDestroy(task);
+			}
 		}
 	}
 	
@@ -167,6 +178,7 @@ void SchedulerStop(scheduler_t *scheduler)
 size_t SchedulerSize(scheduler_t *scheduler)
 {
 	assert(scheduler);
+	assert(scheduler->task_queue);
 	
 	return PQSize(scheduler->task_queue);
 }
@@ -174,6 +186,7 @@ size_t SchedulerSize(scheduler_t *scheduler)
 int SchedulerIsEmpty(scheduler_t *scheduler)
 {
 	assert(scheduler);
+	assert(scheduler->task_queue);
 	
 	return PQIsEmpty(scheduler->task_queue);
 }
@@ -183,6 +196,7 @@ void SchedulerClear(scheduler_t *scheduler)
 	void *task = NULL;
 	
 	assert(scheduler);
+	assert(scheduler->task_queue);
 	
 	while (!SchedulerIsEmpty(scheduler))
 	{

@@ -10,6 +10,7 @@ typedef struct node
 } node_t;
 
 node_t *HasLoop(node_t *head);
+void OpenLoop(node_t *head);
 
 static node_t *CreateNode(void *data, node_t *next)
 {
@@ -30,55 +31,49 @@ int main(void)
 {
 	/* create data and node nulls for linked list */
 	int data[] = {10,20,30,40};
-	int n = 1;
 	int checker = 0;
 	node_t *head = NULL;
 	node_t *second = NULL;
 	node_t *third = NULL;
-	node_t *tail = NULL;
+	node_t *eleven = NULL;
+	node_t *ten = NULL;
+	node_t *nine = NULL;
+	node_t *eight = NULL;
+	node_t *seven = NULL;
+	node_t *six = NULL;
+	node_t *fith = NULL;
+	node_t *forth = NULL;
+
 	
 	/* allocating memory and assaigning data and next nodes */
-	tail = CreateNode(data + 3, NULL);
-	third = CreateNode(data + 2, tail);
+	eleven = CreateNode(data + 3, NULL);
+	ten = CreateNode(data + 2, eleven);
+	nine = CreateNode(data + 1, ten);
+	eight = CreateNode(data + 1, nine);
+	seven = CreateNode(data + 1, eight);
+	six = CreateNode(data + 1, seven);
+	fith = CreateNode(data + 1, six);
+	forth = CreateNode(data + 1, fith);
+	third = CreateNode(data + 1, forth);
 	second = CreateNode(data + 1, third);
 	head = CreateNode(data, second);
-	third->next = head;
 	
-	if (third != HasLoop(head))
+	ten->next = fith;
+	if (NULL == HasLoop(head))
 	{
 		printf("test1 failed\n");
 		++checker;
 	}
-	else
-	{
-		printf("test1 passed\n");
-	}
 	
-	if (second != ReturnNNodeFromLast(head, n+1))
+	OpenLoop(head);
+	if (NULL != ten->next)
 	{
-		printf("test2 failed\n");
+		printf("test1 failed\n");
 		++checker;
 	}
-	else
-	{
-		printf("test2 passed\n");
-	}
 	
-	if (head != ReturnNNodeFromLast(head, n+2))
-	{
-		printf("test3 failed\n");
-		++checker;
-	}
-	else
-	{
-		printf("test3 passed\n");
-	}
 	
-	if (0 < checker)
-	{
-		printf("failed %d tests\n", checker);
-		return 0;
-	}
+
 	
 	printf("passed all tests!\n");
 	return 0;
@@ -90,25 +85,49 @@ int main(void)
 
 node_t *HasLoop(node_t *head)
 {
-	node_t *node_first = NULL;
-	node_t *node_second = NULL;
+	node_t *node_fast = NULL;
+	node_t *node_slow = NULL;
 	
 	assert(head);
 	
-	node_first = head->next;
-	node_second = head;
+	node_fast = head->next;
+	node_slow = head;
 	
-	while (NULL != node_frist && NULL != node_first->next)
+	while (NULL != node_fast && NULL != node_fast->next)
 	{
-		if (node_first == node_second)
+		if (node_fast == node_slow)
 		{
-			return node_first;
+			return node_fast;
 		}
 		
-		node_first = node_first->next->next;
-		node_second = node_second->next;
+		node_fast = node_fast->next->next;
+		node_slow = node_slow->next;
 	}
 	
 	return NULL;
+}
+
+void OpenLoop(node_t *head)
+{
+	node_t *node_loop = NULL;
+	node_t *node_head = NULL;
+	
+	assert(head);
+	
+	node_loop = HasLoop(head);
+	node_head = head;
+	
+	if (NULL == node_loop)
+	{
+		return;
+	}
+	
+	while (node_loop->next != node_head)
+	{	
+		node_loop = node_loop->next;
+		node_head = node_head->next;
+	}
+	
+	node_loop->next = NULL;
 }
 

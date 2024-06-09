@@ -43,7 +43,7 @@ void TestFlip()
 	head = CreateNode(data, second);
 	
 	/* flip the linked list */
-	iter = Flip(head);
+	iter = FlipExam(head);
 	
 	while (NULL != iter)
 	{

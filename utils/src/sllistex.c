@@ -130,6 +130,26 @@ static node_t *AdvanceNode(node_t *head, size_t count)
 }
 
 
-
+node_t *FlipExam(node_t *node)
+{
+	node_t *next_node = NULL;
+	node_t *prev_node = NULL; 
+	
+	assert (node);
+	
+	next_node = node->next;
+	
+	while (NULL != next_node)
+	{
+		node->next = prev_node;
+		prev_node = node;
+		node = next_node;
+		next_node = next_node->next;
+	}
+	
+	node->next = prev_node;
+	
+	return node;
+}
 
 

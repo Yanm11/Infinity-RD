@@ -3,12 +3,12 @@ CFLAGS = -ansi -pedantic-errors -Wall -Wextra
 CC = gcc
 
 # file names
-FILE_SRC = cbuffer
+FILE_SRC = sllistex
 # FILE_SRC2 = sllist
-FILE_ICLUDE = cbuffer.h
+FILE_ICLUDE = sllistex.h
 # FILE_ICLUDE2 = sllist.h
-FILE_TEST = test_cbuffer
-FILE_OUT = test_cbuffer
+FILE_TEST = test_sllistex
+FILE_OUT = test_sllistex
 
 
 # dir locations
@@ -43,7 +43,7 @@ $(TEST_DIR)/$(FILE_TEST).o : $(TEST_DIR)/$(FILE_TEST).c $(INCLUDE_DIR)/$(FILE_IC
 	$(CC) $(CFLAGS) -c $(TEST_DIR)/$(FILE_TEST).c -o $@ -I $(INCLUDE_DIR)
 
 $(SRC_DIR)/$(FILE_SRC).o : $(SRC_DIR)/$(FILE_SRC).c $(INCLUDE_DIR)/$(FILE_ICLUDE)
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/$(FILE_SRC).c -I $(INCLUDE_DIR)
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/$(FILE_SRC).c -o $@-I $(INCLUDE_DIR)
 
 # $(FILE_SRC2).o : $(FILE_SRC2).c $(INCLUDE_DIR)/$(FILE_ICLUDE2)
 #	$(CC) $(CFLAGS) -c $(FILE_SRC2).c -I $(INCLUDE_DIR)
