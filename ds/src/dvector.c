@@ -112,7 +112,7 @@ int DvectorReserve(dvector_t *vector, size_t new_size)
 	char *ptr_realloc = NULL;
 	
 	assert(vector);
-	assert(0 <= new_size);
+	assert(0 < new_size);
 	
 	total_size = new_size * vector->element_size;
 	ptr_realloc =(char*)realloc(vector->buffer, total_size);

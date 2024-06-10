@@ -92,7 +92,7 @@ static void TestFlow1(void)
 		++checker;
 		return;
 	}
-	
+	free(ptr2);
 	ptr2 = (int *)VSAAlloc(vsa, 8);
 	if(0 != LargestChunkAvailable(vsa) || ptr2 != NULL)
 	{
@@ -145,6 +145,7 @@ static void TestFlow1(void)
 	
 	printf("TestFlow1 passed\n");
 	free(ptr);
+	
 }
 	
 	

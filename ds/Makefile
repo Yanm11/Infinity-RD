@@ -1,52 +1,76 @@
-# file names
-FILE_SRC = scheduler
-FILE_SRC2 = task
-LIB = myscheduler
-FILE_ICLUDE = scheduler.h
-FILE_ICLUDE2 = task.h
-FILE_TEST = test_scheduler
-FILE_OUT = test_scheduler
-
-# dir locations
+# Directories
 SRC_DIR = ./src
 TEST_DIR = ./test
-BIN_DIR = ./bin/debug
+BIN_DIR_DEBUG = ./bin/debug
+BIN_DIR_RELEASE = ./bin/release
 INCLUDE_DIR = ./include
 
-# flags and compiler
-CFLAGS = -ansi -pedantic-errors -Wall -Wextra -I$(INCLUDE_DIR)
-LDFLAGS = -L$(INCLUDE_DIR) -l$(LIB)
+# Compiler and flags
 CC = gcc
+CFLAGS = -ansi -pedantic-errors -Wall -Wextra -I$(INCLUDE_DIR)/
+DEBUGFLAGS = -g
+RELEASEFLAGS = -DNDEBUG -O3
+LIBFLAGS = -shared -fPIC
 
-# objects
-objects = $(TEST_DIR)/$(FILE_TEST).o\
-          $(SRC_DIR)/$(FILE_SRC).o \
-          $(SRC_DIR)/$(FILE_SRC2).o
+# Automatically find all source and test files
+SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+TEST_FILES = $(wildcard $(TEST_DIR)/*_test.c)
 
-.PHONY : all
-all: $(BIN_DIR)/$(FILE_OUT)
+# Create lists of object files and executables
+SRC_OBJS = $(patsubst $(SRC_DIR)/%.c, $(SRC_DIR)/%.o, $(SRC_FILES))
+TEST_OBJS = $(patsubst $(TEST_DIR)/%_test.c, $(TEST_DIR)/%_test.o, $(TEST_FILES))
+DEBUG_EXES = $(patsubst $(TEST_DIR)/%_test.c, $(BIN_DIR_DEBUG)/%, $(TEST_FILES))
+RELEASE_EXES = $(patsubst $(TEST_DIR)/%_test.c, $(BIN_DIR_RELEASE)/%, $(TEST_FILES))
+
+.SECONDARY: $(SRC_OBJS) $(TEST_OBJS)
+.PRECIOUS: $(SRC_OBJS) $(TEST_OBJS)
+
+# Default target
+.PHONY: all
+all: debug release
 
 # Debug build
-debug: CFLAGS += -g
-debug: $(BIN_DIR)/$(FILE_OUT)
+.PHONY: debug
+debug: $(INCLUDE_DIR)/libmydslib_debug.so
+
+$(INCLUDE_DIR)/libmydslib_debug.so: $(SRC_OBJS)
+	@echo "Creating the debug shared library libmydslib_debug.so..."
+	@$(CC) $(CFLAGS) $(DEBUGFLAGS) $(LIBFLAGS) -o $@ $^
 
 # Release build
-release: CFLAGS += -DNDEBUG -O3
-release: BIN_DIR = ../bin/release
-release: $(BIN_DIR)/$(FILE_OUT)
+.PHONY: release
+release: $(INCLUDE_DIR)/libmydslib_release.so
 
-$(BIN_DIR)/$(FILE_OUT) : $(objects)
-	$(CC) -o $(BIN_DIR)/$(FILE_OUT) $(objects) $(LDFLAGS)
+$(INCLUDE_DIR)/libmydslib_release.so: $(SRC_OBJS)
+	@echo "Creating the release shared library libmydslib_release.so..."
+	@$(CC) $(CFLAGS) $(RELEASEFLAGS) $(LIBFLAGS) -o $@ $^
 
-$(TEST_DIR)/$(FILE_TEST).o : $(TEST_DIR)/$(FILE_TEST).c $(INCLUDE_DIR)/$(FILE_ICLUDE) 
-	$(CC) $(CFLAGS) -c $(TEST_DIR)/$(FILE_TEST).c -o $@ 
+# Compile source files to object files
+$(SRC_DIR)/%.o: $(SRC_DIR)/%.c $(INCLUDE_DIR)/%.h
+	@echo "Compiling and assembling $(basename $(notdir $<))..."
+	@$(CC) $(CFLAGS) $(DEBUGFLAGS) -c $< -o $@
 
-$(SRC_DIR)/$(FILE_SRC).o : $(SRC_DIR)/$(FILE_SRC).c $(INCLUDE_DIR)/$(FILE_ICLUDE)
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/$(FILE_SRC).c -o $@ 
+# Compile test files to object files
+$(TEST_DIR)/%_test.o: $(TEST_DIR)/%_test.c $(INCLUDE_DIR)/%.h
+	@echo "Compiling and assembling $(basename $(notdir $<))..."
+	@$(CC) $(CFLAGS) $(DEBUGFLAGS) -c $< -o $@
 
-$(SRC_DIR)/$(FILE_SRC2).o : $(SRC_DIR)/$(FILE_SRC2).c $(INCLUDE_DIR)/$(FILE_ICLUDE2)
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/$(FILE_SRC2).c -o $@ 
+# Link object files to create debug executables
+$(BIN_DIR_DEBUG)/%: $(TEST_DIR)/%_test.o $(INCLUDE_DIR)/libmydslib_debug.so | $(BIN_DIR_DEBUG)
+	@echo "Linking $(basename $(notdir $@)) for debug..."
+	@$(CC) $(CFLAGS) $(DEBUGFLAGS) -o $@ $< -L$(INCLUDE_DIR) -lmydslib_debug
 
-.PHONY : clean
-clean :
-	rm -rf $(BIN_DIR)/$(FILE_OUT) $(objects)
+# Link object files to create release executables
+$(BIN_DIR_RELEASE)/%: $(TEST_DIR)/%_test.o $(INCLUDE_DIR)/libmydslib_release.so | $(BIN_DIR_RELEASE)
+	@echo "Linking $(basename $(notdir $@)) for release..."
+	@$(CC) $(CFLAGS) $(RELEASEFLAGS) -o $@ $< -L$(INCLUDE_DIR) -lmydslib_release
+
+# Build all test executables using the debug shared library
+.PHONY: test
+test: $(DEBUG_EXES)
+
+# Clean up build files
+.PHONY: clean
+clean:
+	@echo "Cleaning up..."
+	@rm -f $(SRC_DIR)/*.o $(TEST_DIR)/*.o $(BIN_DIR_DEBUG)/* $(INCLUDE_DIR)/libmydslib_debug.so $(INCLUDE_DIR)/libmydslib_release.so

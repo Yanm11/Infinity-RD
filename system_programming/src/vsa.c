@@ -176,6 +176,7 @@ static void DeFrag(vsa_t *address)
 static void *AlignedStart(char *memory)
 {
 	assert(memory);
+	
 	if (0 != ((size_t)memory % WORD_SIZE))
 	{
 		memory += (WORD_SIZE - ((size_t)memory % WORD_SIZE)); 

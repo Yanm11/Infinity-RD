@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "bitaaray.h"
+#include "bitarr.h"
 
 
 int main(void)
