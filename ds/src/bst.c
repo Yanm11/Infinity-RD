@@ -7,7 +7,7 @@
    Approved by: 
    Approval Date: 
 **********************************/
-
+#include <stdio.h>
 #include <stdlib.h> /* malloc free */
 #include <assert.h> /* assert */
 
@@ -27,10 +27,7 @@ struct bst
 	bst_cmp_func_t cmp_func;
 };
 
-static bst_iter_t CreateIter(void *data,
-							  bst_iter_t left,
-							  bst_iter_t right,
-							  bst_iter_t parent);
+static bst_iter_t CreateIter(void *data, bst_iter_t parent);
 static bst_iter_t Left(bst_iter_t iter); 
 static bst_iter_t Right(bst_iter_t iter);							  
 static bst_iter_t Parent(bst_iter_t iter);
@@ -53,7 +50,7 @@ bst_t *BSTCreate(bst_cmp_func_t compare)
 		return NULL;
 	}
 	
-	bst->end = CreateIter(NULL, NULL, NULL, NULL);
+	bst->end = CreateIter(NULL, NULL);
 	if (NULL == bst->end)
 	{
 		free(bst);
@@ -148,15 +145,12 @@ bst_iter_t BSTNext(bst_iter_t iter)
 		return iter;
 	}
 	/* check if node is a left child of its parent */
-	else
+	while (Left(Parent(iter)) != iter)
 	{
-		while (Left(Parent(iter)) != iter)
-		{
-			iter = Parent(iter);
-		}
-		
-		return Parent(iter);
+		iter = Parent(iter);
 	}
+	
+	return Parent(iter);
 }
 
 void *BSTGetData(bst_iter_t iter)
@@ -176,11 +170,7 @@ bst_iter_t BSTInsert(bst_t *tree, void *data)
 	assert(BSTEnd(tree) == BSTFind(tree, data));
 	
 	iter = BSTEnd(tree);
-	new_iter = CreateIter(data, NULL, NULL, NULL);
-	if (NULL == new_iter)
-	{
-		return iter; 
-	}
+
 	
 	while ((NULL != Left(iter) || 0 > status) &&
 		   (NULL != Right(iter) || 0 <= status))
@@ -197,10 +187,14 @@ bst_iter_t BSTInsert(bst_t *tree, void *data)
 		{
 			iter = Left(iter);
 		}
-		status = tree->cmp_func(BSTGetData(iter), BSTGetData(new_iter));
+		status = tree->cmp_func(BSTGetData(iter), data);
 	}
 	
-	new_iter->parent = iter;
+	new_iter = CreateIter(data, iter);
+	if (NULL == new_iter)
+	{
+		return BSTEnd(tree); 
+	}
 	
 	if (0 <= status)
 	{
@@ -340,10 +334,7 @@ size_t BSTSize(const bst_t *tree)
 
 /********************* Help Functions **********************/
 
-static bst_iter_t CreateIter(void *data,
-							  bst_iter_t left,
-							  bst_iter_t right,
-							  bst_iter_t parent)
+static bst_iter_t CreateIter(void *data, bst_iter_t parent)
 {
 	bst_iter_t iter = (bst_iter_t)malloc(sizeof(struct node));
 	if (NULL == iter)
@@ -352,8 +343,8 @@ static bst_iter_t CreateIter(void *data,
 	}
 	
 	iter->data = data;
-	iter->left = left;
-	iter->right = right;
+	iter->left = NULL;
+	iter->right = NULL;
 	iter->parent = parent;
 	
 	return iter;
