@@ -1,3 +1,13 @@
+/********************************** 
+   Code by: Yan Meiri	
+   Project: Binary search Tree data structure
+   Date: 10/06/24
+   Review by: 
+   Review Date: 
+   Approved by: 
+   Approval Date: 
+**********************************/
+
 #include <stdlib.h> /* malloc free */
 #include <assert.h> /* assert */
 
@@ -345,7 +355,6 @@ static bst_iter_t CreateIter(void *data,
 	iter->left = left;
 	iter->right = right;
 	iter->parent = parent;
-	
 	
 	return iter;
 }
