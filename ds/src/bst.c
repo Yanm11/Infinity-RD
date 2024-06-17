@@ -63,7 +63,7 @@ bst_t *BSTCreate(bst_cmp_func_t compare)
 	return bst;
 }
 
-void BSTDestroy(bst_t *tree)
+/*void BSTDestroy(bst_t *tree)
 {
 	bst_iter_t iter = NULL;
 	
@@ -74,6 +74,40 @@ void BSTDestroy(bst_t *tree)
 	while (!BSTIsEmpty(tree))
 	{
 		BSTRemove(iter);
+	}
+	
+	free(BSTEnd(tree));
+	free(tree);
+}
+*/
+
+void BSTDestroy(bst_t *tree)
+{
+	bst_iter_t iter = NULL;
+	
+	assert(tree);
+	
+	iter = BSTBegin(tree);
+	
+	while (!BSTIsEmpty(tree))
+	{
+		if (NULL != Right(iter))
+		{
+			iter = Right(iter);
+			while(NULL != Left(iter))
+			{
+				iter = Left(iter);
+			}
+		}
+		else
+		{
+			bst_iter_t tmp_iter = iter;
+			iter = Parent(iter);
+			
+			ChangeChildOfParentIter(tmp_iter, NULL);
+			
+			free(tmp_iter);
+		}
 	}
 	
 	free(BSTEnd(tree));
