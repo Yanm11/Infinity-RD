@@ -345,8 +345,6 @@ static int TestGetData(void)
 static int TestForEach(void)
 {
 	bst_t *tree = NULL;
-	bst_iter_t iter = {0};
-	bst_iter_t end = {0};
 	int arr[4] = {10, 2, 3100, 4};
 	int status = 0;
 	int sum = 0;

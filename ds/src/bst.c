@@ -2,12 +2,11 @@
    Code by: Yan Meiri	
    Project: Binary search Tree data structure
    Date: 10/06/24
-   Review by: 
-   Review Date: 
+   Review by: itay
+   Review Date: 17/06/2024
    Approved by: 
    Approval Date: 
 **********************************/
-#include <stdio.h>
 #include <stdlib.h> /* malloc free */
 #include <assert.h> /* assert */
 
@@ -23,7 +22,7 @@ struct node
 
 struct bst
 {
-	bst_iter_t end;
+	bst_iter_t root;
 	bst_cmp_func_t cmp_func;
 };
 
@@ -50,8 +49,8 @@ bst_t *BSTCreate(bst_cmp_func_t compare)
 		return NULL;
 	}
 	
-	bst->end = CreateIter(NULL, NULL);
-	if (NULL == bst->end)
+	bst->root = CreateIter(NULL, NULL);
+	if (NULL == bst->root)
 	{
 		free(bst);
 		
@@ -62,24 +61,6 @@ bst_t *BSTCreate(bst_cmp_func_t compare)
 	
 	return bst;
 }
-
-/*void BSTDestroy(bst_t *tree)
-{
-	bst_iter_t iter = NULL;
-	
-	assert(tree);
-	
-	iter = Left(BSTEnd(tree));
-	
-	while (!BSTIsEmpty(tree))
-	{
-		BSTRemove(iter);
-	}
-	
-	free(BSTEnd(tree));
-	free(tree);
-}
-*/
 
 void BSTDestroy(bst_t *tree)
 {
@@ -133,7 +114,7 @@ bst_iter_t BSTEnd(const bst_t *tree)
 {	
 	assert(tree);
 	
-	return tree->end;	
+	return tree->root;	
 }
 
 bst_iter_t BSTPrev(bst_iter_t iter)
@@ -451,30 +432,6 @@ static void CopyNode(bst_iter_t dest, bst_iter_t src)
 	dest->right = src->right;
 	dest->left = src->left;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

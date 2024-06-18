@@ -8,6 +8,7 @@ static void Swap(int *a, int *b);
 static int FindMax(int arr[], size_t size);
 static int FindMin(int arr[], size_t size);
 static size_t FindMaxNumberOfDigits(int arr[], size_t size);
+static void CountingSortRadix(int arr[], size_t size, int exp);
 
 /********************* API FUNCTIONS ************************/
 
@@ -94,7 +95,11 @@ void CountingSort(int arr[], size_t size)
 	
 	lookup_occurrences = (int*)calloc((max_number - min_number + 1), sizeof(int));
 	output_arr = (int*)calloc(size, sizeof(int));
-	
+	if (NULL == lookup_occurrences  || NULL == output_arr  ) 
+	 {
+        return;
+    }
+    
 	for (; i < size; ++i)
 	{
 		++*(lookup_occurrences + arr[i] - min_number); 
@@ -107,8 +112,9 @@ void CountingSort(int arr[], size_t size)
 	
 	for (j = (size - 1); j >= 0; --j)
 	{
-		output_arr[lookup_occurrences[arr[j] - min_number] - 1] = arr[j];
-		--lookup_occurrences[arr[j] - min_number];
+		int digit = arr[j] - min_number;
+		output_arr[lookup_occurrences[digit] - 1] = arr[j];
+		--lookup_occurrences[digit];
 	}
 	
 	for (i = 0; i < size; ++i)
@@ -123,10 +129,18 @@ void CountingSort(int arr[], size_t size)
 void RadixSort(int arr[], size_t size)
 {
 	size_t max_num_digit = 0;
+	size_t exp = 1;
 	
 	assert(arr);
 	
 	max_num_digit = FindMaxNumberOfDigits(arr, size);
+	
+	while (0 < max_num_digit)
+	{
+		CountingSortRadix(arr, size, exp);
+		exp *= 10;
+		--max_num_digit;
+	}
 	
 }
 
@@ -203,3 +217,48 @@ static size_t FindMaxNumberOfDigits(int arr[], size_t size)
 	
 	return max;
 }
+
+static void CountingSortRadix(int arr[], size_t size, int exp)
+{
+	size_t i = 0;
+	ssize_t j = 0;
+	size_t max_number = 9;
+	int *output_arr = NULL;
+	int *lookup_occurrences = NULL;
+	
+	assert(arr);
+	
+	lookup_occurrences = (int*)calloc((max_number + 1), sizeof(int));
+	output_arr = (int*)calloc(size, sizeof(int));
+	
+	 if (NULL == lookup_occurrences  || NULL == output_arr  ) 
+	 {
+        return;
+    }
+    
+	for (; i < size; ++i)
+	{
+		++*(lookup_occurrences + ((arr[i] / exp ) % 10)); 
+	}
+	
+	for (i = 0; i < max_number ; ++i)
+	{
+		lookup_occurrences[i + 1] +=  lookup_occurrences[i];
+	}
+	
+	for (j = (size - 1); j >= 0; --j)
+	{
+		int digit = (arr[j] / exp) % 10;
+		output_arr[lookup_occurrences[digit] - 1] = arr[j];
+		--lookup_occurrences[digit];
+	}
+	
+	for (i = 0; i < size; ++i)
+	{
+		arr[i] = output_arr[i]; 
+	}
+	
+	free(output_arr);
+	free(lookup_occurrences);
+}
+
