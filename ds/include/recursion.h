@@ -2,6 +2,7 @@
 #define __RC_H__
 
 #include <stddef.h> /*size_t*/
+#include "stack.h"
 
 typedef struct node 
 {
@@ -23,7 +24,7 @@ int Fibonacci(int element_index);
 Flip
 description: flip a given single linked list
 input: the head of the list
-return: the new head;
+return: the new head
 time complexity: O(n)
 space complexity: O(1)
 */
@@ -35,5 +36,14 @@ char *StrCpy(char *dest, const char *src);
 char *StrCat(char *dest, const char *src);
 char *StrStr(const char *haystack, const char *needle);
 
+/*
+SortStack
+description: sort in place a given stack
+input: a stack
+return: nothing
+time complexity: O(n)
+space complexity: O(1)
+*/
+void SortStack(stack_t *stack);
 
 #endif /*__RC_H__*/

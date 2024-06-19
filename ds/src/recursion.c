@@ -2,7 +2,9 @@
 #include <string.h> /* strncmp */
 
 #include "recursion.h"
+#include "stack.h"
 
+static void InsertSorted(stack_t *stack, void *element);
 
 int Fibonacci(int element_index)
 {	
@@ -92,6 +94,45 @@ char *StrStr(const char *haystack, const char *needle)
 	
 	return StrStr(haystack + 1, needle);
 }
+
+void SortStack(stack_t *stack)
+{
+	int element = 0;
+	
+	assert(stack);
+	
+	if(StackIsEmpty(stack))
+	{
+		return;
+	}
+	
+	element = *(int*)StackPeek(stack);
+	StackPop(stack);
+	
+	SortStack(stack);
+	
+	InsertSorted(stack, &element);
+}
+
+static void InsertSorted(stack_t *stack, void *element)
+{
+	int curr_peek = 0;
+	
+	assert(stack);
+	
+	if (StackIsEmpty(stack) || *(int*)element < *(int*)StackPeek(stack))
+	{
+		StackPush(stack, element);
+		
+		return;
+	}
+	
+	curr_peek = *(int*)StackPeek(stack);
+	StackPop(stack);
+	InsertSorted(stack, element);
+	StackPush(stack, &curr_peek);
+}
+
 
 
 

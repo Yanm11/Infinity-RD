@@ -12,6 +12,7 @@ void TestStrCmp(void);
 void TestStrCpy(void);
 void TestStrCat(void);
 void TestStrStr(void);
+void TestStack(void);
 
 static node_t *CreateNode(void *data, node_t *next);
 
@@ -24,6 +25,7 @@ int main(void)
 	TestStrCpy();
 	TestStrCat();
 	TestStrStr();
+	TestStack();
 	
 	return 0;
 }
@@ -278,6 +280,39 @@ void TestStrStr(void)
 	printf("Passed all test for strstr\n");
 }
 
+void TestStack(void)
+{
+	size_t capacity = 100;
+	size_t elem_size = 4;
+	stack_t *stack_ptr = NULL;
+	int *arr_int = (int*)malloc(sizeof(int)*100);
+	size_t i = 0;
+	
+	for (; i < capacity; ++i)
+	{
+		*(arr_int + i) = (int)i;
+	}
+	
+	stack_ptr = StackCreate(capacity,elem_size);
+	
+	for (i = 0; i < capacity; ++i)
+	{
+		StackPush(stack_ptr, (arr_int + i));
+	}
+	
+	SortStack(stack_ptr);
+	
+	for (i = 0; i < capacity; ++i)
+	{
+		if (*(int*)StackPeek(stack_ptr) != (int)i)
+		{
+			printf("FAILED Stack test at i: %ld\nstack value: %d\n", i, *(int*)StackPeek(stack_ptr));
+			return;
+		}
+		StackPop(stack_ptr);
+	}
 
+	printf("Passed all test for stack\n");
+}
 
 

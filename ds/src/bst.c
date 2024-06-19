@@ -35,6 +35,9 @@ static int Count(void *data, void *param);
 static void UpdateParentOfChild(bst_iter_t iter, bst_iter_t update_to);
 static void CopyNode(bst_iter_t dest, bst_iter_t src);
 
+#define NODE_TO_ITER (node *node) ((bst_iter_t)node)
+#define ITER_TO_NODE (bst_iter_t iter) ((node *)iter)
+
 /********************* API Functions **********************/
 
 bst_t *BSTCreate(bst_cmp_func_t compare)
@@ -232,9 +235,12 @@ void *BSTRemove(bst_iter_t iter_to_remove)
 	
 	data = BSTGetData(iter_to_remove);
 	
+	/* when the removed node has no left child */
 	if(NULL == Left(iter_to_remove))
 	{
 		tmp_iter = Right(iter_to_remove);
+		
+		/* when the remove noded has only a right child */
 		if (NULL != tmp_iter)
 		{
 			CopyNode (iter_to_remove, tmp_iter);
@@ -245,6 +251,7 @@ void *BSTRemove(bst_iter_t iter_to_remove)
 			return data;
 		}
 		
+		/* when the removed node has no childs */
 		ChangeChildOfParentIter(iter_to_remove, NULL);
 		
 		free(iter_to_remove);
@@ -252,6 +259,7 @@ void *BSTRemove(bst_iter_t iter_to_remove)
 		return data;
 	}
 	
+	/* when the removed node has a left child */
 	tmp_iter = Left(iter_to_remove);
 	
 	while (NULL != Right(tmp_iter))
