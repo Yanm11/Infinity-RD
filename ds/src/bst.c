@@ -132,7 +132,7 @@ bst_iter_t BSTPrev(bst_iter_t iter)
 {	
 	node_t *node = ITER_TO_NODE(iter);
 	
-	assert(iter);
+	assert(node);
 	
 	/* if there is still a left child to go to */
 	if (NULL != Left(node))
@@ -189,7 +189,7 @@ void *BSTGetData(bst_iter_t iter)
 {
 	node_t *node = ITER_TO_NODE(iter);
 	
-	assert(iter);
+	assert(node);
 	
 	return GetData(node);
 }
@@ -244,7 +244,7 @@ void *BSTRemove(bst_iter_t iter_to_remove)
 	node_t *node_to_remove = ITER_TO_NODE(iter_to_remove);
 	void *data = NULL;
 	
-	assert(iter_to_remove);
+	assert(node_to_remove);
 	
 	data = GetData(node_to_remove);
 	
@@ -313,17 +313,23 @@ bst_iter_t BSTFind(const bst_t *tree, const void *data)
 	
 	assert(tree);
 	
-	node = BSTBegin((bst_t*)tree);
+	node = Left(GetRoot((bst_t*)tree));
 	
-	while (!BSTIsSameIter(NODE_TO_ITER(node), BSTEnd(tree)) && 0 >= compare_status)
+	while (node)
 	{
 		compare_status = GetCompare((bst_t*)tree)(GetData(node), data);
 		if (0 == compare_status)
 		{
 			return NODE_TO_ITER(node);
+		}	
+		 else if (0 < compare_status)
+		{
+			node = Left(node);
 		}
-		
-		node = BSTNext(NODE_TO_ITER(node));
+		else
+		{
+			node = Right(node);
+		}
 	}
 	
 	return BSTEnd(tree);
