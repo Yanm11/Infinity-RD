@@ -285,19 +285,14 @@ void TestStack(void)
 	size_t capacity = 100;
 	size_t elem_size = 4;
 	stack_t *stack_ptr = NULL;
-	int *arr_int = (int*)malloc(sizeof(int)*100);
 	size_t i = 0;
 	
-	for (; i < capacity; ++i)
-	{
-		*(arr_int + i) = (int)i;
-	}
 	
 	stack_ptr = StackCreate(capacity,elem_size);
 	
 	for (i = 0; i < capacity; ++i)
 	{
-		StackPush(stack_ptr, (arr_int + i));
+		StackPush(stack_ptr, &i);
 	}
 	
 	SortStack(stack_ptr);
@@ -311,6 +306,8 @@ void TestStack(void)
 		}
 		StackPop(stack_ptr);
 	}
+	
+	StackDestroy(stack_ptr);
 
 	printf("Passed all test for stack\n");
 }

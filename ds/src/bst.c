@@ -12,31 +12,35 @@
 
 #include "bst.h"
 
-struct node
+typedef struct node
 {
 	void *data;
 	struct node *left;
 	struct node *right;
 	struct node *parent;
-}; 
+} node_t; 
 
 struct bst
 {
-	bst_iter_t root;
+	node_t *root;
 	bst_cmp_func_t cmp_func;
 };
 
-static bst_iter_t CreateIter(void *data, bst_iter_t parent);
-static bst_iter_t Left(bst_iter_t iter); 
-static bst_iter_t Right(bst_iter_t iter);							  
-static bst_iter_t Parent(bst_iter_t iter);
-static void ChangeChildOfParentIter(bst_iter_t iter, bst_iter_t change_to);
+static bst_iter_t CreateNode(void *data, node_t *parent);
+static node_t *GetRoot(bst_t *bst);
+static node_t *Left(node_t *iter); 
+static node_t *Right(node_t *iter);							  
+static node_t *Parent(node_t *iter);
+static bst_cmp_func_t GetCompare(bst_t *tree);
+static int IsSameNode(node_t *node1, node_t *node2);
+static void ChangeChildOfParentNode(node_t *node, node_t *change_to);
 static int Count(void *data, void *param);
-static void UpdateParentOfChild(bst_iter_t iter, bst_iter_t update_to);
-static void CopyNode(bst_iter_t dest, bst_iter_t src);
+static void UpdateParentOfChild(node_t *node, node_t *update_to);
+static void CopyNode(node_t *dest, node_t *src);
+static void *GetData(node_t *node);
 
-#define NODE_TO_ITER (node *node) ((bst_iter_t)node)
-#define ITER_TO_NODE (bst_iter_t iter) ((node *)iter)
+#define NODE_TO_ITER(node) ((bst_iter_t)node)
+#define ITER_TO_NODE(iter) ((node_t*)iter)
 
 /********************* API Functions **********************/
 
@@ -52,8 +56,8 @@ bst_t *BSTCreate(bst_cmp_func_t compare)
 		return NULL;
 	}
 	
-	bst->root = CreateIter(NULL, NULL);
-	if (NULL == bst->root)
+	bst->root = CreateNode(NULL, NULL);
+	if (NULL == GetRoot(bst))
 	{
 		free(bst);
 		
@@ -67,50 +71,54 @@ bst_t *BSTCreate(bst_cmp_func_t compare)
 
 void BSTDestroy(bst_t *tree)
 {
-	bst_iter_t iter = NULL;
+	node_t *node = NULL;
 	
 	assert(tree);
 	
-	iter = BSTBegin(tree);
+	node = ITER_TO_NODE(BSTBegin(tree));
 	
 	while (!BSTIsEmpty(tree))
 	{
-		if (NULL != Right(iter))
+		/* check if there is still a right child to go to */
+		if (NULL != Right(node))
 		{
-			iter = Right(iter);
-			while(NULL != Left(iter))
+			node = Right(node);
+			
+			/* if there is we will traverse to the left most node */
+			while(NULL != Left(node))
 			{
-				iter = Left(iter);
+				node = Left(node);
 			}
 		}
+		/* if not then its the end and we can start to free the nodes */
 		else
 		{
-			bst_iter_t tmp_iter = iter;
-			iter = Parent(iter);
+			node_t *tmp_node = node;
+			node = Parent(node);
 			
-			ChangeChildOfParentIter(tmp_iter, NULL);
+			ChangeChildOfParentNode(tmp_node, NULL);
 			
-			free(tmp_iter);
+			free(tmp_node);
 		}
 	}
 	
-	free(BSTEnd(tree));
+	free(GetRoot(tree));
 	free(tree);
 }
 
 bst_iter_t BSTBegin(const bst_t *tree)
 {
-	bst_iter_t iter = NULL;
+	node_t *node = NULL;
 	
 	assert(tree);
 	
-	iter = BSTEnd(tree);
-	while(NULL != Left(iter))
+	node = GetRoot((bst_t*)tree);
+	while(NULL != Left(node))
 	{
-		iter = Left(iter);
+		node = Left(node);
 	}
 	
-	return iter;
+	return NODE_TO_ITER(node);
 }
 
 bst_iter_t BSTEnd(const bst_t *tree)
@@ -122,199 +130,200 @@ bst_iter_t BSTEnd(const bst_t *tree)
 
 bst_iter_t BSTPrev(bst_iter_t iter)
 {	
+	node_t *node = ITER_TO_NODE(iter);
+	
 	assert(iter);
 	
 	/* if there is still a left child to go to */
-	if (NULL != Left(iter))
+	if (NULL != Left(node))
 	{
-		iter = Left(iter);
+		node = Left(node);
 		
-		while(NULL != Right(iter))
+		/* we traverse to the left most right child */
+		while(NULL != Right(node))
 		{
-			iter = Right(iter);
+			node = Right(node);
 		}
 				
-		return iter;
+		return NODE_TO_ITER(node);
 	}
 	
-	/* if there is no more left childs to go to */ 	
-	while (Right(Parent(iter)) != iter)
+	/* if there is no left childs to go to */ 
+	/* we traverse up in the tree to find a right child node */	
+	while (Right(Parent(node)) != node)
 	{
-		iter = Parent(iter);
+		node = Parent(node);
 	}
 	
-	return Parent(iter);
+	return NODE_TO_ITER(Parent(node));
 }
 
 bst_iter_t BSTNext(bst_iter_t iter)
 {	
-	assert(iter);
+	node_t *node = ITER_TO_NODE(iter);
 	
-	/* check if node has a right child that does not have a left child */
-	if (NULL != Right(iter))
+	assert(node);
+	
+	/* find the left most right child node */
+	if (NULL != Right(node))
 	{
-		iter = Right(iter);
+		node = Right(node);
 		
-		while (NULL != Left(iter))
+		while (NULL != Left(node))
 		{
-			iter = Left(iter);
+			node = Left(node);
 		}
 		
-		return iter;
+		return NODE_TO_ITER(node);
 	}
-	/* check if node is a left child of its parent */
-	while (Left(Parent(iter)) != iter)
+	/* if no right child exist we traverse up to find a left child node */
+	while (Left(Parent(node)) != node)
 	{
-		iter = Parent(iter);
+		node = Parent(node);
 	}
 	
-	return Parent(iter);
+	return NODE_TO_ITER(Parent(node));
 }
 
 void *BSTGetData(bst_iter_t iter)
 {
+	node_t *node = ITER_TO_NODE(iter);
+	
 	assert(iter);
 	
-	return iter->data;
+	return GetData(node);
 }
 
 bst_iter_t BSTInsert(bst_t *tree, void *data)
 {
-	bst_iter_t iter = NULL;
-	bst_iter_t new_iter = NULL;
-	int status = 0;
+	node_t *node = NULL;
+	node_t *new_node = NULL;
+	int compare_status = 0;
 	
 	assert(tree);
-	assert(BSTEnd(tree) == BSTFind(tree, data));
+	assert(BSTIsSameIter(BSTEnd(tree), BSTFind(tree, data)));
 	
-	iter = BSTEnd(tree);
+	node = GetRoot(tree);
 
-	
-	while ((NULL != Left(iter) || 0 > status) &&
-		   (NULL != Right(iter) || 0 <= status))
+	/* traverse the tree to find the node where we can insert the new one */
+	while ((NULL != Left(node) || 0 > compare_status) &&
+		   (NULL != Right(node) || 0 <= compare_status))
 	{		
-		if (0 < status)
+		if (0 <= compare_status)
 		{
-			iter = Left(iter);
+			node = Left(node);
 		}
-		else if (0 > status)
+		else if (0 > compare_status)
 		{
-			iter = Right(iter);
+			node = Right(node);
 		}
-		else
-		{
-			iter = Left(iter);
-		}
-		status = tree->cmp_func(BSTGetData(iter), data);
+
+		compare_status = GetCompare(tree)(GetData(node), data);
 	}
 	
-	new_iter = CreateIter(data, iter);
-	if (NULL == new_iter)
+	new_node = CreateNode(data, node);
+	if (NULL == new_node)
 	{
 		return BSTEnd(tree); 
 	}
 	
-	if (0 <= status)
+	if (0 <= compare_status)
 	{
-		iter->left = new_iter;
-		
-		return new_iter;
+		node->left = new_node;
 	}
-	
-	iter->right = new_iter;
-	
-	return new_iter;
+	else
+	{
+		node->right = new_node;
+	}
+
+	return NODE_TO_ITER(new_node);;
 }
 
 void *BSTRemove(bst_iter_t iter_to_remove)
 {
-	bst_iter_t tmp_iter = NULL;
+	node_t *node_to_remove = ITER_TO_NODE(iter_to_remove);
 	void *data = NULL;
 	
 	assert(iter_to_remove);
 	
-	data = BSTGetData(iter_to_remove);
+	data = GetData(node_to_remove);
 	
-	/* when the removed node has no left child */
-	if(NULL == Left(iter_to_remove))
+	/* when the removed node doesn't have a left child */
+	if(NULL == Left(node_to_remove))
 	{
-		tmp_iter = Right(iter_to_remove);
+		node_t *right_node = Right(node_to_remove);
 		
-		/* when the remove noded has only a right child */
-		if (NULL != tmp_iter)
+		/* when the remove node has only a right child */
+		if (NULL != right_node)
 		{
-			CopyNode (iter_to_remove, tmp_iter);
-			UpdateParentOfChild(tmp_iter, iter_to_remove);
+			/* swiching between the removed node and his right child */
+			CopyNode(node_to_remove, right_node);
+			UpdateParentOfChild(right_node, node_to_remove);
 			
-			free(tmp_iter);
+			free(right_node);
 			
 			return data;
 		}
 		
-		/* when the removed node has no childs */
-		ChangeChildOfParentIter(iter_to_remove, NULL);
+		/* when the removed node has no children */
+		ChangeChildOfParentNode(node_to_remove, NULL);
 		
-		free(iter_to_remove);
+		free(node_to_remove);
 		
 		return data;
 	}
-	
 	/* when the removed node has a left child */
-	tmp_iter = Left(iter_to_remove);
-	
-	while (NULL != Right(tmp_iter))
+	else
 	{
-		tmp_iter = Right(tmp_iter);
-	}
-	
-	iter_to_remove->data = BSTGetData(tmp_iter);
+		/* we will replace the removed node with the previous node */ 
+		node_t *prev_node = ITER_TO_NODE(BSTPrev(node_to_remove));
+		
+		node_to_remove->data = GetData(prev_node);
 
-	ChangeChildOfParentIter(tmp_iter, Left(tmp_iter));
-	UpdateParentOfChild(tmp_iter, Parent(tmp_iter));
-	
-	free(tmp_iter);
-	
-	return data;
+		ChangeChildOfParentNode(prev_node, Left(prev_node));
+		UpdateParentOfChild(prev_node, Parent(prev_node));
+		
+		free(prev_node);
+		
+		return data;	
+	}
 }
 
 int BSTIsEmpty(const bst_t *tree)
 {
-	bst_iter_t iter = NULL;
+	node_t *node = NULL;
 	
 	assert(tree);
 	
-	iter = BSTEnd(tree);
+	node = GetRoot((bst_t*)tree);
 	
-	return ((NULL == Left(iter) && NULL == Right(iter)));
+	return (NULL == Left(node));
 }
 
 
 int BSTIsSameIter(bst_iter_t iter1, bst_iter_t iter2)
 {
-	assert(iter1);
-	assert(iter2);
-	
-	return (iter1 == iter2);
+	return IsSameNode(ITER_TO_NODE(iter1), ITER_TO_NODE(iter2));
 }
 
 bst_iter_t BSTFind(const bst_t *tree, const void *data)
 {
-	bst_iter_t iter = NULL;
-	int status = 0;
+	node_t *node = NULL;
+	int compare_status = 0;
 	
 	assert(tree);
 	
-	iter = BSTBegin(tree);
+	node = BSTBegin((bst_t*)tree);
 	
-	while (!BSTIsSameIter(iter, BSTEnd(tree)) && 0 >= status)
+	while (!BSTIsSameIter(NODE_TO_ITER(node), BSTEnd(tree)) && 0 >= compare_status)
 	{
-		status = tree->cmp_func(BSTGetData(iter), data);
-		if (0 == status)
+		compare_status = GetCompare((bst_t*)tree)(GetData(node), data);
+		if (0 == compare_status)
 		{
-			return iter;
+			return NODE_TO_ITER(node);
 		}
 		
-		iter = BSTNext(iter);
+		node = BSTNext(NODE_TO_ITER(node));
 	}
 	
 	return BSTEnd(tree);
@@ -322,18 +331,18 @@ bst_iter_t BSTFind(const bst_t *tree, const void *data)
 
 int BSTForEach(bst_t *tree, bst_action_func_t action, void* param)
 {
-	bst_iter_t iter = NULL;
+	node_t *node = NULL;
 	int status = 0;
 	
 	assert(tree);
 	
-	iter = BSTBegin(tree);
+	node = ITER_TO_NODE(BSTBegin(tree));
 	
-	while (!BSTIsSameIter(iter, BSTEnd(tree)))
+	while (!BSTIsSameIter(NODE_TO_ITER(node), BSTEnd(tree)))
 	{
-		status = action(BSTGetData(iter), param);
+		status = action(GetData(node), param);
 		
-		iter = BSTNext(iter);
+		node = ITER_TO_NODE(BSTNext(node));
 	}
 	
 	return status;
@@ -341,70 +350,91 @@ int BSTForEach(bst_t *tree, bst_action_func_t action, void* param)
 
 size_t BSTSize(const bst_t *tree)
 {
-	size_t count = 0;
-	bst_t *new_tree = NULL;
+	size_t counter = 0;
 	
 	assert(tree);
 	
-	new_tree = (bst_t*)tree;
+	BSTForEach((bst_t*)tree, &Count, &counter);
 	
-	BSTForEach(new_tree, &Count, &count);
-	
-	return count;
+	return counter;
 }
 
 
 
 /********************* Help Functions **********************/
 
-static bst_iter_t CreateIter(void *data, bst_iter_t parent)
+static node_t *CreateNode(void *data, node_t *parent)
 {
-	bst_iter_t iter = (bst_iter_t)malloc(sizeof(struct node));
-	if (NULL == iter)
+	node_t *node = (node_t *)malloc(sizeof(struct node));
+	if (NULL == node)
 	{
 		return NULL;
 	}
 	
-	iter->data = data;
-	iter->left = NULL;
-	iter->right = NULL;
-	iter->parent = parent;
+	node->data = data;
+	node->left = NULL;
+	node->right = NULL;
+	node->parent = parent;
 	
-	return iter;
+	return node;
+}
+static node_t *GetRoot(bst_t *bst)
+{
+	assert(bst);
+	
+	return bst->root;
 }
 
-static bst_iter_t Left(bst_iter_t iter)
+static node_t *Left(node_t *node)
 {
-	assert(iter);
+	assert(node);
 	
-	return iter->left;
+	return node->left;
 }
 
-static bst_iter_t Right(bst_iter_t iter)
+static node_t *Right(node_t *node)
 {
-	assert(iter);
+	assert(node);
 	
-	return iter->right;
+	return node->right;
 }
 
-static bst_iter_t Parent(bst_iter_t iter)
+static node_t *Parent(node_t *node)
 {
-	assert(iter);
+	assert(node);
 	
-	return iter->parent;
+	return node->parent;
 }
 
-static void ChangeChildOfParentIter(bst_iter_t iter, bst_iter_t change_to)
+static void *GetData(node_t *node)
 {
-	assert(iter);
+	assert(node);
 	
-	if (Right(Parent(iter)) == iter)
+	return node->data;
+}
+
+static bst_cmp_func_t GetCompare(bst_t *tree)
+{
+	assert(tree);
+	
+	return tree->cmp_func;
+}
+
+static int IsSameNode(node_t *node1, node_t *node2)
+{
+	return (node1 == node2);
+}
+static void ChangeChildOfParentNode(node_t *node, node_t *change_to)
+{
+	assert(node);
+	
+	if (Right(Parent(node)) == node)
 	{
-		Parent(iter)->right = change_to;
+		Parent(node)->right = change_to;
 	}
 	else
 	{
-		Parent(iter)->left = change_to;
+		Parent(node)->left = change_to;
 	}
 }
 
@@ -416,22 +446,22 @@ static int Count(void *data, void *param)
 	return 0;
 }
 
-static void UpdateParentOfChild(bst_iter_t iter, bst_iter_t update_to)
+static void UpdateParentOfChild(node_t *node, node_t *update_to)
 {
-	assert(iter);
+	assert(node);
 	
-	if(NULL != iter->left)
+	if(NULL != node->left)
 	{
-		iter->left->parent = update_to;
+		node->left->parent = update_to;
 	}
 			
-	if(NULL != iter->right)
+	if(NULL != node->right)
 	{
-		iter->right->parent = update_to;
+		node->right->parent = update_to;
 	}
 }
 
-static void CopyNode(bst_iter_t dest, bst_iter_t src)
+static void CopyNode(node_t *dest, node_t *src)
 {
 	assert(dest);
 	assert(src);

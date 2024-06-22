@@ -34,8 +34,8 @@ static size_t aligned_block_size(size_t block_size)
 
 size_t FSASuggestSize(size_t block_size, size_t block_num)
 {
-	assert(0 < block_size);
-	assert(0 < block_num);
+	assert(0 != block_size);
+	assert(0 != block_num);
 	
 	block_size = aligned_block_size(block_size);
 	
@@ -51,8 +51,8 @@ fsa_t *FSAInit(void *memory, size_t total_size, size_t block_size)
 	size_t number_of_blocks = 0;
 	
 	assert(memory);
-	assert(0 < total_size);
-	assert(0 < block_size);
+	assert(0 != total_size);
+	assert(0 != block_size);
 	
 	block_size = aligned_block_size(block_size);
 
