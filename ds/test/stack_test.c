@@ -3,20 +3,28 @@
 
 void TestCreate(stack_t *stack_ptr);
 void TestPop(stack_t *stack_ptr);
-void TestPush(stack_t *stack_ptr, int *new_element);
+void TestPush(stack_t *stack_ptr, double *new_element);
 void TestIsEmpty(stack_t *stack_ptr , int empty);
 void TestGetSize(stack_t *stack_ptr , size_t size);
 void TestGetCapacity(stack_t *stack_ptr , size_t cap);
-void TestPeek(stack_t *stack_ptr , int peek);
+void TestPeek(stack_t *stack_ptr , double peek);
+
+typedef enum 
+{
+    WAIT_OPERAND,
+    WAIT_OPERATOR,
+    ERROR,
+    SUCCESS
+} State;
 
 int main(void)
 {
 	size_t capacity = 20;
-	size_t elem_size = 4;
+	size_t elem_size = 8;
 	stack_t *stack_ptr = NULL;
-	int x = 10;
-	int y = 35;
-	int z = 1684; 
+	double x = 6464646;
+	double y = 0.5487;
+	double z = 789.58; 
 	
 	stack_ptr = StackCreate(capacity,elem_size);
 	
@@ -30,15 +38,15 @@ int main(void)
 	TestPush(stack_ptr, &z);
 	
 	TestGetSize(stack_ptr, 3);
-	
+	printf("size of char is: %ld\n", sizeof(char));
 	TestIsEmpty(stack_ptr, 0);
-	
+	printf("peek is: %f\n",*(double*)StackPeek(stack_ptr));
 	TestPeek(stack_ptr, z);
 	TestPop(stack_ptr);
-	
+	printf("peek is: %f\n",*(double*)StackPeek(stack_ptr));
 	TestPeek(stack_ptr, y);
 	TestPop(stack_ptr);
-	
+	printf("peek is: %f\n",*(double*)StackPeek(stack_ptr));
 	TestPeek(stack_ptr, x);
 	TestPop(stack_ptr);
 	
@@ -84,7 +92,7 @@ void TestPop(stack_t *stack_ptr)
 	printf("-------------------\n");
 }
 
-void TestPush(stack_t *stack_ptr, int *new_element)
+void TestPush(stack_t *stack_ptr, double *new_element)
 {
 	
 	size_t size = StackGetSize(stack_ptr);
@@ -142,9 +150,9 @@ void TestGetCapacity(stack_t *stack_ptr , size_t cap)
 	printf("-------------------\n");
 }
 
-void TestPeek(stack_t *stack_ptr , int peek)
+void TestPeek(stack_t *stack_ptr , double peek)
 {	
-	if (*(int*)StackPeek(stack_ptr) == peek)
+	if (*(double*)StackPeek(stack_ptr) == peek)
 	{
 		printf("Peek Test PASSED\n");
 	}

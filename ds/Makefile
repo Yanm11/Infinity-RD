@@ -10,7 +10,7 @@ CC = gcc
 CFLAGS = -ansi -pedantic-errors -Wall -Wextra -I$(INCLUDE_DIR)/
 DEBUGFLAGS = -g
 RELEASEFLAGS = -DNDEBUG -O3
-LIBFLAGS = -shared -fPIC
+LIBFLAGS = -shared -fPIC -lm
 
 # Automatically find all source and test files
 SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
@@ -58,7 +58,7 @@ $(TEST_DIR)/%_test.o: $(TEST_DIR)/%_test.c $(INCLUDE_DIR)/%.h
 # Link object files to create debug executables
 $(BIN_DIR_DEBUG)/%: $(TEST_DIR)/%_test.o $(INCLUDE_DIR)/libmydslib_debug.so | $(BIN_DIR_DEBUG)
 	@echo "Linking $(basename $(notdir $@)) for debug..."
-	@$(CC) $(CFLAGS) $(DEBUGFLAGS) -o $@ $< -L$(INCLUDE_DIR) -lmydslib_debug
+	@$(CC) $(CFLAGS) $(DEBUGFLAGS) -o $@ $< -L$(INCLUDE_DIR) -lmydslib_debug -lm
 
 # Link object files to create release executables
 $(BIN_DIR_RELEASE)/%: $(TEST_DIR)/%_test.o $(INCLUDE_DIR)/libmydslib_release.so | $(BIN_DIR_RELEASE)

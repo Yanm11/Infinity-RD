@@ -4,8 +4,8 @@
    Date: 10/06/24
    Review by: itay
    Review Date: 17/06/2024
-   Approved by: 
-   Approval Date: 
+   Approved by: itay
+   Approval Date: 23/06/2024
 **********************************/
 #include <stdlib.h> /* malloc free */
 #include <assert.h> /* assert */
@@ -205,7 +205,10 @@ bst_iter_t BSTInsert(bst_t *tree, void *data)
 	
 	node = GetRoot(tree);
 
-	/* traverse the tree to find the node where we can insert the new one */
+	/* the only reason when we won't enter the loop is if we want to go left
+	   but left is NULL OR if we want to go right but right is NULL.
+	   in those cases we know we reached the place we should insert and so
+	   we proceed to insert */
 	while ((NULL != Left(node) || 0 > compare_status) &&
 		   (NULL != Right(node) || 0 <= compare_status))
 	{		
@@ -456,12 +459,12 @@ static void UpdateParentOfChild(node_t *node, node_t *update_to)
 {
 	assert(node);
 	
-	if(NULL != node->left)
+	if(NULL != Left(node))
 	{
 		node->left->parent = update_to;
 	}
 			
-	if(NULL != node->right)
+	if(NULL != Right(node))
 	{
 		node->right->parent = update_to;
 	}
@@ -472,9 +475,9 @@ static void CopyNode(node_t *dest, node_t *src)
 	assert(dest);
 	assert(src);
 	
-	dest->data = src->data;
-	dest->right = src->right;
-	dest->left = src->left;
+	dest->data = GetData(src);
+	dest->right = Right(src);
+	dest->left = Left(src);
 }
 
 

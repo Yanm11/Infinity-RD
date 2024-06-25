@@ -6,6 +6,9 @@ void TestCreateDestroy(void);
 void TestCount(void);
 void TestIsEmpty(void);
 void TestInsert(void);
+void TestFind(void);
+void TestForEach(void);
+void TestRemove(void);
 
 static int checker = 0;
 
@@ -17,10 +20,12 @@ int Compare(const void *data,const void *params)
 	return (*(int *)data - *(int *)params);
 }
 
-int Sum(void *data, void *params)
+int PrintElements(void *data, void *params)
 {	
-	*(int *)params += *(int *)data;
-	return (*(int *)params);
+	printf(",%d", *(int*)data);
+	(void)params;
+	
+	return 0;
 }
 
 int main(void)
@@ -29,6 +34,9 @@ int main(void)
 	TestCount();
 	TestIsEmpty();
 	TestInsert();
+	TestFind();
+	TestForEach();
+	TestRemove();
 	
 	if (checker)
 	{
@@ -36,7 +44,7 @@ int main(void)
 		return 0;
 	}
 	
-	printf("PASSED ALL TESTS!!!!!\n");
+	printf("\nPASSED ALL TESTS!!!!!\n");
 	
 	return 0;
 }
@@ -80,10 +88,26 @@ void TestCount(void)
 void TestIsEmpty(void)
 {
 	avl_t *avl = AVLCreate(&Compare);
+	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
+	size_t i = 0;
+	size_t size_arr = sizeof(arr) / sizeof(int);
 	
 	if (!AVLIsEmpty(avl))
 	{
 		printf("FAILED TestIsEmpty\n");
+		++checker;
+		
+		return;
+	}
+
+	for (; i < size_arr; ++i)
+	{
+		AVLInsert(avl, arr + i);
+	}
+	
+	if (AVLIsEmpty(avl))
+	{
+		printf("FAILED TestIsEmpty2\n");
 		++checker;
 		
 		return;
@@ -125,7 +149,7 @@ void TestInsert(void)
 	
 	if (3 != size_avl)
 	{
-		printf("FAILED TestInsert\n");
+		printf("FAILED TestInsert2\n");
 		++checker;
 		
 		return;
@@ -140,7 +164,7 @@ void TestInsert(void)
 	
 	if (size_avl != size_arr)
 	{
-		printf("FAILED TestInsert\n");
+		printf("FAILED TestInsert3\n");
 		++checker;
 		
 		return;
@@ -149,4 +173,97 @@ void TestInsert(void)
 	AVLDestroy(avl);
 	
 	printf("PASSED TestInsert!!\n");
+}
+
+void TestFind(void)
+{
+	avl_t *avl = AVLCreate(&Compare);
+	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
+	size_t i = 0;
+	size_t size_arr = sizeof(arr) / sizeof(int);
+	int elem_not_in_avl = 100;
+	
+	for (; i < size_arr; ++i)
+	{
+		AVLInsert(avl, arr + i);
+	}
+	
+	for (i = 0; i < size_arr; ++i)
+	{
+		if (arr[i] != *(int*)AVLFind(avl, arr + i))
+		{
+			printf("FAILED TestFind\n");
+			++checker;
+			
+			return;
+		}
+	}
+	
+	if (NULL != AVLFind(avl, &elem_not_in_avl))
+	{
+		printf("FAILED TestFind2\n");
+		++checker;
+		
+		return;
+	}
+	
+	AVLDestroy(avl);
+	
+	printf("PASSED TestFind!!\n");
+}
+
+void TestForEach(void)
+{
+	avl_t *avl = AVLCreate(&Compare);
+	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
+	size_t i = 0;
+	size_t size_arr = sizeof(arr) / sizeof(int);
+	int params = 100;
+	
+	for (; i < size_arr; ++i)
+	{
+		AVLInsert(avl, arr + i);
+	}
+	
+	printf("Test ForEach:(should print elements in accending order)\n[");
+	if (0 != AVLForEach(avl, &PrintElements, &params))
+	{
+		printf("FAILED TestForEach\n");
+		++checker;
+		
+		return;
+	}
+	printf("]\n");
+	
+	AVLDestroy(avl);
+	
+	printf("PASSED TestForEach!!\n");
+}
+
+void TestRemove(void)
+{
+	avl_t *avl = AVLCreate(&Compare);
+	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
+	size_t i = 0;
+	size_t size_arr = sizeof(arr) / sizeof(int);
+	
+	for (; i < size_arr; ++i)
+	{
+		AVLInsert(avl, arr + i);
+	}
+	
+	for (i = 0; i < size_arr; ++i)
+	{
+		AVLRemove(avl, arr + i);
+	}
+	
+	if (0 != AVLCount(avl))
+	{
+		printf("FAILED TestRemove\n");
+		++checker;
+		
+		return;
+	}
+	
+	printf("PASSED TestRemove!!\n");
 }
