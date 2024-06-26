@@ -52,6 +52,7 @@ static double MultiOperation(double num1, double num2);
 static double DivOperation(double num1, double num2);
 static double PowOperation(double num1, double num2);
 static double DummyOperation(double num1, double num2);
+static double ParenthesisOperation(double num1, double num2);
 					   
 typedef enum 
 {
@@ -59,6 +60,16 @@ typedef enum
     WAIT_DIGIT,
     WAIT_OPERATOR
 } e_state_t;
+
+typedef enum 
+{
+	P_DUMMY = -1,
+	P_NOTHING, 
+    P_PLUS_SUB,
+    P_MULTI_DIV,
+    P_POW,
+    P_PARAN
+} e_priority_t;
 
 typedef struct transition
 {
@@ -68,7 +79,7 @@ typedef struct transition
 
 typedef struct operator
 {
-    int priority;
+    e_priority_t priority;
     double (*operation)(double, double);
 } operator_t;
 
@@ -195,7 +206,7 @@ static void OperatorInitialize(void)
 {
 	size_t i = 0;
 	
-	operator_t invalid_operator = {0, DummyOperation};
+	operator_t invalid_operator = {P_NOTHING, DummyOperation};
 	
 	/* initialize the LUT for invalid inputs */
 	for (; i < NUM_OF_INPUTS; ++i)
@@ -204,28 +215,28 @@ static void OperatorInitialize(void)
 	}	
 	
 	/* assigning the right operator handler for each operator */
-	operators['('].priority = 4;
-	operators['('].operation = DummyOperation;
+	operators['('].priority = P_PARAN;
+	operators['('].operation = ParenthesisOperation;
 
-	operators[')'].priority = 4;
+	operators[')'].priority = P_PARAN;
 	operators[')'].operation = DummyOperation;
 
-	operators['+'].priority = 1;
+	operators['+'].priority = P_PLUS_SUB;
 	operators['+'].operation = PlusOperation;
 
-	operators['-'].priority = 1;
+	operators['-'].priority = P_PLUS_SUB;
 	operators['-'].operation = SubOperation;
 
-	operators['/'].priority = 2;
+	operators['/'].priority = P_MULTI_DIV;
 	operators['/'].operation = DivOperation;
 
-	operators['*'].priority = 2;
+	operators['*'].priority = P_MULTI_DIV;
 	operators['*'].operation = MultiOperation;
 	
-	operators['^'].priority = 3;
+	operators['^'].priority = P_POW;
 	operators['^'].operation = PowOperation;
 	
-	operators[DUMMY].priority = -1;
+	operators[DUMMY].priority = P_DUMMY;
 	operators[DUMMY].operation = DummyOperation;
 }
 
@@ -277,7 +288,7 @@ static char *HandleOperator(stack_t *operator_stack,
 					   		char *expression)
 {
 	unsigned char operator = 0;
-	int priority_new = 0;
+	e_priority_t priority_new = P_NOTHING;
 	
 	assert(digit_stack);
 	assert(operator_stack);
@@ -297,10 +308,10 @@ static char *HandleOperator(stack_t *operator_stack,
 
 static void ExecuteOperation(stack_t *operator_stack,
 							 stack_t *digit_stack,
-						   	 int priority)
+						   	 e_priority_t priority)
 {
 	char operator_peek = 0;
-	int priority_peek = 0;
+	e_priority_t priority_peek = 0;
 	
 	assert(digit_stack);
 	assert(operator_stack);
@@ -311,7 +322,7 @@ static void ExecuteOperation(stack_t *operator_stack,
 	operator_peek = *(char*)StackPeek(operator_stack);
 	
 	/* stopoing when current priority is bigger than peek prirority and at '('*/
-	while (priority <= priority_peek && 4 != priority_peek)
+	while (priority <= priority_peek && P_PARAN != priority_peek)
 	{
 		ExecuteEquation(operator_peek, digit_stack);
 		StackPop(operator_stack);
@@ -343,7 +354,7 @@ static char *HandleNullTerminator(stack_t *operator_stack,
 								 stack_t *digit_stack,
 						   		 char *expression)			
 {	
-	int priority = 0;
+	e_priority_t priority = P_NOTHING;
 	 
 	assert(digit_stack);
 	assert(operator_stack);
@@ -395,14 +406,15 @@ static char *HandleCloseParacentesis(stack_t *operator_stack,
 	assert(digit_stack);
 	assert(expression);
 	
-	ExecuteOperation(operator_stack, digit_stack, 0);
+	ExecuteOperation(operator_stack, digit_stack, P_NOTHING);
+	
 	if ('(' == *(char*)StackPeek(operator_stack))
 	{
 		StackPop(operator_stack);
 		
 		return expression + 1;		
 	}
-	
+
 	return HandleError(operator_stack, digit_stack, expression);
 	
 }
@@ -415,7 +427,7 @@ static char *HandlePow(stack_t *operator_stack,
 	assert(digit_stack);
 	assert(expression);
 	
-	ExecuteOperation(operator_stack, digit_stack, 4);
+	ExecuteOperation(operator_stack, digit_stack, P_PARAN);
 	
 	StackPush(operator_stack, expression);
 	
@@ -423,6 +435,7 @@ static char *HandlePow(stack_t *operator_stack,
 }
 
 /********************************* OPERATIONS FUNCTIONS *************************/
+
 static double PlusOperation(double num1, double num2)
 {
 	return (num1 + num2);
@@ -467,5 +480,11 @@ static double DummyOperation(double num1, double num2)
 	return 0;
 }
 
-
+static double ParenthesisOperation(double num1, double num2)
+{	
+	(void)num1;
+	(void)num2;
+	
+	return 0;
+}
 

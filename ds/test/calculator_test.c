@@ -124,7 +124,7 @@ void TestCalc(void)
   		printf("PASSED testcalc 5\n\n");
   	}
   	 
-	equation = "3-2)*5";
+	equation = "9-2)*5";
 	expected_result = 0;
 	expected_status = CALC_SYNTAX_ERROR;
 	
