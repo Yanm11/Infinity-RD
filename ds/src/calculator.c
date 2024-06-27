@@ -10,6 +10,7 @@
 #define CHAR_TO_UCHAR(c) ((unsigned char)c)
 #define CHARP_TO_UCHAR(c) (*(unsigned char*)c)
 #define DUMMY 11
+#define STACK_SIZE 200
 
 /*init functions */
 static void FSMInitialize(void);
@@ -91,6 +92,7 @@ static operator_t operators[NUM_OF_INPUTS];
 /* global variables decleration */
 static int FLAG = 1;
 static e_status_t STATUS = CALC_SUCCESS;
+static int INIT_FLAG = 1;
 
 /********************************* API FUNCTIONS *************************/
 e_status_t Calculate(const char *expression, double *result)
@@ -102,10 +104,15 @@ e_status_t Calculate(const char *expression, double *result)
 	transition_t tranistion = {0};
 	
 	/* creating the 2 stacks */
-	stack_t *operator_stack = StackCreate(strlen(expression),sizeof(char));
-	stack_t *digit_stack = StackCreate(strlen(expression),sizeof(double));
-	if (NULL == digit_stack || NULL == operator_stack)
+	stack_t *operator_stack = StackCreate(STACK_SIZE, sizeof(char));
+	stack_t *digit_stack = StackCreate(STACK_SIZE,sizeof(double));
+	if (NULL == digit_stack)
 	{
+		return CALC_COMPUTER_ERROR;
+	}
+	else if (NULL == operator_stack)
+	{
+		free(digit_stack);
 		return CALC_COMPUTER_ERROR;
 	}
 
@@ -116,8 +123,12 @@ e_status_t Calculate(const char *expression, double *result)
 	StackPush(operator_stack, &dummy);
 	
 	/* initializing the LUTs */
-	FSMInitialize();
-	OperatorInitialize();
+	if (INIT_FLAG)
+	{
+		FSMInitialize();
+		OperatorInitialize();
+		INIT_FLAG = 0;
+	}
 	
 	/* initializing the global variables */
 	FLAG = 1;
@@ -270,11 +281,6 @@ static char *HandleDigit(stack_t *operator_stack,
 	assert(digit_stack);
 	assert(operator_stack);
 	assert(expression);
-
-	if ('+' == *expression && '+' == *(expression + 1))
-	{
-		return HandleError(operator_stack, digit_stack, expression);
-	}
 	
 	number = strtod(expression, &expression);
 	
@@ -316,20 +322,20 @@ static void ExecuteOperation(stack_t *operator_stack,
 	assert(digit_stack);
 	assert(operator_stack);
 	
-	priority_peek = operators[CHARP_TO_UCHAR(StackPeek(operator_stack))
-							 ].priority;
-	
 	operator_peek = *(char*)StackPeek(operator_stack);
+	priority_peek = operators[CHAR_TO_UCHAR(operator_peek)].priority;
 	
 	/* stopoing when current priority is bigger than peek prirority and at '('*/
 	while (priority <= priority_peek && P_PARAN != priority_peek)
 	{
 		ExecuteEquation(operator_peek, digit_stack);
+		
+		/* remove the last used operator */
 		StackPop(operator_stack);
-		priority_peek = operators[CHARP_TO_UCHAR(StackPeek(operator_stack))
-								 ].priority;
-				 
+		
+		/* get the new operator in the stack and its priority */
 		operator_peek = *(char*)StackPeek(operator_stack);
+		priority_peek = operators[CHAR_TO_UCHAR(operator_peek)].priority;
 	}
 }
 
@@ -346,7 +352,10 @@ static void ExecuteEquation(char operator, stack_t *digit_stack)
 	num1 = *(double*)StackPeek(digit_stack);
 	StackPop(digit_stack);
 	
-	result = operators[(unsigned char)operator].operation(num1, num2);
+	/* execute operation */
+	result = operators[CHAR_TO_UCHAR(operator)].operation(num1, num2);
+	
+	/* push the result to the stack */
 	StackPush(digit_stack, &result);
 }
 

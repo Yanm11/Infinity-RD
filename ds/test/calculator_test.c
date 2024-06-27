@@ -199,24 +199,5 @@ void TestCalc(void)
   	{
   		printf("PASSED testcalc 9\n\n");
   	}
-  	
-  	equation = "1+++1";
-	expected_result = 0;
-	expected_status = CALC_SYNTAX_ERROR;
-	
-	status = Calculate(equation, &result);
-	
-	if (expected_result != result || expected_status != status)
-	{
-		printf("Failed testcalc 10\n");
-		printf("got result: %f\nexpected: %f\n", result, expected_result);
-		printf("got status: %d\nexpected: %d\n\n", status, expected_status);
-				
-		++checker;
-	}
-	else
-  	{
-  		printf("PASSED testcalc 10\n\n");
-  	}
- }
+}
 

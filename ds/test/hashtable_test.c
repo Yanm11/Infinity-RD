@@ -2,8 +2,8 @@
 #include <stdlib.h> /* malloc free */
 #include <assert.h> /* assert */
 #include <time.h> /* time_t */
-#include <string.h> /* strcpy */
-	
+#include <string.h> /* strcpy strcmp */
+
 #include "hashtable.h"
 
 #define NUM_PERSONS 30
@@ -23,6 +23,9 @@ void TestCreateDestroy(void);
 void TestIsEmpty(void);
 void TestSize(void);
 void TestInsert(void);
+void TestForEach(void);
+void TestFind(void);
+void TestRemove(void);
 static person_t* CreatePersons(void);
 static void free_persons(person_t *persons, int num_persons);
 static size_t GetKey(person_t *person);
@@ -44,13 +47,15 @@ static size_t Hash_function(void *key)
 
 static int Compare(const void *key1, const void *key2)
 {
-	person_t *person1 = (person_t *)key1;
+	size_t key = 0;
 	person_t *person2 = (person_t *)key2;
 
-	assert(person1);
+	assert(key1);
 	assert(person2);
 	
-	return person1->id == person2->id;
+	key = *(size_t*)key1;
+	
+	return (key  == GetKey(person2));
 }
 
 static int Printfileds(void *data, void *params)
@@ -59,6 +64,8 @@ static int Printfileds(void *data, void *params)
 	
 	assert(person);
 	assert(params);
+	
+	printf("----- person -----\n");
 	
 	switch (*(int*)params) 
 	{
@@ -77,7 +84,15 @@ static int Printfileds(void *data, void *params)
 	case 5:
 		printf("Hight: %d\n", person->hight);
 	break;
+	default:
+		printf("ID: %ld\n", person->id);
+		printf("First_Name: %s\n", person->first_name);
+		printf("Last Name: %s\n", person->last_name);
+		printf("Gender: %s\n", ((person->gender) ? "Male" : "Female"));
+		printf("Hight: %d\n", person->hight);
 	}
+	
+	printf("---------------\n\n");
 	
 	return 0;
 }
@@ -90,6 +105,9 @@ int main(void)
 	TestIsEmpty();
 	TestSize();
 	TestInsert();
+	TestForEach();
+	TestFind();
+	TestRemove();
 	
 	if (checker)
 	{
@@ -169,16 +187,14 @@ void TestInsert(void)
 	size_t key = 0;
 	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
 	person_t *persons = CreatePersons();
-	person_t *person = NULL;
+	int status = 0;
 	
 	printf("---------- TestInsert Start ----------\n");
 
 	for (; i < NUM_PERSONS; ++i)
 	{
-		int status = 0;
-		person = persons + i;
-		key = GetKey(person);
-		status = HashTableInsert(table, &key, person);
+		key = GetKey(persons);
+		status = HashTableInsert(table, &key, persons);
 		
 		if (i + 1 != HashTableSize(table) || 0 != status)
 		{
@@ -187,17 +203,181 @@ void TestInsert(void)
 		 
 		 	return;
 		}
+		++persons;
 	}
 	
+	if (HashTableIsEmpty(table))
+	{
+		printf("Failed TestInsert\n");
+		 ++checker;
+		 
+		 return;
+	}
 	
-	free_persons(persons, NUM_PERSONS);
+	free_persons(persons - NUM_PERSONS, NUM_PERSONS);
 	HashTableDestroy(table);
 	
 	printf("PASSED TestInsert\n");
 	printf("------------------------------\n\n");
 }
 
+void TestForEach(void)
+{
+	size_t size = 10;
+	size_t i = 0;
+	size_t key = 0;
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
+	person_t *persons = CreatePersons();
+	int params = 1; 
+	int status = 0;
+	
+	printf("---------- TestForEach Start ----------\n");
 
+	for (; i < NUM_PERSONS; ++i)
+	{
+		key = GetKey(persons);
+		status = HashTableInsert(table, &key, persons);
+		
+		if (i + 1 != HashTableSize(table) || 0 != status)
+		{
+			printf("Failed TestForEach %ld\n", i);
+			 ++checker;
+		 
+		 	return;
+		}
+		++persons;
+	}
+	
+	status = HashTableForEach(table, &Printfileds,&params);
+	
+	if (0 != status)
+	{
+		printf("Failed TestForEach\n");
+		 ++checker;
+	 
+	 	return;
+	}
+	
+	
+	free_persons(persons - NUM_PERSONS, NUM_PERSONS);
+	HashTableDestroy(table);
+	
+	printf("PASSED TestForEach\n");
+	printf("------------------------------\n\n");
+}
+
+void TestFind(void)
+{
+	size_t size = 10;
+	size_t i = 0;
+	size_t key = 0;
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
+	person_t *persons = CreatePersons();
+	int status = 0;
+	person_t *person = NULL;
+	
+	printf("---------- TestFind Start ----------\n");
+
+	for (; i < NUM_PERSONS; ++i)
+	{
+		key = GetKey(persons);
+		status = HashTableInsert(table, &key, persons);
+		
+		if (i + 1 != HashTableSize(table) || 0 != status)
+		{
+			printf("Failed TestFind %ld\n", i);
+			 ++checker;
+		 
+		 	return;
+		}
+		++persons;
+	}
+	
+	person = (person_t*)HashTableFind(table, &key);
+	
+	if (NULL == person || GetKey(person) != key)
+	{
+		printf("Failed TestFind\n");
+		 ++checker;
+	 
+	 	return;
+	}
+	
+	key = 1;
+	person = (person_t*)HashTableFind(table, &key);
+	
+	if (NULL != person)
+	{
+		printf("Failed TestFind\n");
+		 ++checker;
+	 
+	 	return;
+	}
+	
+	free_persons(persons - NUM_PERSONS, NUM_PERSONS);
+	HashTableDestroy(table);
+	
+	printf("PASSED TestFind\n");
+	printf("------------------------------\n\n");
+}
+
+void TestRemove(void)
+{
+	size_t size = 10;
+	size_t i = 0;
+	size_t key = 0;
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
+	person_t *persons = CreatePersons();
+	int status = 0;
+	
+	printf("---------- TestRemove Start ----------\n");
+
+	for (; i < NUM_PERSONS; ++i)
+	{
+		key = GetKey(persons);
+		status = HashTableInsert(table, &key, persons);
+		
+		if (i + 1 != HashTableSize(table) || 0 != status)
+		{
+			printf("Failed TestRemove %ld\n", i);
+			 ++checker;
+		 
+		 	return;
+		}
+		++persons;
+	}
+	
+	for (i = 0; i < NUM_PERSONS; ++i)
+	{
+		--persons;
+		key = GetKey(persons);
+		HashTableRemove(table, &key);
+		
+		if (NUM_PERSONS - (i + 1) != HashTableSize(table))
+		{
+			printf("Failed TestRemove %ld\n", i);
+			 ++checker;
+		 
+		 	return;
+		}
+	}
+	
+	if (!HashTableIsEmpty(table))
+	{
+		printf("Failed TestRemove\n");
+		 ++checker;
+		 
+		 return;
+	}
+	
+	free_persons(persons, NUM_PERSONS);
+	HashTableDestroy(table);
+	
+	printf("PASSED TestRemove\n");
+	printf("------------------------------\n\n");
+}
+
+/************************** helper function ********************/
 
 static person_t* CreatePersons(void)
 {
@@ -221,7 +401,7 @@ static person_t* CreatePersons(void)
     for (i = 0; i < NUM_PERSONS; i++)
     {
         /* Generate random 9-digit ID */
-        persons[i].id = (size_t)(rand() % 900000000 + 100000000);
+        persons[i].id = (size_t)(100000000 + (rand() % 900000000));
 
         /* Allocate and copy random first name */
         persons[i].first_name = (char*)malloc(MAX_NAME_LENGTH * sizeof(char));
@@ -275,3 +455,5 @@ static size_t GetKey(person_t *person)
 	
 	return person->id;
 }
+
+

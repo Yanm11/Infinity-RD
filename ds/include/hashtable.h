@@ -2,8 +2,6 @@
 #ifndef __HASHTABLE_H__
 #define __HASHTABLE_H__
 
-#include <stddef.h> /*size_t*/
-
 typedef struct hash_table hash_table_t;
 
 /*
@@ -110,7 +108,7 @@ int HashTableForEach(hash_table_t *table, hash_action_func_t action, void *param
 
 
 
-/****************************************Advanced***********************************************/
+/****************************************Advanced*****************************/
 
 /*
 HashTableLoad
