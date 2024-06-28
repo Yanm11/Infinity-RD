@@ -1,24 +1,30 @@
 #include <stdlib.h> /* malloc free */
 #include <assert.h> /* assert */
 #include <stdio.h> /* printf */
+#include <math.h> /* math */
 
 #include "dllist.h"
 #include "hashtable.h"
 
 #define ERROR 1
+#define NO_CACHE 0
+#define CACHE 1
 
-static size_t GetSize(const hash_table_t *table);
+static size_t GetBuckets(const hash_table_t *table);
 static dllist_t **GetTable(const hash_table_t *table);
 static hash_func_t GetHashFunc(const hash_table_t *table);
 static hash_cmp_func_t GetHashComp(const hash_table_t *table);
 static dllist_iter_t HashFindIter(const hash_table_t *table,
 								  const void *key,
-								  int *status);
+								  int *status,
+								  int do_cache);
 static size_t GetIndex(hash_table_t *table, void *key);
-							  
+static int Caching(dllist_t *list, dllist_iter_t iter);	
+static double AverageNumNodes(const hash_table_t *table);
+		  
 struct hash_table
 {
-	size_t size;
+	size_t buckets;
 	hash_func_t hash_func;
 	hash_cmp_func_t hash_comp;
 	dllist_t **hash_table;
@@ -75,7 +81,7 @@ hash_table_t *HashTableCreate(hash_func_t hash_func,
 		++dlist_table;		
 	}
 	
-	table->size = hash_table_size;
+	table->buckets = hash_table_size;
 	table->hash_func = hash_func;
 	table->hash_comp = cmp_func;
 	
@@ -92,7 +98,7 @@ void HashTableDestroy(hash_table_t *table)
 	assert(GetTable(table));
 	
 	dlist_table = GetTable(table);
-	size = GetSize(table);
+	size = GetBuckets(table);
 	
 	for(; i < size; ++i)
 	{
@@ -112,7 +118,7 @@ int HashTableIsEmpty(const hash_table_t *table)
 	assert(table);
 	
 	dlist_table = GetTable(table);
-	size = GetSize(table);
+	size = GetBuckets(table);
 	
 	for (; i < size; ++i)
 	{
@@ -137,7 +143,7 @@ size_t HashTableSize(const hash_table_t *table)
 	assert(table);	
 	
 	dlist_table = GetTable(table);
-	size_table = GetSize(table);
+	size_table = GetBuckets(table);
 	
 	for (; i < size_table; ++i)
 	{
@@ -171,10 +177,10 @@ void HashTableRemove(hash_table_t *table, const void *key)
 {
 	int status = 0;
 	dllist_iter_t iter = NULL;
-	
+
 	assert(table);
 	
-	iter = HashFindIter(table, key, &status);
+	iter = HashFindIter(table, key, &status, NO_CACHE);
 	
 	if (status)
 	{
@@ -198,7 +204,7 @@ int HashTableForEach(hash_table_t *table,
 	assert(action);
 	
 	dlist_table = GetTable(table);
-	size_table = GetSize(table);
+	size_table = GetBuckets(table);
 	
 	for (; i < size_table; ++i)
 	{
@@ -230,7 +236,7 @@ void *HashTableFind(const hash_table_t *table, const void *key)
 	
 	assert(table);
 	
-	iter = HashFindIter(table, key, &status);
+	iter = HashFindIter(table, key, &status, CACHE);
 	
 	if (status)
 	{
@@ -240,13 +246,43 @@ void *HashTableFind(const hash_table_t *table, const void *key)
 	return DllistGetData(iter);
 }
 
-/************************** HELPER FUNCTIONS ********************/
-
-static size_t GetSize(const hash_table_t *table)
+double HashTableLoad(const hash_table_t *table)
 {
 	assert(table);
 	
-	return table->size;
+	return (HashTableSize(table) / GetBuckets(table));
+}
+
+double HashTableStandardDeviation(const hash_table_t *table)
+{
+	double mean_nodes = 0;
+	double sd = 0;
+	size_t buckets = 0;
+	size_t i = 0;
+	
+	assert(table);
+	assert(GetTable(table));
+	
+	mean_nodes = AverageNumNodes(table);
+	buckets = GetBuckets(table);
+	
+	for (; i < buckets; ++i)
+	{
+		sd += pow((DllistSize(*(GetTable(table) + i)) - mean_nodes), 2);
+	}
+	
+	sd = sqrt((sd / buckets));
+	
+	return sd;
+}
+
+/************************** HELPER FUNCTIONS ********************/
+
+static size_t GetBuckets(const hash_table_t *table)
+{
+	assert(table);
+	
+	return table->buckets;
 }
 
 static dllist_t **GetTable(const hash_table_t *table)
@@ -272,7 +308,8 @@ static hash_cmp_func_t GetHashComp(const hash_table_t *table)
 
 static dllist_iter_t HashFindIter(const hash_table_t *table,
 								  const void *key,
-								  int *status)
+								  int *status,
+								  int do_cache)
 {
 	size_t index = 0;
 	dllist_t *list = NULL;
@@ -284,7 +321,6 @@ static dllist_iter_t HashFindIter(const hash_table_t *table,
 	assert(GetHashFunc(table));
 	assert(status);
 	
-
 	index = GetIndex((hash_table_t*)table,(void*)key);
 	list = *(GetTable(table) + index);
 	
@@ -295,6 +331,14 @@ static dllist_iter_t HashFindIter(const hash_table_t *table,
 					  
 	*status = DllistIsSameIter(iter, DllistGetEnd(list));
 	
+	if (do_cache && 0 == *status)
+	{
+		if(0 == Caching(list, iter))
+		{
+			return DllistGetBegin(list);
+		}
+	}
+	
 	return iter;
 	
 }
@@ -304,5 +348,37 @@ static size_t GetIndex(hash_table_t *table, void *key)
 	assert(table);
 	assert(GetTable(table));
 	
-	return GetHashFunc(table)(key) % GetSize(table);
+	return GetHashFunc(table)(key) % GetBuckets(table);
+}
+
+static int Caching(dllist_t *list, dllist_iter_t iter)
+{
+	dllist_iter_t new_iter = NULL;
+	
+	assert(list);
+	
+	/* if iter is already at the begigng do nothing */
+	if (DllistIsSameIter(DllistGetBegin(list), iter))
+	{
+		return 1;
+	}
+	
+	new_iter = DllistPushFront(list, DllistGetData(iter));
+	
+	/* if insert to beging failed do nothing */
+	if (DllistIsSameIter(DllistGetEnd(list), new_iter))
+	{
+		return 1;
+	}
+	
+	DllistRemove(iter);
+	
+	return 0;
+}
+
+static double AverageNumNodes(const hash_table_t *table)
+{
+	assert(table);
+	
+	return (HashTableSize(table) / GetBuckets(table));
 }

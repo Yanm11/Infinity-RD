@@ -8,7 +8,7 @@
 
 #define NUM_PERSONS 30
 #define MAX_NAME_LENGTH 50
-
+#define BUCKETS 10
 
 typedef struct person
 {
@@ -26,6 +26,8 @@ void TestInsert(void);
 void TestForEach(void);
 void TestFind(void);
 void TestRemove(void);
+void TestLoad(void);
+
 static person_t* CreatePersons(void);
 static void free_persons(person_t *persons, int num_persons);
 static size_t GetKey(person_t *person);
@@ -108,6 +110,7 @@ int main(void)
 	TestForEach();
 	TestFind();
 	TestRemove();
+	TestLoad();
 	
 	if (checker)
 	{
@@ -122,8 +125,7 @@ int main(void)
 
 void TestCreateDestroy(void)
 {
-	size_t size = 10;
-	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, BUCKETS);
 	
 	printf("---------- TestCreateDestroy Start ----------\n");
 	if (NULL == table)
@@ -142,8 +144,7 @@ void TestCreateDestroy(void)
 
 void TestIsEmpty(void)
 {
-	size_t size = 10;
-	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, BUCKETS);
 	
 	printf("---------- TestIsEmpty Start ----------\n");
 	if (!HashTableIsEmpty(table))
@@ -162,8 +163,7 @@ void TestIsEmpty(void)
 
 void TestSize(void)
 {
-	size_t size = 10;
-	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, BUCKETS);
 	
 	printf("---------- TestSize Start ----------\n");
 	if (0 != HashTableSize(table))
@@ -182,10 +182,9 @@ void TestSize(void)
 
 void TestInsert(void)
 {
-	size_t size = 10;
 	size_t i = 0;
 	size_t key = 0;
-	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, BUCKETS);
 	person_t *persons = CreatePersons();
 	int status = 0;
 	
@@ -223,10 +222,9 @@ void TestInsert(void)
 
 void TestForEach(void)
 {
-	size_t size = 10;
 	size_t i = 0;
 	size_t key = 0;
-	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, BUCKETS);
 	person_t *persons = CreatePersons();
 	int params = 1; 
 	int status = 0;
@@ -248,8 +246,9 @@ void TestForEach(void)
 		++persons;
 	}
 	
+
 	status = HashTableForEach(table, &Printfileds,&params);
-	
+	printf("\nLoad factor is: %f\n\n", HashTableLoad(table));
 	if (0 != status)
 	{
 		printf("Failed TestForEach\n");
@@ -268,10 +267,9 @@ void TestForEach(void)
 
 void TestFind(void)
 {
-	size_t size = 10;
 	size_t i = 0;
 	size_t key = 0;
-	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, BUCKETS);
 	person_t *persons = CreatePersons();
 	int status = 0;
 	person_t *person = NULL;
@@ -323,10 +321,9 @@ void TestFind(void)
 
 void TestRemove(void)
 {
-	size_t size = 10;
 	size_t i = 0;
 	size_t key = 0;
-	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, size);
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, BUCKETS);
 	person_t *persons = CreatePersons();
 	int status = 0;
 	
@@ -374,6 +371,49 @@ void TestRemove(void)
 	HashTableDestroy(table);
 	
 	printf("PASSED TestRemove\n");
+	printf("------------------------------\n\n");
+}
+
+
+void TestLoad(void)
+{
+	size_t i = 0;
+	size_t key = 0;
+	hash_table_t *table = HashTableCreate(&Hash_function, &Compare, BUCKETS);
+	person_t *persons = CreatePersons();
+	int status = 0;
+		
+	printf("---------- TestLoad Start ----------\n");
+
+	for (; i < NUM_PERSONS; ++i)
+	{
+		key = GetKey(persons);
+		status = HashTableInsert(table, &key, persons);
+		
+		if (i + 1 != HashTableSize(table) || 0 != status)
+		{
+			printf("Failed TestLoad %ld\n", i);
+			 ++checker;
+		 
+		 	return;
+		}
+		++persons;
+	}
+	
+	if ((NUM_PERSONS / BUCKETS) != HashTableLoad(table))
+	{
+		printf("Failed TestLoad\n");
+		 ++checker;
+	 
+	 	return;
+	}
+	
+	printf("\n----\nSD: %f\n---\n", HashTableStandardDeviation(table));
+	
+	free_persons(persons - NUM_PERSONS, NUM_PERSONS);
+	HashTableDestroy(table);
+	
+	printf("PASSED TestLoad\n");
 	printf("------------------------------\n\n");
 }
 
