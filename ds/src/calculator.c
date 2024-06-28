@@ -90,9 +90,9 @@ static transition_t fsm[NUM_OF_STATE][NUM_OF_INPUTS];
 static operator_t operators[NUM_OF_INPUTS];
 
 /* global variables decleration */
-static int FLAG = 1;
-static e_status_t STATUS = CALC_SUCCESS;
+static int RUN_FLAG = 1;
 static int INIT_FLAG = 1;
+static e_status_t STATUS = CALC_SUCCESS;
 
 /********************************* API FUNCTIONS *************************/
 e_status_t Calculate(const char *expression, double *result)
@@ -103,16 +103,20 @@ e_status_t Calculate(const char *expression, double *result)
 	e_state_t current_state = WAIT_DIGIT;
 	transition_t tranistion = {0};
 	
+	stack_t *operator_stack = NULL;
+	stack_t *digit_stack = NULL;
+	
 	/* creating the 2 stacks */
-	stack_t *operator_stack = StackCreate(STACK_SIZE, sizeof(char));
-	stack_t *digit_stack = StackCreate(STACK_SIZE,sizeof(double));
-	if (NULL == digit_stack)
+	operator_stack = StackCreate(STACK_SIZE, sizeof(char));
+	if (NULL == operator_stack)
 	{
 		return CALC_COMPUTER_ERROR;
 	}
-	else if (NULL == operator_stack)
+	
+	digit_stack = StackCreate(STACK_SIZE,sizeof(double));
+	if (NULL == digit_stack)
 	{
-		free(digit_stack);
+		free(operator_stack);
 		return CALC_COMPUTER_ERROR;
 	}
 
@@ -131,12 +135,12 @@ e_status_t Calculate(const char *expression, double *result)
 	}
 	
 	/* initializing the global variables */
-	FLAG = 1;
+	RUN_FLAG = 1;
 	STATUS = CALC_SUCCESS;
 	
 	next_str = (char*)expression;
 
-	while (FLAG)
+	while (RUN_FLAG)
 	{
 		tranistion = fsm[current_state][CHARP_TO_UCHAR(next_str)];
 		current_state = tranistion.next_state;
@@ -261,7 +265,7 @@ static char *HandleError(stack_t *operator_stack,
 	
 	assert(digit_stack);
 	
-	FLAG = 0;
+	RUN_FLAG = 0;
 	STATUS = CALC_SYNTAX_ERROR;
 	
 	StackPush(digit_stack, &error_result);
@@ -377,7 +381,7 @@ static char *HandleNullTerminator(stack_t *operator_stack,
 	
 	StackPop(operator_stack);
 	
-	FLAG = 0;
+	RUN_FLAG = 0;
 	
 	return expression;
 }
@@ -417,15 +421,14 @@ static char *HandleCloseParacentesis(stack_t *operator_stack,
 	
 	ExecuteOperation(operator_stack, digit_stack, P_NOTHING);
 	
-	if ('(' == *(char*)StackPeek(operator_stack))
+	if ('(' != *(char*)StackPeek(operator_stack))
 	{
-		StackPop(operator_stack);
-		
-		return expression + 1;		
+		return HandleError(operator_stack, digit_stack, expression);		
 	}
 
-	return HandleError(operator_stack, digit_stack, expression);
+	StackPop(operator_stack);
 	
+	return expression + 1;
 }
 
 static char *HandlePow(stack_t *operator_stack,
@@ -464,7 +467,7 @@ static double DivOperation(double num1, double num2)
 {	
 	if (0 == num2)
 	{
-		FLAG = 0;
+		RUN_FLAG = 0;
 		STATUS = CALC_MATH_ERROR;
 		num2 = 1;
 		num1 = 0;
@@ -483,7 +486,7 @@ static double DummyOperation(double num1, double num2)
 	(void)num1;
 	(void)num2;
 	
-	FLAG = 0;
+	RUN_FLAG = 0;
 	STATUS = CALC_SYNTAX_ERROR;
 	
 	return 0;
