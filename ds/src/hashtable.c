@@ -250,7 +250,7 @@ double HashTableLoad(const hash_table_t *table)
 {
 	assert(table);
 	
-	return (HashTableSize(table) / GetBuckets(table));
+	return ((double)HashTableSize(table) / GetBuckets(table));
 }
 
 double HashTableStandardDeviation(const hash_table_t *table)

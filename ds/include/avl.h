@@ -112,8 +112,8 @@ time complexity: O(n)
 space complexity: O(1)
 */
 int AVLForEach(avl_t *tree,
-				 avl_action_func_t action,
-				  void* params);
+			   avl_action_func_t action,
+			   void* params);
 
 
 #endif /*__AVL_RECURSIVE_H__*/

@@ -30,7 +30,7 @@ static size_t GetHight(node_t *root);
 static void *GetData(node_t *node);
 static int FindAndInsert(node_t *node, void *data, avl_cmp_func_t cmp_func);
 static int InsertNode(node_t *parent_node, int direction_to_insert, void *data);
-static void SetChildOfParent(node_t *parent,
+static void SetChildOfNode(node_t *node,
 							 node_t *child,
 							 int direction_of_child);
 static avl_cmp_func_t GetCompare(avl_t *tree);
@@ -148,56 +148,9 @@ int AVLForEach(avl_t *tree,
 
 void AVLRemove(avl_t *tree, void *data)
 {
-	node_t *node_to_remove = NULL;
 
-	assert(tree);
-	
-	node_to_remove = FindNode(GoToRoot(tree), GetCompare(tree), data);
-	if (NULL == node_to_remove)
-	{
-		return;
-	}
-	
-	/* when the removed node doesn't have a left child */
-	if(NULL == GoToChild(node_to_remove,LEFT))
-	{
-		node_t *right_node = GoToChild(node_to_remove, RIGHT);
-		
-		/* when the remove node has only a right child */
-		if (NULL != right_node)
-		{
-			/* swiching between the removed node and his right child */
-			CopyNode(node_to_remove, right_node);
-			UpdateParentOfChild(right_node, node_to_remove);
-			
-			free(right_node);
-			
-			return;
-		}
-		
-		/* when the removed node has no children */
-		ChangeChildOfParentNode(node_to_remove, NULL, WhichChild(node_to_remove));
-		
-		free(node_to_remove);
-		
-		return;
-	}
-	/* when the removed node has a left child */
-	else
-	{
-		/* we will replace the removed node with the previous node */ 
-		node_t *prev_node = LeftMostRightNode(GoToChild(node_to_remove,LEFT));
-		
-		node_to_remove->data = GetData(prev_node);
-
-		ChangeChildOfParentNode(prev_node,
-								GoToChild(prev_node, LEFT),
-								WhichChild(prev_node));
-		UpdateParentOfChild(prev_node, prev_node->parent);
-		
-		free(prev_node);	
-	}
 }
+
 /********************* HELPER FUNCTIONS ********************/
 
 
@@ -236,13 +189,13 @@ static avl_cmp_func_t GetCompare(avl_t *tree)
 	return tree->cmp_func;
 }
 
-static void SetChildOfParent(node_t *parent,
+static void SetChildOfNode(node_t *node,
 							 node_t *child,
 							 int direction_of_child)
 {
-	assert(parent);
+	assert(node);
 	
-	parent->children[direction_of_child] = child;
+	node->children[direction_of_child] = child;
 }
 
 static node_t *CreateNode(void *data, node_t *parent)
@@ -302,11 +255,11 @@ static int FindAndInsert(node_t *node, void *data, avl_cmp_func_t cmp_func)
 	return FindAndInsert(GoToChild(node, direction_to_move), data, cmp_func);
 }
 
-static int InsertNode(node_t *parent_node, int direction_to_insert, void *data)
+static int InsertNode(node_t *node, int direction_to_insert, void *data)
 {
 	node_t *new_node = NULL;
 	
-	assert(parent_node);
+	assert(node);
 	
 	new_node = CreateNode(data, parent_node);
 	if (NULL == new_node)
@@ -314,7 +267,7 @@ static int InsertNode(node_t *parent_node, int direction_to_insert, void *data)
 		return -1;
 	}
 	
-	SetChildOfParent(parent_node, new_node, direction_to_insert);
+	SetChildOfNode(node, new_node, direction_to_insert);
 	
 	return 0;
 }
@@ -400,6 +353,7 @@ static node_t *LeftMostRightNode(node_t *left_node)
 	
 	if (NULL == GoToChild(left_node, RIGHT))
 	{
+		
 		return left_node;
 	}
 	
@@ -417,3 +371,97 @@ static int WhichChild(node_t *node)
 	
 	return RIGHT;
 }
+
+static node_t *FindAndUpdate(node_t *node, avl_cmp_func_t cmp_func, void *data)
+{
+	int result = 0;
+	int dir_to_move = 0;
+	
+	assert(cmp_func);
+	
+	if (NULL == node)
+	{
+		return NULL;
+	}
+	printf("node to remove: %d, node we at: %d\n", *(int*)data, *(int*)GetData(node));
+	
+	result = cmp_func(GetData(node), data);
+	
+	/* if 1 then RIGHT if 0 then LEFT */
+	dir_to_move = result < 0;
+	
+	if (0 == result)
+	{
+		return RemoveNode(node);
+	}
+	
+	node->children[dir_to_move] = FindAndUpdate(GoToChild(node, dir_to_move),
+											    cmp_func,
+											    data);
+											  										  
+	return node;
+	
+}
+
+static node_t *RemoveNode(node_t *node)
+{
+	int num_children = 0;
+	
+	assert(node);
+	
+	num_children = CountChildren(node);
+	
+	if (0 == num_children)
+	{
+		return NULL;
+	}
+	else if (1 == num_children)
+	{
+		int dir_to_move = (NULL != GoToChild(node, RIGHT)) ? RIGHT : LEFT;
+		
+		return GoToChild(node, dir_to_move);
+	}
+	else
+	{
+		replaced_node = LeftMostRightNode(GoToChild(node, LEFT));
+		
+		SetChildOfNode(replaced_node, GoToChild(node,LEFT), LEFT);
+		
+		SetChildOfNode(replaced_node, GoToChild(node,RIGHT), RIGHT);
+	}
+}
+
+static int CountChildren(node_t *node)
+{
+	assert(node);
+	
+	if (NULL != GoToChild(node, LEFT) && NULL != GoToChild(node, RIGHT))
+	{
+		return 2;
+	}
+	
+	else if (NULL == GoToChild(node, LEFT) && NULL == GoToChild(node, RIGHT))
+	{
+		return 0;
+	}
+	
+	return 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
