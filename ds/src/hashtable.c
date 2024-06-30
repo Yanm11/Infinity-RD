@@ -64,13 +64,12 @@ hash_table_t *HashTableCreate(hash_func_t hash_func,
 		if (NULL == dlist)
 		{
 			/* if fail go back and free */
-			for(i -= 1; i != 0; --i)
+			for(; i != 0; --i)
 			{
-				
-				free(dlist_table);
 				--dlist_table;
+				DllistDestroy(*dlist_table);
 			}
-			
+	
 			free(table);
 			
 			return NULL;
@@ -182,12 +181,10 @@ void HashTableRemove(hash_table_t *table, const void *key)
 	
 	iter = HashFindIter(table, key, &status, NO_CACHE);
 	
-	if (status)
+	if (0 == status)
 	{
-		return;
-	}
-	
-	DllistRemove(iter);
+		DllistRemove(iter);
+	}	
 }
 
 int HashTableForEach(hash_table_t *table,
@@ -206,21 +203,14 @@ int HashTableForEach(hash_table_t *table,
 	dlist_table = GetTable(table);
 	size_table = GetBuckets(table);
 	
-	for (; i < size_table; ++i)
+	for (; (i < size_table) && (0 != status); ++i)
 	{
 		dllist_t *list = *dlist_table;
-		
-		printf("------bucekt %ld ------\n", i);
 		
 		status = DllistForEach(DllistGetBegin(list),
 							   DllistGetEnd(list),
 							   action,
 							   params);
-		
-		if (0 != status)
-		{
-			return status;
-		}
 		
 		++dlist_table;
 	}
