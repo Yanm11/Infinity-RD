@@ -122,7 +122,7 @@ int DvectorReserve(dvector_t *vector, size_t new_size)
 		return -1;
 	}
 	
-	if (new_size > vector->size)
+	if (new_size < vector->size)
 	{
 		vector->size = new_size;
 	}

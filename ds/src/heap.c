@@ -62,6 +62,23 @@ int HeapIsEmpty(const heap_t *heap)
 	return (0 == HeapSize(heap));
 }
 
+int HeapPush(heap_t *heap, void *data)
+{
+	int status = 0;
+	
+	assert(heap);
+	
+	status = DvectorPushBack(GetDvector(heap), &data);
+	
+	return status;	
+}
+
+void *HeapPeek(const heap_t *heap)
+{
+	assert(heap);
+	
+	return *(size_t**)DvectorGetElement(GetDvector(heap), (HeapSize(heap) - 1));
+}
 
 /********************* HELPER FUNCTIONS ********************/
 
@@ -71,4 +88,21 @@ static dvector_t *GetDvector(const heap_t *heap)
 	
 	return heap->dvector;
 }
+
+/*static void HeapifyUp(heap_t *heap, void *data)*/
+/*{*/
+/*	assert(heap);*/
+/*	*/
+/*	*/
+/*}*/
+
+/*static void Swap(size_t address1, size_t address2)*/
+/*{*/
+/*	size_t tmp = */
+/*}*/
+
+
+
+
+
 

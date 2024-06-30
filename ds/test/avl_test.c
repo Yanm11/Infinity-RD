@@ -265,5 +265,6 @@ void TestRemove(void)
 		return;
 	}
 	
+	AVLDestroy(avl);
 	printf("PASSED TestRemove!!\n");
 }

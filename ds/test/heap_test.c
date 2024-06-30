@@ -5,7 +5,7 @@
 void TestCreateDestroy(void);
 void TestSize(void);
 void TestIsEmpty(void);
-/*void TestInsert(void);*/
+void TestPush(void);
 /*void TestFind(void);*/
 /*void TestForEach(void);*/
 /*void TestRemove(void);*/
@@ -33,7 +33,7 @@ int main(void)
 	TestCreateDestroy();
 	TestSize();
 	TestIsEmpty();
-/*	TestInsert();*/
+	TestPush();
 /*	TestFind();*/
 /*	TestForEach();*/
 /*	TestRemove();*/
@@ -118,62 +118,70 @@ void TestIsEmpty(void)
 	printf("PASSED TestIsEmpty!!\n");
 }
 
-/*void TestInsert(void)*/
-/*{*/
-/*	size_t size_avl = 0;*/
-/*	avl_t *avl = AVLCreate(&Compare);*/
-/*	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};*/
-/*	size_t i = 3;*/
-/*	size_t size_arr = sizeof(arr) / sizeof(int);*/
-/*	*/
+void TestPush(void)
+{
+	size_t size_heap = 0;
+	heap_t *heap = HeapCreate(&Compare);
+	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
+	size_t i = 3;
+	size_t size_arr = sizeof(arr) / sizeof(int);
+	
 	/* insert 20 */
-/*	AVLInsert(avl, arr);*/
-/*	*/
-/*	size_avl = AVLCount(avl);*/
-/*	*/
-/*	if (1 != size_avl)*/
-/*	{*/
-/*		printf("FAILED TestInsert\n");*/
-/*		++checker;*/
-/*		*/
-/*		return;*/
-/*	}*/
-/*	*/
+	HeapPush(heap, arr);
+	
+	size_heap = HeapSize(heap);
+	
+	if (1 != size_heap)
+	{
+		printf("FAILED TestPush\n");
+		++checker;
+		
+		return;
+	}
+	
 	/* insert 15 */
-/*	AVLInsert(avl, arr + 1);*/
-/*	*/
+	HeapPush(heap, arr + 1);
+	
 	/* insert 30 */
-/*	AVLInsert(avl, arr + 2);*/
-/*	*/
-/*	size_avl = AVLCount(avl);*/
-/*	*/
-/*	if (3 != size_avl)*/
-/*	{*/
-/*		printf("FAILED TestInsert2\n");*/
-/*		++checker;*/
-/*		*/
-/*		return;*/
-/*	}*/
-/*	*/
-/*	for (; i < size_arr; ++i)*/
-/*	{*/
-/*		AVLInsert(avl, arr + i);*/
-/*	}*/
-/*	*/
-/*	size_avl = AVLCount(avl);*/
-/*	*/
-/*	if (size_avl != size_arr)*/
-/*	{*/
-/*		printf("FAILED TestInsert3\n");*/
-/*		++checker;*/
-/*		*/
-/*		return;*/
-/*	}*/
-/*	*/
-/*	AVLDestroy(avl);*/
-/*	*/
-/*	printf("PASSED TestInsert!!\n");*/
-/*}*/
+	HeapPush(heap, arr + 2);
+	
+	size_heap = HeapSize(heap);
+	
+	if (3 != size_heap)
+	{
+		printf("FAILED TestPush2\n");
+		++checker;
+		
+		return;
+	}
+	
+	if (arr[2] != *(int*)HeapPeek(heap))
+	{
+		printf("FAILED TestPush3\n");
+		++checker;
+		
+		return;
+	}
+	
+	for (; i < size_arr; ++i)
+	{
+		HeapPush(heap, arr + i);
+	}
+	
+	size_heap = HeapSize(heap);
+	
+	if (size_heap != size_arr)
+	{
+		printf("FAILED TestPush4\n");
+		++checker;
+		
+		return;
+	}
+	
+	HeapDestroy(heap);
+	
+	printf("PASSED TestPush!!\n");
+}
 
 /*void TestFind(void)*/
 /*{*/
