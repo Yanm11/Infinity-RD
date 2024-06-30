@@ -7,13 +7,22 @@ typedef struct heap heap_t;
 
 /*
 Description: typedef to pointer function that compares two arguments
-Params: (void *, void *) two elements to compare
+Params: (const void *, const void *) two elements to compare
 Return Value: (int)
     positive if first argument is larger,
     zero if both arguments are equal,
     negative if the second argument is larger.
 */
 typedef int (*heap_compare_func_t)(const void*, const void*);
+
+/*
+Description: typedef to pointer function that matches two arguments
+Params: (const void *, const void *) two elements to compare
+Return Value: (int)
+    1 if matched
+    0 if not
+*/
+typedef int (*is_match_func_t)(const void *data1, const void *data2);
 
 
 /*
@@ -43,8 +52,8 @@ HeapPush
 description: Adds new element to the heap
 input: pointer to heap, pointer to client data.
 return: success status: 0 for success, non 0 - failure.
-time complexity: amortized O(log(n)) worst O(n)
-space complexity: amortized O(1), worst case: O(n)
+time complexity: amortized O(log(n)) 
+space complexity: amortized O(1)
 */
 int HeapPush(heap_t *heap, void *data);
 
@@ -97,11 +106,11 @@ int HeapIsEmpty(const heap_t *heap);
 HeapRemove
 description: Removes element from the heap where the data matches the argument.
 if multiple entires match, removes the first one it finds.
-input: pointer to heap, pointer to data to remove.
+input: pointer to heap, a match function, pointer to data to remove.
 return: 0 for success, non-zero if failed.
 time complexity: O(n)
 space complexity: O(1)
 */
-void *HeapRemove(heap_t *heap, void *data_to_remove);
+void *HeapRemove(heap_t *heap, is_match_func_t is_match, void *data_to_match);
 
 #endif /* __HEAP_H__ */

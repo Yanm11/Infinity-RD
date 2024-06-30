@@ -44,6 +44,9 @@ static void UpdateParentOfChild(node_t *node, node_t *update_to);
 static void CopyNode(node_t *dest, node_t *src);
 static node_t *LeftMostRightNode(node_t *left_node);
 static int WhichChild(node_t *node);
+static node_t *RemoveNode(node_t *node);
+static int CountChildren(node_t *node);
+static node_t *FindAndUpdate(node_t *node, avl_cmp_func_t cmp_func, void *data);
 
 /********************* API FUNCTIONS ********************/
 
@@ -261,7 +264,7 @@ static int InsertNode(node_t *node, int direction_to_insert, void *data)
 	
 	assert(node);
 	
-	new_node = CreateNode(data, parent_node);
+	new_node = CreateNode(data, node);
 	if (NULL == new_node)
 	{
 		return -1;
@@ -423,7 +426,7 @@ static node_t *RemoveNode(node_t *node)
 	}
 	else
 	{
-		replaced_node = LeftMostRightNode(GoToChild(node, LEFT));
+		node_t *replaced_node = LeftMostRightNode(GoToChild(node, LEFT));
 		
 		SetChildOfNode(replaced_node, GoToChild(node,LEFT), LEFT);
 		
