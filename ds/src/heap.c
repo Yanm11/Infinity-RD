@@ -21,9 +21,10 @@ static void HeapifyDown(heap_t *heap, size_t position);
 static size_t FindElement(dvector_t *dvector,
 						  is_match_func_t is_match,
 						  void *data);	  
-static void PrintTreeLevel(heap_t *heap, int level, int max_width);
-static int GetTreeHeight(heap_t *heap);
-static void PrintTree(heap_t *heap);
+/*static void PrintTreeLevel(heap_t *heap, int level, int max_width);*/
+/*static int GetTreeHeight(heap_t *heap);*/
+/*static void PrintTree(heap_t *heap);*/
+
 struct heap
 {
 	dvector_t *dvector;
@@ -122,16 +123,13 @@ void HeapPop(heap_t *heap)
 	
 	dvector = GetDvector(heap);
 	size = HeapSize(heap);
-	printf("\n-----tree before pop-----\n");
-	PrintTree(heap);
+
 	/* swapping between the last and first element and then pop the last one */
 	Swap(DvectorGetElement(dvector,0), DvectorGetElement(dvector, size - 1));
 	DvectorPopBack(dvector);
 
 	/* making sure to return the element we push up back to the right place */
 	HeapifyDown(heap, position_to_start);
-	printf("\n-----tree after pop-----\n");
-	PrintTree(heap);
 }
 
 void *HeapRemove(heap_t *heap, is_match_func_t is_match, void *data_to_match)
@@ -145,9 +143,6 @@ void *HeapRemove(heap_t *heap, is_match_func_t is_match, void *data_to_match)
 	
 	dvector = GetDvector(heap);
 	
-/*	printf("-----tree before remove-----\n");*/
-/*	PrintTree(heap);*/
-/*	*/
 	index = FindElement(dvector, is_match, data_to_match);
 	if (HeapSize(heap) == index)
 	{
@@ -162,9 +157,6 @@ void *HeapRemove(heap_t *heap, is_match_func_t is_match, void *data_to_match)
 	DvectorPopBack(dvector);
 	
 	HeapifyDown(heap, index + 1);
-	
-/*	printf("-----tree after remove-----\n");*/
-/*	PrintTree(heap);*/
 	
 	return data;
 }
