@@ -1,277 +1,559 @@
-#include <stdio.h> /* printf */
-#include <assert.h> /* assert */
-	
+#include <stdio.h> /* printf() */
+#include <string.h>  /* strcat() */
+#include <stdlib.h> /* free() */
+#include <assert.h>
+
 #include "heap.h"
-void TestCreateDestroy(void);
-void TestSize(void);
-void TestIsEmpty(void);
-void TestPush(void);
-/*void TestFind(void);*/
-/*void TestForEach(void);*/
-/*void TestRemove(void);*/
 
-static int checker = 0;
+#define TESTNUM 6
 
-int Compare(const void *data,const void *params)
-{	
-	assert(data);
-	assert(params);
+static char failed_tests_print[300] = {'\0'};
+
+static void AddFailedTest(const char *str);
+
+static int TestPush(void);
+static int TestPop(void);
+static int TestPeek(void);
+static int TestSize(void);
+
+static int TestIsEmpty(void);
+static int TestRemove(void);
+
+struct cat
+{
+	char *name;
+	char *favorite_food;
+	int age;
+};
 	
-	return (*(int *)data - *(int *)params);
+int Compare(const void *data,const void *param)
+{	
+	return (*(int *)param - *(int *)data);
 }
 
-int is_match(void *data1, void *data2)
+int CompareCats(const void *data,const void *param)
 {	
-	assert(data1);
-	assert(data2);
-	
-	return *(int*)data1 == *(int*)data2;
+	return (((struct cat *)data)->age - ((struct cat *)param)->age);
 }
+
+int FindFavoriteFood(const void *data, const void *param)
+{	
+	return !(strcmp(((struct cat *)data)->favorite_food, (char *)param));
+}
+
 
 int main(void)
 {
-	TestCreateDestroy();
-	TestSize();
-	TestIsEmpty();
-	TestPush();
-/*	TestFind();*/
-/*	TestForEach();*/
-/*	TestRemove();*/
+	int failed_tests_num = 0;
 	
-	if (checker)
+	failed_tests_num += TestPush();
+	printf("Tested Push\n");
+	failed_tests_num += TestPop();
+	printf("Tested Pop\n");
+	failed_tests_num += TestPeek();
+	printf("Tested Peek\n");
+	failed_tests_num += TestSize();
+	printf("Tested Size\n");
+	
+
+	failed_tests_num += TestIsEmpty();
+	printf("Tested IsEmpty\n");
+	failed_tests_num += TestRemove();
+	printf("Tested Remove\n");
+	
+	if (failed_tests_num)
 	{
-		printf("In Total Failed %d Tests\n", checker);
-		return 0;
+		printf("%d out %d tests failed\nFailed tests:\n%s"
+		, failed_tests_num, TESTNUM, failed_tests_print);
+		return failed_tests_num;
 	}
 	
-	printf("\nPASSED ALL TESTS!!!!!\n");
+	printf("All Tests Passed!\n");
 	
+    return 0;
+}
+
+static void AddFailedTest(const char *str)
+{
+	strcat(failed_tests_print, str);
+}
+
+static int TestPush(void)
+{
+	heap_t *heap = HeapCreate(Compare);
+	int elements[15] = {30, 40, 20, 70, 80, 
+						15, 10, 55, 35, 100, 
+						25, 90, 60, 50, 45};
+	int min = 0;
+	size_t loop_count = 0;
+	
+	HeapPush(heap, elements);
+
+	if (HeapSize(heap) != 1)
+	{
+		AddFailedTest("TestPush1\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPush(heap, elements + 1);
+
+	if (HeapSize(heap) != 2)
+	{
+		AddFailedTest("TestPush2\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	min = *(int *)HeapPeek(heap);
+	if (30 != min)
+	{
+		AddFailedTest("TestPush3\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPush(heap, elements + 2);
+
+	if (HeapSize(heap) != 3)
+	{
+		AddFailedTest("TestPush4\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	min = *(int *)HeapPeek(heap);
+	if (20 != min)
+	{
+		AddFailedTest("TestPush5\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	for (loop_count = 3; loop_count < 15; ++loop_count)
+	{
+		HeapPush(heap, elements + loop_count);
+	}
+
+	if (HeapSize(heap) != 15)
+	{
+		AddFailedTest("TestPush6\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	min = *(int *)HeapPeek(heap);
+	if (10 != min)
+	{
+		AddFailedTest("TestPush7\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapDestroy(heap);
 	return 0;
 }
 
-void TestCreateDestroy(void)
+static int TestPop(void)
 {
-	heap_t *heap = HeapCreate(&Compare);
-	if (NULL == heap)
+	heap_t *heap = HeapCreate(Compare);
+	int elements[15] = {30, 40, 20, 70, 80, 
+						15, 10, 55, 35, 100, 
+						25, 90, 60, 50, 45};
+	int min = 0;
+	size_t loop_count = 0;
+	
+	for (loop_count = 0; loop_count < 15; ++loop_count)
 	{
-		printf("FAILED TestCreateDestroy\n");
-		++checker;
-		
-		return;
+		HeapPush(heap, elements + loop_count);
+	}
+
+	HeapPop(heap);
+
+	if (HeapSize(heap) != 14)
+	{
+		AddFailedTest("TestPop1\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	min = *(int *)HeapPeek(heap);
+	if (15 != min)
+	{
+		AddFailedTest("TestPop2\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+
+	if (HeapSize(heap) != 13)
+	{
+		AddFailedTest("TestPop3\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	min = *(int *)HeapPeek(heap);
+	if (20 != min)
+	{
+		AddFailedTest("TestPop4\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+
+	if (HeapSize(heap) != 12)
+	{
+		AddFailedTest("TestPop5\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	min = *(int *)HeapPeek(heap);
+	if (25 != min)
+	{
+		AddFailedTest("TestPop6\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+
+	if (HeapSize(heap) != 11)
+	{
+		AddFailedTest("TestPop7\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	min = *(int *)HeapPeek(heap);
+	if (30 != min)
+	{
+		AddFailedTest("TestPop8\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+
+	if (HeapSize(heap) != 10)
+	{
+		AddFailedTest("TestPop9\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	min = *(int *)HeapPeek(heap);
+	if (35 != min)
+	{
+		AddFailedTest("TestPop10\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+
+	if (HeapSize(heap) != 9)
+	{
+		AddFailedTest("TestPop11\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	min = *(int *)HeapPeek(heap);
+	if (40 != min)
+	{
+		AddFailedTest("TestPop12\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+
+	if (HeapSize(heap) != 8)
+	{
+		AddFailedTest("TestPop13\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	min = *(int *)HeapPeek(heap);
+	if (45 != min)
+	{
+		AddFailedTest("TestPop14\n");
+		HeapDestroy(heap);
+		return 1;
 	}
 	
 	HeapDestroy(heap);
-	
-	printf("PASSED TestCreateDestroy!!\n");
+	return 0;
 }
 
-void TestSize(void)
+static int TestPeek(void)
 {
-	size_t size = 0;
-	heap_t *heap = HeapCreate(&Compare);
+	heap_t *heap = HeapCreate(Compare);
+	int elements[15] = {30, 40, 20, 70, 80, 
+						15, 10, 55, 35, 100, 
+						25, 90, 60, 50, 45};
+	int min = 0;
+	size_t loop_count = 0;
 	
-	size = HeapSize(heap);
-	
-	if (0 != size)
+	HeapPush(heap, elements);
+	min = *(int *)HeapPeek(heap);
+	if (min != 30)
 	{
-		printf("FAILED TestSize\n");
-		++checker;
-		
-		return;
+		AddFailedTest("TestPeek1\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPush(heap, elements+1);
+	min = *(int *)HeapPeek(heap);
+	if (min != 30)
+	{
+		AddFailedTest("TestPeek2\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPush(heap, elements+2);
+	min = *(int *)HeapPeek(heap);
+	if (min != 20)
+	{
+		AddFailedTest("TestPeek3\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPush(heap, elements+3);
+	min = *(int *)HeapPeek(heap);
+	if (min != 20)
+	{
+		AddFailedTest("TestPeek4\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPush(heap, elements+4);
+	min = *(int *)HeapPeek(heap);
+	if (min != 20)
+	{
+		AddFailedTest("TestPeek5\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPush(heap, elements+5);
+	min = *(int *)HeapPeek(heap);
+	if (min != 15)
+	{
+		AddFailedTest("TestPeek6\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPush(heap, elements+6);
+	min = *(int *)HeapPeek(heap);
+	if (min != 10)
+	{
+		AddFailedTest("TestPeek7\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+	min = *(int *)HeapPeek(heap);
+	if (min != 15)
+	{
+		AddFailedTest("TestPeek8\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+	min = *(int *)HeapPeek(heap);
+	if (min != 20)
+	{
+		AddFailedTest("TestPeek9\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+	min = *(int *)HeapPeek(heap);
+	if (min != 30)
+	{
+		AddFailedTest("TestPeek10\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+	min = *(int *)HeapPeek(heap);
+	if (min != 40)
+	{
+		AddFailedTest("TestPeek11\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+	min = *(int *)HeapPeek(heap);
+	if (min != 70)
+	{
+		AddFailedTest("TestPeek12\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPop(heap);
+	min = *(int *)HeapPeek(heap);
+	if (min != 80)
+	{
+		AddFailedTest("TestPeek13\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapDestroy(heap);	
+	return 0;
+}
+
+static int TestSize(void)
+{
+	heap_t *heap = HeapCreate(Compare);
+	int elements[15] = {30, 40, 20, 70, 80, 
+						15, 10, 55, 35, 100, 
+						25, 90, 60, 50, 45};
+	int min = 0;
+	size_t loop_count = 0;
+	
+	for (loop_count = 0; loop_count < 15; ++loop_count)
+	{
+		HeapPush(heap, elements + loop_count);
+		if (HeapSize(heap) != loop_count+1)
+		{
+			AddFailedTest("TestSize1\n");
+			HeapDestroy(heap);
+			return 1;
+		}
+	}
+	
+	for (loop_count = 0; loop_count < 15; ++loop_count)
+	{
+		HeapPop(heap);
+		if (HeapSize(heap) != 14 - loop_count)
+		{
+			AddFailedTest("TestSize2\n");
+			HeapDestroy(heap);
+			return 1;
+		}
 	}
 	
 	HeapDestroy(heap);
-	
-	printf("PASSED TestSize!!\n");
+	return 0;
 }
 
-void TestIsEmpty(void)
+static int TestIsEmpty(void)
 {
-	heap_t *heap = HeapCreate(&Compare);
-	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
-	size_t i = 0;
-	size_t size_arr = sizeof(arr) / sizeof(int);
+	heap_t *heap = HeapCreate(Compare);
+	int elements[15] = {30, 40, 20, 70, 80, 
+						15, 10, 55, 35, 100, 
+						25, 90, 60, 50, 45};
 	
 	if (!HeapIsEmpty(heap))
 	{
-		printf("FAILED TestIsEmpty\n");
-		++checker;
-		
-		return;
+		AddFailedTest("TestIsEmpty1\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+	
+	HeapPush(heap, elements);
+	if (HeapIsEmpty(heap))
+	{
+		AddFailedTest("TestIsEmpty2\n");
+		HeapDestroy(heap);
+		return 1;
 	}
 
-/*	for (; i < size_arr; ++i)*/
-/*	{*/
-/*		AVLInsert(avl, arr + i);*/
-/*	}*/
-/*	*/
-/*	if (AVLIsEmpty(avl))*/
-/*	{*/
-/*		printf("FAILED TestIsEmpty2\n");*/
-/*		++checker;*/
-/*		*/
-/*		return;*/
-/*	}*/
-/*	*/
-	HeapDestroy(heap);
+	HeapPop(heap);
+	if (!HeapIsEmpty(heap))
+	{
+		AddFailedTest("TestIsEmpty3\n");
+		HeapDestroy(heap);
+		return 1;
+	}
+
 	
-	printf("PASSED TestIsEmpty!!\n");
+	HeapDestroy(heap);
+	return 0;
 }
 
-void TestPush(void)
+static int TestRemove(void)
 {
-	size_t size_heap = 0;
-	heap_t *heap = HeapCreate(&Compare);
-	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
-	size_t i = 3;
-	size_t size_arr = sizeof(arr) / sizeof(int);
+	heap_t *heap = HeapCreate(CompareCats);
+	struct cat honey = {0};
+	struct cat garfield = {0};
+	struct cat meshugah = {0};
+	struct cat bentzi = {0};
+	struct cat diana = {0};
+	struct cat get_cat = {0};
 	
-	/* insert 20 */
-	HeapPush(heap, arr);
+	honey.name = "honey";
+	honey.favorite_food = "tuna";
+	honey.age = 1;
 	
-	size_heap = HeapSize(heap);
+	garfield.name = "garfield";
+	garfield.favorite_food = "lasagna";
+	garfield.age = 43;
 	
-	if (1 != size_heap)
+	meshugah.name = "meshugah";
+	meshugah.favorite_food = "garfield";
+	meshugah.age = 7;
+	
+	bentzi.name = "bentzi";
+	bentzi.favorite_food = "melafefon";
+	bentzi.age = 12;
+	
+	diana.name = "diana";
+	diana.favorite_food = "salmon";
+	diana.age = 4;
+	
+	HeapPush(heap, &honey);
+	HeapPush(heap, &garfield);
+	HeapPush(heap, &meshugah);
+	HeapPush(heap, &bentzi);
+	HeapPush(heap, &diana);
+	
+	get_cat = *(struct cat *)HeapRemove(heap, FindFavoriteFood, "melafefon");
+	
+	if (CompareCats(&get_cat, &bentzi))
 	{
-		printf("FAILED TestPush\n");
-		++checker;
-		
-		return;
+		AddFailedTest("TestRemove1\n");
+		HeapDestroy(heap);
+		return 1;
 	}
 	
-	/* insert 15 */
-	HeapPush(heap, arr + 1);
-	
-	/* insert 30 */
-	HeapPush(heap, arr + 2);
-	
-	size_heap = HeapSize(heap);
-	
-	if (3 != size_heap)
+	if (HeapSize(heap) != 4)
 	{
-		printf("FAILED TestPush2\n");
-		++checker;
-		
-		return;
-	}
-	
-	if (arr[2] != *(int*)HeapPeek(heap))
-	{
-		printf("FAILED TestPush3\n");
-		++checker;
-		
-		return;
-	}
-	
-	for (; i < size_arr; ++i)
-	{
-		HeapPush(heap, arr + i);
-	}
-	
-	size_heap = HeapSize(heap);
-	
-	if (size_heap != size_arr)
-	{
-		printf("FAILED TestPush4\n");
-		++checker;
-		
-		return;
+		AddFailedTest("TestRemove2\n");
+		HeapDestroy(heap);
+		return 1;
 	}
 	
 	HeapDestroy(heap);
-	
-	printf("PASSED TestPush!!\n");
+	return 0;
 }
 
-/*void TestFind(void)*/
-/*{*/
-/*	avl_t *avl = AVLCreate(&Compare);*/
-/*	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};*/
-/*	size_t i = 0;*/
-/*	size_t size_arr = sizeof(arr) / sizeof(int);*/
-/*	int elem_not_in_avl = 100;*/
-/*	*/
-/*	for (; i < size_arr; ++i)*/
-/*	{*/
-/*		AVLInsert(avl, arr + i);*/
-/*	}*/
-/*	*/
-/*	for (i = 0; i < size_arr; ++i)*/
-/*	{*/
-/*		if (arr[i] != *(int*)AVLFind(avl, arr + i))*/
-/*		{*/
-/*			printf("FAILED TestFind\n");*/
-/*			++checker;*/
-/*			*/
-/*			return;*/
-/*		}*/
-/*	}*/
-/*	*/
-/*	if (NULL != AVLFind(avl, &elem_not_in_avl))*/
-/*	{*/
-/*		printf("FAILED TestFind2\n");*/
-/*		++checker;*/
-/*		*/
-/*		return;*/
-/*	}*/
-/*	*/
-/*	AVLDestroy(avl);*/
-/*	*/
-/*	printf("PASSED TestFind!!\n");*/
-/*}*/
 
-/*void TestForEach(void)*/
-/*{*/
-/*	avl_t *avl = AVLCreate(&Compare);*/
-/*	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};*/
-/*	size_t i = 0;*/
-/*	size_t size_arr = sizeof(arr) / sizeof(int);*/
-/*	int params = 100;*/
-/*	*/
-/*	for (; i < size_arr; ++i)*/
-/*	{*/
-/*		AVLInsert(avl, arr + i);*/
-/*	}*/
-/*	*/
-/*	printf("Test ForEach:(should print elements in accending order)\n[");*/
-/*	if (0 != AVLForEach(avl, &PrintElements, &params))*/
-/*	{*/
-/*		printf("FAILED TestForEach\n");*/
-/*		++checker;*/
-/*		*/
-/*		return;*/
-/*	}*/
-/*	printf("]\n");*/
-/*	*/
-/*	AVLDestroy(avl);*/
-/*	*/
-/*	printf("PASSED TestForEach!!\n");*/
-/*}*/
 
-/*void TestRemove(void)*/
-/*{*/
-/*	avl_t *avl = AVLCreate(&Compare);*/
-/*	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};*/
-/*	size_t i = 0;*/
-/*	size_t size_arr = sizeof(arr) / sizeof(int);*/
-/*	*/
-/*	for (; i < size_arr; ++i)*/
-/*	{*/
-/*		AVLInsert(avl, arr + i);*/
-/*	}*/
-/*	*/
-/*	for (i = 0; i < size_arr; ++i)*/
-/*	{*/
-/*		AVLRemove(avl, arr + i);*/
-/*	}*/
-/*	*/
-/*	if (0 != AVLCount(avl))*/
-/*	{*/
-/*		printf("FAILED TestRemove\n");*/
-/*		++checker;*/
-/*		*/
-/*		return;*/
-/*	}*/
-/*	*/
-/*	printf("PASSED TestRemove!!\n");*/
-/*}*/
+
+
+
+
+
+
+
+

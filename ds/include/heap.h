@@ -60,7 +60,8 @@ int HeapPush(heap_t *heap, void *data);
 
 /*
 HeapPop
-description: pops and returns the top element of the heap, according to the hierarchy that is set by comparison function.
+description: pops the top element of the heap, according to the hierarchy
+ that is set by comparison function.
 input: pointer to heap.
 return: void * - data that is popped. Undefined if heap is empty.
 time complexity: O(log(n))
@@ -107,7 +108,7 @@ HeapRemove
 description: Removes element from the heap where the data matches the argument.
 if multiple entires match, removes the first one it finds.
 input: pointer to heap, a match function, pointer to data to remove.
-return: 0 for success, non-zero if failed.
+return: data if founf null if  not
 time complexity: O(n)
 space complexity: O(1)
 */

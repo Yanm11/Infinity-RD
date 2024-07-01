@@ -74,7 +74,6 @@ int DvectorPushBack(dvector_t *vector, const void *new_element)
 		}	
 	}
 
-	
 	for (;i < vector->element_size; ++i)
 	{
 		*((vector->buffer)+(vector->size)*(vector->element_size)+i)=*ptr_elem;
