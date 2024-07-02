@@ -1,3 +1,15 @@
+/********************************** 
+   Code by: Yan Meiri	
+   Project: Heap Priority queue
+   Date: 02/07/24
+   Review by: amit
+   Review Date: 02/07/2024
+   Approved by: 
+   Approval Date: 
+**********************************/
+
+
+
 #include <assert.h> /* assert */
 #include <stdlib.h> /* maloc free */
 #include <stdio.h> /* printf */
@@ -7,12 +19,14 @@
 #include "dvector.h"
 
 #define FAILED -1
+#define TO_POSITION(index) (index + 1)
+#define TO_INDEX(position) (position - 1)
 #define RIGHT_CHILD(position) (2 * position + 1)
 #define LEFT_CHILD(position) (2 * position)
 #define PARENT(position) (position % 2 == 0 ? position / 2 : (position - 1) / 2)
-#define INDEX(position) (position - 1)
 #define CONVERT(ptr) (*(void**)ptr)
 #define START_CAPACITY 10
+
 static dvector_t *GetDvector(const heap_t *heap);
 static heap_compare_func_t GetCompare(const heap_t *heap);
 static void HeapifyUp(heap_t *heap, size_t position);
@@ -21,9 +35,6 @@ static void HeapifyDown(heap_t *heap, size_t position);
 static size_t FindElement(dvector_t *dvector,
 						  is_match_func_t is_match,
 						  void *data);	  
-/*static void PrintTreeLevel(heap_t *heap, int level, int max_width);*/
-/*static int GetTreeHeight(heap_t *heap);*/
-/*static void PrintTree(heap_t *heap);*/
 
 struct heap
 {
@@ -110,7 +121,7 @@ void *HeapPeek(const heap_t *heap)
 {
 	assert(heap);
 	
-	return CONVERT(DvectorGetElement(GetDvector(heap), 0)	);
+	return CONVERT(DvectorGetElement(GetDvector(heap), 0));
 }
 
 void HeapPop(heap_t *heap)
@@ -149,14 +160,14 @@ void *HeapRemove(heap_t *heap, is_match_func_t is_match, void *data_to_match)
 		return NULL;
 	}
 	
-	Swap(DvectorGetElement(dvector, HeapSize(heap) - 1), 
+	Swap(DvectorGetElement(dvector, TO_INDEX(HeapSize(heap))), 
 		 DvectorGetElement(dvector, index));
 	
-	data = CONVERT(DvectorGetElement(dvector, HeapSize(heap) - 1));
+	data = CONVERT(DvectorGetElement(dvector, TO_INDEX(HeapSize(heap))));
 	
 	DvectorPopBack(dvector);
 	
-	HeapifyDown(heap, index + 1);
+	HeapifyDown(heap, TO_POSITION(index));
 	
 	return data;
 }
@@ -186,12 +197,12 @@ static void HeapifyUp(heap_t *heap, size_t position)
 	assert(heap);
 	
 	dvector = GetDvector(heap);
-	child =  DvectorGetElement(dvector, INDEX(position));
-	parent =  DvectorGetElement(dvector, INDEX(PARENT(position)));
+	child =  DvectorGetElement(dvector, TO_INDEX(position));
+	parent =  DvectorGetElement(dvector, TO_INDEX(PARENT(position)));
 	
 	
 	/* while child is larger than parant AND parent isnt the root */
-	while (0 < GetCompare(heap)(CONVERT(child), CONVERT(parent)) && 
+	while (0 <= GetCompare(heap)(CONVERT(child), CONVERT(parent)) && 
 		   1 < position_parent)
 	{
 		Swap(parent, child);
@@ -199,8 +210,8 @@ static void HeapifyUp(heap_t *heap, size_t position)
 		position = position_parent;  
 		position_parent = PARENT(position);
 		
-		child =  DvectorGetElement(dvector, INDEX(position));
-		parent =  DvectorGetElement(dvector, INDEX(PARENT(position)));
+		child =  DvectorGetElement(dvector, TO_INDEX(position));
+		parent =  DvectorGetElement(dvector, TO_INDEX(PARENT(position)));
 	}
 	
 	/* check if its possible to swap last time between the root and the child */
@@ -227,19 +238,19 @@ static void HeapifyDown(heap_t *heap, size_t position)
 
 	max_position = HeapSize(heap);	
 	dvector = GetDvector(heap);
-	curr =  DvectorGetElement(dvector, INDEX(position));
+	curr =  DvectorGetElement(dvector, TO_INDEX(position));
 	
 	/* check that left child is in range AND if we didnt swap the nodes */
 	while (position_left <= max_position && already_swap_flag)
 	{
 		size_t start_position = position;
-		left_child =  CONVERT(DvectorGetElement(dvector, INDEX(position_left)));
+		left_child =  CONVERT(DvectorGetElement(dvector, TO_INDEX(position_left)));
 		already_swap_flag = 0;
 		
 		/* check first if right child is in range AND if its larger than curr */
 		if (position_right <= max_position &&
 			0 < GetCompare(heap)(CONVERT(DvectorGetElement(dvector,
-												   INDEX(position_right))),
+												   TO_INDEX(position_right))),
 								 CONVERT(curr)))
 		{
 			position = position_right;
@@ -252,15 +263,15 @@ static void HeapifyDown(heap_t *heap, size_t position)
 		   than right to not brake the tree order */
 		if (0 < GetCompare(heap)(left_child,
 								 CONVERT(DvectorGetElement(dvector,
-								 						   INDEX(position)))))
+								 						  TO_INDEX(position)))))
 		{
 			position = position_left;
 			already_swap_flag = 1;
 		}
 		
 		/* swapping between the correct values and go to next children */
-		curr =  DvectorGetElement(dvector, INDEX(position));
-		Swap(curr, DvectorGetElement(dvector, INDEX(start_position)));
+		curr =  DvectorGetElement(dvector, TO_INDEX(position));
+		Swap(curr, DvectorGetElement(dvector, TO_INDEX(start_position)));
 		position_left = LEFT_CHILD(position);
 		position_right = RIGHT_CHILD(position);
 	}
@@ -295,55 +306,3 @@ static size_t FindElement(dvector_t *dvector,
 	
 	return i;
 }
-
-/************** printing tree functions ************/
-static int GetTreeHeight(heap_t *heap)
-{
-    size_t size = HeapSize(heap);
-    return (int)ceil(log((double)(size + 1)) / log(2.0));
-}
-
-static void PrintTreeLevel(heap_t *heap, int level, int max_width)
-{
-    size_t size = HeapSize(heap);
-    int start = (1 << level) - 1;
-    int end = (1 << (level + 1)) - 1;
-    int i;
-    int spaces = max_width / (1 << level);
-    int first_spaces = spaces / 2;
-
-    for (i = 0; i < first_spaces; ++i)
-    {
-        printf("  ");
-    }
-
-    for (i = start; i < end && (size_t)i < size; ++i)
-    {
-        printf("%d", **(int**)(DvectorGetElement(heap->dvector, i)));
-        if (i + 1 < end && (size_t)(i + 1) < size)
-        {
-            int j;
-            for (j = 0; j < spaces; ++j)
-            {
-                printf("  ");
-            }
-        }
-    }
-    printf("\n");
-}
-
-static void PrintTree(heap_t *heap)
-{
-    int height = GetTreeHeight(heap);
-    int max_width = (1 << (height - 1)) * 2;
-    int level;
-	
-	printf("---------- tree ----------\n\n");
-	
-    for (level = 0; level < height; ++level)
-    {
-        PrintTreeLevel(heap, level, max_width);
-    }
-}
-
-
