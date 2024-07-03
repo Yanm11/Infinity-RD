@@ -14,13 +14,6 @@ static size_t FindMaxNumberOfDigits(int arr[], size_t size);
 static void CountingSortRadix(int arr[], size_t size, int exp);
 static int Merge(int *arr_c, int *arr_a, int *arr_b,
 				 size_t size_a, size_t size_b);
-static size_t FindPivot(void *base, size_t index_start, size_t index_middle, 
-				 		size_t index_end, size_t size, compar_func cmp_func);
-
-static size_t Max(void *base, size_t a, size_t b,
-				  size_t size, compar_func cmp_func);
-static size_t Min(void *base, size_t a, size_t b,
-				  size_t size, compar_func cmp_func);
 static void SwapQuick(void *a, void *b, size_t size);
 static void QSortLomuto(void *base, size_t start, size_t end, size_t size, compar_func cmp_func);
 static size_t PartitionLomuto(void *base, size_t start, size_t end, size_t size, compar_func cmp_func);

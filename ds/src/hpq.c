@@ -56,14 +56,10 @@ void HPQDestroy(hpq_t *queue)
 
 int HPQEnqueue(hpq_t *queue, void *data)
 {
-	int status = 0;
-	
 	assert(queue);
 	assert(queue->heap);
-	
-	status = HeapPush(queue->heap, data);
 
-	return status;
+	return HeapPush(queue->heap, data);
 }
 
 void *HPQDequeue(hpq_t *queue)
@@ -117,19 +113,11 @@ void HPQClear(hpq_t *queue)
 
 void *HPQErase(hpq_t *queue, hpq_match_func_t is_match, void *param)
 {
-	void *data = NULL;
-	
 	assert(queue);
 	assert(queue->heap);
 	assert(is_match);
 
-	data = HeapRemove(queue->heap, is_match, param);
-	if (NULL == data)
-	{
-		return NULL;
-	}
-	
-	return data;
+	return 	HeapRemove(queue->heap, is_match, param);
 }
 
 

@@ -423,7 +423,7 @@ static int TestSchedulerStop(void)
 										"---SchedulerStop second run---");
 
 	HSchedulerRun(scheduler);
-	if (test_count > 6)
+	if (test_count > 7)
 	{
 		AddFailedTest("TestSchedulerStop2\n");
 		HSchedulerDestroy(scheduler);

@@ -143,7 +143,7 @@ int HSchedulerRun(hscheduler_t *scheduler)
 				{
 					remaining_time = sleep(remaining_time);
 				}
-/*				sleep(GetExecTime(task) - time(NULL));*/
+
 				TaskRun(task);
 			}
 		
