@@ -1,14 +1,12 @@
 /********************************** 
    Code by: Yan Meiri	
-   Project: Heap Priority queue
+   Project: Heap max
    Date: 02/07/24
    Review by: amit
    Review Date: 02/07/2024
    Approved by: amit
    Approval Date: 03/07/2024
 **********************************/
-
-
 
 #include <assert.h> /* assert */
 #include <stdlib.h> /* maloc free */
