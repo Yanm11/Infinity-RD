@@ -10,8 +10,6 @@
 
 #include <assert.h> /* assert */
 #include <stdlib.h> /* maloc free */
-#include <stdio.h> /* printf */
-#include <math.h>
 
 #include "heap.h"
 #include "dvector.h"
