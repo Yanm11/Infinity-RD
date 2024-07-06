@@ -7,10 +7,10 @@ typedef unsigned int bitarr_t;
 
 typedef enum trie_status
 {
-  SUCCESS,	
-  MEMORY_FALIURE,
+  TRIE_SUCCESS,	
+  TRIE_MEMORY_FALIURE,
   TRIE_FULL,
-  DOUBLE_FREE
+  TRIE_DOUBLE_FREE
 } trie_status_e;
 
 /*

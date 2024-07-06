@@ -63,14 +63,14 @@ void TestInsert(void)
 	size_t i = 0;
 	bitarr_t new_address = 0;
 	bitarr_t address = 0;
-	trie_status_e status = SUCCESS;
+	trie_status_e status = TRIE_SUCCESS;
 	size_t count = 0;
 	
 	for (;i < max_num_address; ++i)
 	{
 		address = i;
 		status = TrieInsert(trie, address, &new_address);
-		if (status != SUCCESS || new_address != address)
+		if (status != TRIE_SUCCESS || new_address != address)
 		{
 			printf("FAILED TestInsert %ld\n", i);
 			++checker;
@@ -99,7 +99,7 @@ void TestInsert(void)
 	address = 0;
 	status = TrieInsert(trie, address, &new_address);
 	count = TrieCount(trie);
-	if (count != 1 || status != SUCCESS || new_address != address)
+	if (count != 1 || status != TRIE_SUCCESS || new_address != address)
 	{
 		printf("FAILED TestInsert %ld\n", i);
 		++checker;
@@ -112,7 +112,7 @@ void TestInsert(void)
 	address = 0;
 	status = TrieInsert(trie, address, &new_address);
 	count = TrieCount(trie);
-	if (count != 2 || status != SUCCESS || new_address != 1)
+	if (count != 2 || status != TRIE_SUCCESS || new_address != 1)
 	{
 		printf("FAILED TestInsert %ld\n", i);
 		++checker;
@@ -125,7 +125,7 @@ void TestInsert(void)
 	address = 255;
 	status = TrieInsert(trie, address, &new_address);
 	count = TrieCount(trie);
-	if (status != SUCCESS || new_address != 255)
+	if (status != TRIE_SUCCESS || new_address != 255)
 	{
 		printf("FAILED TestInsert %ld\n", i);
 		++checker;
@@ -138,7 +138,7 @@ void TestInsert(void)
 	address = 255;
 	status = TrieInsert(trie, address, &new_address);
 	count = TrieCount(trie);
-	if (status != SUCCESS || new_address != 2)
+	if (status != TRIE_SUCCESS || new_address != 2)
 	{
 		printf("FAILED TestInsert %ld\n", i);
 		++checker;
@@ -153,7 +153,7 @@ void TestInsert(void)
 static int TestInsertAMIT(void)
 {
 	trie_t *trie = NULL;
-	trie_status_e status = SUCCESS;
+	trie_status_e status = TRIE_SUCCESS;
 	bitarr_t get_element = 0;
 	bitarr_t address = 0;
 	size_t count = 0;
@@ -164,7 +164,7 @@ static int TestInsertAMIT(void)
 	/* check if TRIE_SUCCESSfully inserted the requested key*/
 	status = TrieInsert(trie, address, &get_element);
 	count = TrieCount(trie);
-	if (7 != count || 0 != get_element || SUCCESS != status)
+	if (7 != count || 0 != get_element || TRIE_SUCCESS != status)
 	{
 		printf("failed TestInsert1\n");
 		TrieDestroy(trie);
@@ -178,7 +178,7 @@ static int TestInsertAMIT(void)
 	/* check if TRIE_SUCCESSfully inserted the requested key*/
 	status = TrieInsert(trie, address, &get_element);
 	count = TrieCount(trie);
-	if ( 63 != get_element || SUCCESS != status)
+	if ( 63 != get_element || TRIE_SUCCESS != status)
 	{
 		printf("TestInsert2\n");
 		TrieDestroy(trie);
@@ -192,7 +192,7 @@ static int TestInsertAMIT(void)
 	/* check if TRIE_SUCCESSfully inserted the requested key*/
 	status = TrieInsert(trie, address, &get_element);
 	count = TrieCount(trie);
-	if ( 62 != get_element || SUCCESS != status)
+	if ( 62 != get_element || TRIE_SUCCESS != status)
 	{
 		printf("TestInsert3\n");
 		TrieDestroy(trie);
@@ -206,7 +206,7 @@ static int TestInsertAMIT(void)
 	/* check if TRIE_SUCCESSfully inserted even when the key is taken*/
 	status = TrieInsert(trie, address, &get_element);
 	count = TrieCount(trie);
-	if ( SUCCESS != status || 1 != get_element)
+	if ( TRIE_SUCCESS != status || 1 != get_element)
 	{
 		printf("TestInsert4\n");
 		TrieDestroy(trie);
@@ -220,7 +220,7 @@ static int TestInsertAMIT(void)
 	/* check if TRIE_SUCCESSfully inserted the requested key*/
 	status = TrieInsert(trie, address, &get_element);
 	count = TrieCount(trie);
-	if ( SUCCESS != status)
+	if ( TRIE_SUCCESS != status)
 	{
 		printf("TestInsert5\n");
 		TrieDestroy(trie);
@@ -237,7 +237,7 @@ static int TestInsertAMIT(void)
 	address = 40;
 	status = TrieInsert(trie, address, &get_element);
 	count = TrieCount(trie);
-	if ( SUCCESS != status || 41 != get_element)
+	if ( TRIE_SUCCESS != status || 41 != get_element)
 	{
 		printf("TestInsert8\n");
 		TrieDestroy(trie);
@@ -252,7 +252,7 @@ static int TestInsertAMIT(void)
 	address = 53;
 	status = TrieInsert(trie, address, &get_element);
 	count = TrieCount(trie);
-	if ( SUCCESS != status || 53 != get_element)
+	if ( TRIE_SUCCESS != status || 53 != get_element)
 	{
 		printf("TestInsert10\n");
 		TrieDestroy(trie);
@@ -265,7 +265,7 @@ static int TestInsertAMIT(void)
 	address = 53;
 	status = TrieInsert(trie, address, &get_element);
 	count = TrieCount(trie);
-	if ( SUCCESS != status || 54 != get_element)
+	if ( TRIE_SUCCESS != status || 54 != get_element)
 	{
 		printf("TestInsert11\n");
 		TrieDestroy(trie);
@@ -287,14 +287,14 @@ void TestRemove(void)
 	size_t i = 0;
 	bitarr_t new_address = 0;
 	bitarr_t address = 0;
-	trie_status_e status = SUCCESS;
+	trie_status_e status = TRIE_SUCCESS;
 	size_t count = 0;
 	
 	for (;i < max_num_address; ++i)
 	{
 		address = i;
 		status = TrieInsert(trie, address, &new_address);
-		if (status != SUCCESS || new_address != address)
+		if (status != TRIE_SUCCESS || new_address != address)
 		{
 			printf("FAILED TestRemove %ld\n", i);
 			++checker;
@@ -305,7 +305,7 @@ void TestRemove(void)
 	
 	status = TrieRemove(trie, 255);
 	count = TrieCount(trie);
-	if (status != SUCCESS ||  count != 255)
+	if (status != TRIE_SUCCESS ||  count != 255)
 	{
 		printf("FAILED TestRemove %ld\n", i);
 		++checker;
@@ -315,7 +315,7 @@ void TestRemove(void)
 	++i;
 	status = TrieRemove(trie, 255);
 	count = TrieCount(trie);
-	if (status != DOUBLE_FREE ||  count != 255)
+	if (status != TRIE_DOUBLE_FREE ||  count != 255)
 	{
 		printf("FAILED TestRemove %ld\n", i);
 		++checker;
@@ -327,7 +327,7 @@ void TestRemove(void)
 	{
 		address = i;
 		status = TrieRemove(trie, address);
-		if (status != SUCCESS || count != (255-i-1))
+		if (status != TRIE_SUCCESS || count != (255-i-1))
 		{
 			printf("FAILED TestRemove %ld\n", i + 300);
 			++checker;

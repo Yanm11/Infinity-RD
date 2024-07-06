@@ -73,29 +73,19 @@ void TrieDestroy(trie_t *trie)
 	free(trie);
 }
 
-int TrieIsFull(const trie_t *trie)
-{
-	node_t *root = NULL;
-	
-	assert(trie);
-	
-	root = GetRoot(trie);
-	
-	return (NULL == GetChild(root, LEFT) && NULL == GetChild(root, RIGHT));
-}
-
 trie_status_e TrieInsert(trie_t *trie, bitarr_t address, bitarr_t *out_param)
 {
 	unsigned char bit = 0;
 	size_t bit_number = 0;
 	node_t *node = NULL;
-	trie_status_e status = SUCCESS;
+	trie_status_e status = TRIE_SUCCESS;
 	
 	assert(trie);
 	assert(out_param);
 	
 	bit_number = GetHight(trie);
 	node = GetRoot(trie);
+	/* the out param always start at 0 and later gain the right path */
 	*out_param = 0;
 	
 	if (FULL == GetIsFull(node))
@@ -133,25 +123,20 @@ trie_status_e TrieInsert(trie_t *trie, bitarr_t address, bitarr_t *out_param)
 				if (1 == bit)
 				{
 					node = FindNextLargerAddress(node, &bit_number);
-					/* if no available larger addres start from the begining */
-					if (NULL == node)
-					{
-						bit_number = GetHight(trie);
-						address = 0;
-						*out_param = 0;
-						node = GetRoot(trie);
-					}
-					else
-					{
-						*out_param = *out_param ^ (1 << (bit_number - 1));
-						address = *out_param;
-						*out_param = *out_param & (~(1 << (bit_number - 1)));
-					}
 				}
+		    	/* if no available larger addres start from the begining */
+				if (NULL == node)
+				{
+					bit_number = GetHight(trie);
+					address = 0;
+					*out_param = 0;
+					node = GetRoot(trie);
+				}
+				/* if bit was 0 we just go next to bit 1 
+				   and if bit was 1 and not NULL after the function we will go
+				   to the node we found and start from there */
 				else
 				{
-					bit = 1;
-
 					*out_param = *out_param ^ (1 << (bit_number - 1));
 					address = *out_param;
 					*out_param = *out_param & (~(1 << (bit_number - 1)));
@@ -192,7 +177,7 @@ trie_status_e TrieRemove(trie_t *trie, bitarr_t address)
 		
 		if (NULL == GetChild(node, bit))
 		{
-			return DOUBLE_FREE;
+			return TRIE_DOUBLE_FREE;
 		}
 		
 		node = GetChild(node, bit);
@@ -206,7 +191,7 @@ trie_status_e TrieRemove(trie_t *trie, bitarr_t address)
 	GetParent(node)->child[bit] = NULL;
 	free(node);
 	
-	return SUCCESS;
+	return TRIE_SUCCESS;
 }
 
 /******* HELPER FUNCTIONS ***********/
@@ -297,9 +282,9 @@ static trie_status_e CreateRestOfAddress(node_t *node,
 		{
 			*out_param = INVALID_ADDRESS;
 		
-			return MEMORY_FALIURE;
+			return TRIE_MEMORY_FALIURE;
 		}
-		
+		/* updating the out_param with the correct path */
 		*out_param = *out_param ^ (bit << (bit_number - 1));
 		
 		--bit_number;
@@ -312,7 +297,7 @@ static trie_status_e CreateRestOfAddress(node_t *node,
 	
 	UpdateBranch(node);
 	
-	return SUCCESS;
+	return TRIE_SUCCESS;
 }
 
 static void UpdateBranch(node_t *node)
@@ -323,13 +308,18 @@ static void UpdateBranch(node_t *node)
 	
 	while (NULL != node)
 	{
-		/* if both childs are full then so is the parent */
 		if (NULL != GetChild(node,0) && NULL != GetChild(node, 1))
 		{		
+			/* if both childs are full then so is the parent */
 			if (FULL == GetIsFull(GetChild(node,0)) && 
 				FULL == GetIsFull(GetChild(node,1)))
 			{
 				node->is_full = FULL;
+			}
+			/* if ot both childs are full then the parent is empty */
+			else
+			{
+				node->is_full = EMPTY;
 			}
 		}
 		else
@@ -354,6 +344,7 @@ static node_t* FindNextLargerAddress(node_t *node, size_t *bit_number)
 		node = GetParent(node);
 		++*bit_number;
 		
+		/* checking if a right path (larger address) exist */
 		if (EMPTY == GetIsFull(GetChild(node, 1)) &&
 			start_node != GetChild(node,1)) 
 		{
@@ -370,6 +361,7 @@ static void PreOrderedCount(node_t *node, size_t *counter)
 	{
 		return; 
 	}
+	/* only the leaf nodes at the proper hight get this flag */
 	if (1 == node->is_leaf)
 	{
 		++*counter;	
