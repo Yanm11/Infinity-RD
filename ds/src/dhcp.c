@@ -1,3 +1,13 @@
+/********************************** 
+   Code by: Yan Meiri	
+   Project: DHCP
+   Date: 03/07/24
+   Review by: Amit
+   Review Date: 07/05/24
+   Approved by: Amit
+   Approval Date: 07/07/24
+**********************************/
+
 #include <assert.h> /* assert */
 #include <stdlib.h> /* maloc free */
 
@@ -6,6 +16,9 @@
 
 #define BITS_PER_BYTE 8
 #define NUM_ADDRESSES 3
+#define NETWORK 0 /* 255.255.255.0 */
+#define SERVER ~0-1 /* 255.255.255.254 */
+#define BRODCAST ~0 /* 255.255.255.255 */
 
 static trie_t *GetTrie(const DHCP_Server_t *dhcp);
 static unsigned char *GetBaseAddress(const DHCP_Server_t *dhcp);
@@ -83,7 +96,6 @@ size_t DHCPCountFree(const DHCP_Server_t *dhcp)
 {
 	size_t number_of_bits_for_host = 0;
 	size_t subnet_prefix = 0;
-	size_t i = 0;
 	size_t total_possible_host_addresses = 1;
 	
 	assert(dhcp);
@@ -91,10 +103,9 @@ size_t DHCPCountFree(const DHCP_Server_t *dhcp)
 	subnet_prefix = GetSubnetPrefix(dhcp);
 	number_of_bits_for_host = (BYTES_IN_IP * BITS_PER_BYTE) - subnet_prefix;
 	
-	for (; i < number_of_bits_for_host; ++i)
-	{
-		total_possible_host_addresses *= 2;
-	}
+
+	total_possible_host_addresses <<= number_of_bits_for_host;
+	
 	
 	return (total_possible_host_addresses - TrieCount(GetTrie(dhcp)));
 }
@@ -225,7 +236,7 @@ static void ConvertAddressToUnChar(unsigned int address,
 
 static status_e InsertPreDefineAddress(DHCP_Server_t *dhcp)
 {
-	unsigned char addresses[NUM_ADDRESSES] = {0,~0-1,~0};
+	unsigned char addresses[NUM_ADDRESSES] = {NETWORK,SERVER,BRODCAST};
 	unsigned char *base_address = NULL;
 	size_t i = 0;
 	unsigned int address_to_insert = 0;

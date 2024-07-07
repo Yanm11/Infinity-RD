@@ -1,9 +1,19 @@
+/********************************** 
+   Code by: Yan Meiri	
+   Project: trie
+   Date: 03/07/24
+   Review by: Amit
+   Review Date: 07/05/24
+   Approved by: Amit
+   Approval Date: 07/07/24
+**********************************/
+
 #include <assert.h> /* assert */
 #include <stdlib.h> /* maloc free */
 
 #include "trie.h"
 
-#define SIZE 2
+#define NUM_OF_CHILD 2
 #define LEFT 0
 #define RIGHT 1
 #define INVALID_ADDRESS 0
@@ -16,8 +26,8 @@ static node_t *GetRoot(const trie_t *trie);
 static node_t *GetChild(node_t *node, size_t direction);
 static node_t *GetParent(node_t *node);
 static int GetIsFull(node_t *node);
-static size_t GetHight(trie_t *trie);
-static node_t *CreateNode(node_t *paraent);
+static size_t GetHeight(trie_t *trie);
+static node_t *CreateNode(node_t *parent);
 static void PostOrderedDestroy(node_t *node);
 static trie_status_e CreateRestOfAddress(node_t *node, 
 									size_t bit_number,
@@ -25,12 +35,13 @@ static trie_status_e CreateRestOfAddress(node_t *node,
 									bitarr_t *out_param);
 static node_t* FindNextLargerAddress(node_t *node, size_t *bit_number);
 static void UpdateBranch(node_t *node);
+static void UpdateNodeFull(node_t *node);
 static void PreOrderedCount(node_t *node, size_t *counter);
 
 struct node
 {
-	node_t *child[SIZE];
-	node_t *paraent;
+	node_t *child[NUM_OF_CHILD];
+	node_t *parent;
 	int is_full;
 	int is_leaf;
 };
@@ -38,12 +49,12 @@ struct node
 struct trie
 {
 	node_t *root;
-	size_t hight;	
+	size_t height;	
 };
 
 /******* API FUNCTIONS ***********/
 
-trie_t *TrieCreate(size_t hight)
+trie_t *TrieCreate(size_t height)
 {
 	trie_t *trie = (trie_t*)malloc(sizeof(trie_t));
 	if (NULL == trie)
@@ -59,7 +70,7 @@ trie_t *TrieCreate(size_t hight)
 		return NULL;
 	}
 	
-	trie->hight = hight;
+	trie->height = height;
 	
 	return trie;
 }
@@ -83,7 +94,7 @@ trie_status_e TrieInsert(trie_t *trie, bitarr_t address, bitarr_t *out_param)
 	assert(trie);
 	assert(out_param);
 	
-	bit_number = GetHight(trie);
+	bit_number = GetHeight(trie);
 	node = GetRoot(trie);
 	/* the out param always start at 0 and later gain the right path */
 	*out_param = 0;
@@ -127,7 +138,7 @@ trie_status_e TrieInsert(trie_t *trie, bitarr_t address, bitarr_t *out_param)
 		    	/* if no available larger addres start from the begining */
 				if (NULL == node)
 				{
-					bit_number = GetHight(trie);
+					bit_number = GetHeight(trie);
 					address = 0;
 					*out_param = 0;
 					node = GetRoot(trie);
@@ -168,7 +179,7 @@ trie_status_e TrieRemove(trie_t *trie, bitarr_t address)
 	
 	assert(trie);
 	
-	bit_number = GetHight(trie);
+	bit_number = GetHeight(trie);
 	node = GetRoot(trie);
 	
 	while (bit_number > 0)
@@ -203,11 +214,11 @@ static node_t *GetRoot(const trie_t *trie)
 	return trie->root;
 }
 
-static size_t GetHight(trie_t *trie)
+static size_t GetHeight(trie_t *trie)
 {
 	assert(trie);
 	
-	return trie->hight;
+	return trie->height;
 }
 
 static node_t *GetChild(node_t *node, size_t direction)
@@ -221,7 +232,7 @@ static node_t *GetParent(node_t *node)
 {
 	assert(node);
 	
-	return node->paraent;
+	return node->parent;
 }
 
 static int GetIsFull(node_t *node)
@@ -234,7 +245,7 @@ static int GetIsFull(node_t *node)
 	return node->is_full;
 }
 
-static node_t *CreateNode(node_t *paraent)
+static node_t *CreateNode(node_t *parent)
 {
 	node_t *node = (node_t*)malloc(sizeof(node_t));;
 	if (NULL == node)
@@ -244,7 +255,7 @@ static node_t *CreateNode(node_t *paraent)
 	
 	node->child[0] = NULL;
 	node->child[1] = NULL;
-	node->paraent = paraent;
+	node->parent = parent;
 	node->is_full = EMPTY;
 	node->is_leaf = 0;
 	
@@ -263,6 +274,9 @@ static void PostOrderedDestroy(node_t *node)
 	free(node);
 }
 
+/* this function is called upon once a new path need to be created. since no 
+   full node can be there we come to this function to create all the
+   remaining path nececary to get to the end of the address */ 
 static trie_status_e CreateRestOfAddress(node_t *node, 
 							  		size_t bit_number,
 							  		bitarr_t address,
@@ -310,17 +324,7 @@ static void UpdateBranch(node_t *node)
 	{
 		if (NULL != GetChild(node,0) && NULL != GetChild(node, 1))
 		{		
-			/* if both childs are full then so is the parent */
-			if (FULL == GetIsFull(GetChild(node,0)) && 
-				FULL == GetIsFull(GetChild(node,1)))
-			{
-				node->is_full = FULL;
-			}
-			/* if ot both childs are full then the parent is empty */
-			else
-			{
-				node->is_full = EMPTY;
-			}
+			UpdateNodeFull(node);
 		}
 		else
 		{
@@ -328,6 +332,21 @@ static void UpdateBranch(node_t *node)
 		}
 		
 		node = GetParent(node);
+	}
+}
+
+static void UpdateNodeFull(node_t *node)
+{
+	/* if both childs are full then so is the parent */
+	if (FULL == GetIsFull(GetChild(node,0)) && 
+		FULL == GetIsFull(GetChild(node,1)))
+	{
+		node->is_full = FULL;
+	}
+	/* if ot both childs are full then the parent is empty */
+	else
+	{
+		node->is_full = EMPTY;
 	}
 }
 
@@ -361,7 +380,7 @@ static void PreOrderedCount(node_t *node, size_t *counter)
 	{
 		return; 
 	}
-	/* only the leaf nodes at the proper hight get this flag */
+	/* only the leaf nodes at the proper height get this flag */
 	if (1 == node->is_leaf)
 	{
 		++*counter;	
