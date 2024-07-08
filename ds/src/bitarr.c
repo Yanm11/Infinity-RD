@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include "bitarr.h"
 
 bitarray_t SetAll(bitarray_t data)
