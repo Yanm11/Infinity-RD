@@ -2,14 +2,14 @@
 #include <stdlib.h> /* malooc free */
 #include <string.h> /* strcmp strcspn */
 #include <unistd.h> /* fork */
-#include <sys/types.h> /* pid_t */
-#include <sys/wait.h> /* waitpd */
+#include <sys/wait.h> /* waitpd pid_t */
 
 #define NUMBER_OF_CHARS 50
 
 void SystemState(void);
 void ForkState(void);
 void GetInput(char *input);
+void StatusHandling(int status);
 
 int main(void)
 {
@@ -43,12 +43,15 @@ void SystemState(void)
 {
 	char input[NUMBER_OF_CHARS] = {0};
     char exit_word[] = "exit";
+    int status = 0;
     
     while (0 != strcmp(input, exit_word))
     {
 		GetInput(input);
 		
-		system(input);
+		status = system(input);
+		
+		StatusHandling(status);
     }
 }
 
@@ -100,16 +103,67 @@ void ForkState(void)
 		{
 			int status = 0;
 	    	(void)waitpid(pid, &status, 0);
+	    	
+	    	StatusHandling(status);
 	    }
 	    
 	    GetInput(input);
     }
+    
+    free(token);
 }
 
 void GetInput(char *input)
 {
 	printf("\nwrite a command: ");
-	fgets(input, NUMBER_OF_CHARS, stdin);
+	
+	if (fgets(input, NUMBER_OF_CHARS, stdin) == NULL) 
+	{
+		perror("geting input failed");
+		exit(EXIT_FAILURE);
+    }
+    
 	input[strcspn(input,"\n")] = '\0';
 	printf("\n");
 }
+
+void StatusHandling(int status)
+{
+	if (-1 == status)
+	{
+		printf("\nfailed executing the command\n");
+	}
+	else if (WIFEXITED(status)) 
+	{
+		if (WEXITSTATUS(status) == 0) 
+		{
+			printf("\nExecuted successfully\n");
+		}
+		else if(WEXITSTATUS(status) == 127)
+		{	
+			printf("\nCommand or file not found\n");
+		}
+		else
+		{
+			fprintf(stderr, "\nCommand exited with non-zero status: %d\n", WEXITSTATUS(status));
+		}
+	} 
+	else if (WIFSIGNALED(status)) 
+	{
+		fprintf(stderr, "\nCommand terminated by signal: %d\n", WTERMSIG(status));
+	} 
+	else 
+	{
+		fprintf(stderr, "\nCommand terminated abnormally\n");
+	}
+}
+
+
+
+
+
+
+
+
+
+
