@@ -1,3 +1,8 @@
+/*****
+approved by or
+*****/
+
+
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* malooc free */
 #include <string.h> /* strcmp strcspn */

@@ -17,3 +17,5 @@ alias gpush='git push origin master'
 # compile with no linking only create objects
 alias gcco='gcc -O -c'
 
+export LD_LIBRARY_PATH=:~/git/ds/include/:$LD_LIBRARY_PATH
+
