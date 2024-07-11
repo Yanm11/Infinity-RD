@@ -6,13 +6,13 @@
 #define NUM_CHILDREN 2
 #define LEFT 0
 #define RIGHT 1
-#define STARTING_HIGHT 1
+#define STARTING_HEIGHT 1
 
 typedef struct node
 {
 	void *data;
 	struct node *children[NUM_CHILDREN];
-	size_t hight;
+	size_t height;
 } node_t;
 
 struct avl
@@ -26,10 +26,12 @@ static node_t *GoToChild(node_t *node, int index);
 static node_t *GoToRoot(avl_t *tree);
 static void PostOrderedDestroy(node_t *node);
 static void PreOrderedCount(node_t *node, size_t *counter);
-static size_t GetHight(node_t *root);
+static size_t GetHeight(node_t *node);
 static void *GetData(node_t *node);
-static int FindAndInsert(node_t *node, void *data, avl_cmp_func_t cmp_func);
-static int InsertNode(node_t *parent_node, int direction_to_insert, void *data);
+static node_t *FindAndInsert(node_t *node,
+						 void *data,
+						 avl_cmp_func_t cmp_func,
+						 node_t *new_node);
 static void SetChildOfNode(node_t *node,
 							 node_t *child,
 							 int direction_of_child);
@@ -41,6 +43,10 @@ static int ForEachInOrder(node_t *node,
 static node_t *PrevSuccessor(node_t *left_node);
 static node_t *RemoveNode(avl_t *tree, node_t *node);
 static node_t *FindAndRemove(avl_t *tree, node_t *node, void *data);
+static void UpdateHeight(node_t *node);
+static node_t *BalanceNode(node_t *node);
+static int GetBalanceFactor(node_t *node);
+static node_t *Rotate(node_t *node, int direction);
 
 /********************* API FUNCTIONS ********************/
 
@@ -86,7 +92,7 @@ size_t AVLHeight(const avl_t *tree)
 {
 	assert(tree);
 	
-	return GetHight(GoToRoot((avl_t*)tree));
+	return GetHeight(GoToRoot((avl_t*)tree));
 }
 
 int AVLIsEmpty(const avl_t *tree)
@@ -97,22 +103,21 @@ int AVLIsEmpty(const avl_t *tree)
 }
 
 int AVLInsert(avl_t *tree, void *data)
-{
-		assert(tree);
-		
-		/* if its the first element */
-		if (NULL == GoToRoot(tree))
-		{
-			tree->root = CreateNode(data);
-			if (NULL == tree->root)
-			{
-				return -1;
-			}
-			
-			return 0;
-		}
-		
-		return FindAndInsert(GoToRoot(tree), data, GetCompare(tree));
+{	
+	node_t *new_node = CreateNode(data);;
+	if (NULL == new_node)
+	{
+		return -1;
+	}
+	
+	assert(tree);
+	 	
+	tree->root =  FindAndInsert(GoToRoot(tree),
+								data,
+								GetCompare(tree),
+								new_node);
+	 
+	return 0;
 }
 
 void *AVLFind(const avl_t *tree, const void *data)
@@ -168,11 +173,14 @@ static node_t *GoToRoot(avl_t *tree)
 	return tree->root;
 }
 
-static size_t GetHight(node_t *root)
+static size_t GetHeight(node_t *node)
 {
-	assert(root);
+	if (NULL == node)
+	{
+		return 0;
+	}
 	
-	return root->hight;
+	return node->height;
 }
 
 static void *GetData(node_t *node)
@@ -209,7 +217,7 @@ static node_t *CreateNode(void *data)
 	node->data = data;
 	node->children[LEFT] = NULL;
 	node->children[RIGHT] = NULL;
-	node->hight = STARTING_HIGHT;
+	node->height = STARTING_HEIGHT;
 	
 	return node;
 }
@@ -239,36 +247,33 @@ static void PreOrderedCount(node_t *node, size_t *counter)
 	PreOrderedCount(GoToChild(node, RIGHT), counter);
 }
 
-static int FindAndInsert(node_t *node, void *data, avl_cmp_func_t cmp_func)
+static node_t *FindAndInsert(node_t *node,
+						 void *data,
+						 avl_cmp_func_t cmp_func,
+						 node_t *new_node)
 {
-	int status_compare = cmp_func(GetData(node), data);
+	int status_compare = 0; 
+	int direction_to_move = 0;
 	
-	/* direction will be 1 to go right and 0 to go left*/
-	int direction_to_move = status_compare < 0;
-	
-	if (!GoToChild(node, direction_to_move))
+	if (NULL == node)
 	{
-		return InsertNode(node, direction_to_move, data);
+		return new_node;
 	}
-	
-	return FindAndInsert(GoToChild(node, direction_to_move), data, cmp_func);
-}
 
-static int InsertNode(node_t *node, int direction_to_insert, void *data)
-{
-	node_t *new_node = NULL;
+	/* direction will be 1 to go right and 0 to go left*/
+	status_compare = cmp_func(GetData(node), data);
+	direction_to_move = status_compare < 0;
+		
+	SetChildOfNode(node,
+				   FindAndInsert(GoToChild(node, direction_to_move),
+				   				 data,
+				   				 cmp_func,
+				   				 new_node),
+				   	direction_to_move);
 	
-	assert(node);
+	UpdateHeight(node);
 	
-	new_node = CreateNode(data);
-	if (NULL == new_node)
-	{
-		return -1;
-	}
-	
-	SetChildOfNode(node, new_node, direction_to_insert);
-	
-	return 0;
+	return BalanceNode(node);
 }
 
 static node_t *FindNode(node_t *node, avl_cmp_func_t cmp_func, void *data)
@@ -337,9 +342,9 @@ static node_t *FindAndRemove(avl_t *tree, node_t *node, void *data)
 	node->children[dir_to_move] = FindAndRemove(tree,
 												GoToChild(node, dir_to_move),
 											    data);
-											  										  
-	return node;
+	UpdateHeight(node);
 	
+	return BalanceNode(node);
 }
 
 static node_t *RemoveNode(avl_t *tree, node_t *node)
@@ -372,7 +377,6 @@ static node_t *RemoveNode(avl_t *tree, node_t *node)
 	free(node);
 	
 	return replaced_node;
-
 }
 
 static node_t *PrevSuccessor(node_t *left_node)
@@ -388,12 +392,96 @@ static node_t *PrevSuccessor(node_t *left_node)
 	return PrevSuccessor(GoToChild(left_node, RIGHT));
 }
 
+static void UpdateHeight(node_t *node)
+{
+	node_t *left_child = NULL;
+	node_t *right_child = NULL;
+	
+	assert(node);
+	
+	left_child = GoToChild(node, LEFT);
+	right_child = GoToChild(node, RIGHT);
+	
+	if (GetHeight(left_child) > GetHeight(right_child))
+	{
+		node->height = GetHeight(left_child) + 1;
+		
+		return;
+	}
+	
+	node->height = GetHeight(right_child) + 1;
+}
 
+static node_t *Rotate(node_t *node, int direction)
+{
+    node_t *pivot = GoToChild(node, !direction);
+    node_t *pivot_child = GoToChild(pivot, direction);
+    
+    /* Perform rotation */
+    SetChildOfNode(pivot, node, direction);
+    SetChildOfNode(node, pivot_child, !direction);
 
+    /* Update heights */
+    UpdateHeight(node);
+    UpdateHeight(pivot);
+    
+    return pivot;
+}
 
+static int GetBalanceFactor(node_t *node)
+{
+    int left_height = 0;
+    int right_height = 0;
+    
+    if (node == NULL)
+    {
+        return 0;
+    }
+    
+    left_height = (int)GetHeight(GoToChild(node,LEFT));
+    right_height = (int)GetHeight(GoToChild(node,RIGHT));
+    
+    return (left_height - right_height);
+}
 
-
-
+static node_t *BalanceNode(node_t *node)
+{
+    int balance = 0;
+    
+	if (node == NULL)
+    {
+        return NULL;
+    }
+    
+    balance = GetBalanceFactor(node);
+    
+    /* left heavy */
+    if (balance > 1)
+    {
+        /* left-right case */
+        if (GetBalanceFactor(GoToChild(node,LEFT)) < 0)
+        {
+            node->children[LEFT] = Rotate(GoToChild(node,LEFT), LEFT);
+        }
+        /* left-left case */
+        return Rotate(node, RIGHT);
+    }
+    
+    /* right heavy */
+    if (balance < -1)
+    {
+        /* right-left case */
+        if (GetBalanceFactor(GoToChild(node,RIGHT)) > 0)
+        {
+            node->children[RIGHT] = Rotate(GoToChild(node,RIGHT), RIGHT);
+        }
+        /* right-right case */
+        return Rotate(node, LEFT);
+    }
+    
+    /* node is balanced */
+    return node;
+}
 
 
 

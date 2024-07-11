@@ -1,270 +1,625 @@
-#include <stdio.h> /* printf */
-#include <assert.h> /* assert */
-	
+#include <stdio.h> /* printf() */
+#include <string.h>  /* strcat() */
+#include <stdlib.h> /* free() */
+#include <assert.h>
+
 #include "avl.h"
-void TestCreateDestroy(void);
-void TestCount(void);
-void TestIsEmpty(void);
-void TestInsert(void);
-void TestFind(void);
-void TestForEach(void);
-void TestRemove(void);
 
-static int checker = 0;
+#define TESTNUM 7
 
-int Compare(const void *data,const void *params)
+static char failed_tests_print[300] = {'\0'};
+
+static void AddFailedTest(const char *str);
+
+static int TestInsert(void);
+static int TestRemove(void);
+static int TestForEach(void);
+static int TestCount(void);
+
+static int TestIsEmpty(void);
+static int TestFind(void);
+static int TestHeight(void);
+
+
+int Compare(const void *data,const void *param)
 {	
 	assert(data);
-	assert(params);
+	assert(param);
 	
-	return (*(int *)data - *(int *)params);
+	return (*(int *)data - *(int *)param);
 }
 
-int PrintElements(void *data, void *params)
+int Sum(void *data, void *param)
 {	
-	printf(",%d", *(int*)data);
-	(void)params;
-	
-	return 0;
+	*(int *)param += *(int *)data;
+	return (*(int *)param);
+}
+
+int SumArray(int arr[], size_t len)
+{	
+	int sum = 0;
+	size_t i = 0;
+	for(; i < len; ++i)
+	{
+		sum += arr[i];
+	}
+	return sum;
 }
 
 int main(void)
 {
-	TestCreateDestroy();
-	TestCount();
-	TestIsEmpty();
-	TestInsert();
-	TestFind();
-	TestForEach();
-	TestRemove();
+	int failed_tests_num = 0;
 	
-	if (checker)
+	failed_tests_num += TestInsert();
+	printf("Tested Insert\n");
+	failed_tests_num += TestRemove();
+	printf("Tested Remove\n");
+	failed_tests_num += TestForEach();
+	printf("Tested ForEach\n");
+	failed_tests_num += TestCount();
+	printf("Tested Count\n");
+	
+
+	failed_tests_num += TestIsEmpty();
+	printf("Tested IsEmpty\n");
+	failed_tests_num += TestFind();
+	printf("Tested Find\n");
+	failed_tests_num += TestHeight();
+	printf("Tested Height\n");
+	
+	if (failed_tests_num)
 	{
-		printf("In Total Failed %d Tests\n", checker);
-		return 0;
+		printf("%d out %d tests failed\nFailed tests:\n%s"
+		, failed_tests_num, TESTNUM, failed_tests_print);
+		return failed_tests_num;
 	}
 	
-	printf("\nPASSED ALL TESTS!!!!!\n");
+	printf("All Tests Passed!\n");
 	
+    return 0;
+}
+
+static void AddFailedTest(const char *str)
+{
+	strcat(failed_tests_print, str);
+}
+
+static int TestInsert(void)
+{
+	avl_t *tree = NULL;
+	int arr[8] = {50, 40, 25, 70, 80, 60, 10, 100};
+	int get_element = 0;
+	size_t count = 0;
+	int get_height = 0;
+	
+	/*create tree*/
+	tree = AVLCreate(Compare);
+	
+	/*	insert 50 */
+	AVLInsert(tree, arr);
+	get_height = AVLHeight(tree);
+	if (1 != get_height)
+	{
+		AddFailedTest("TestInsert1\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	/*	insert 40 */
+	AVLInsert(tree, arr+1);
+	get_height = AVLHeight(tree);
+	if (2 != get_height)
+	{
+		AddFailedTest("TestInsert2\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	/*	insert 25, needs to rotate */
+	AVLInsert(tree, arr+2);
+	get_height = AVLHeight(tree);
+	if (2 != get_height)
+	{
+		AddFailedTest("TestInsert3\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	/*	insert 70 */
+	AVLInsert(tree, arr+3);	
+	count = AVLCount(tree);
+	if (4 != count)
+	{
+		AddFailedTest("TestInsert4\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	get_height = AVLHeight(tree);
+	if (3 != get_height)
+	{
+		AddFailedTest("TestInsert5\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	/*	insert 80, needs to rotate */
+	AVLInsert(tree, arr+4);
+	get_height = AVLHeight(tree);
+	if (3 != get_height)
+	{
+		AddFailedTest("TestInsert6\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	/*	insert 60, needs to rotate */
+	AVLInsert(tree, arr+5);
+	get_height = AVLHeight(tree);
+	if (3 != get_height)
+	{
+		AddFailedTest("TestInsert7\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	/*	insert 10, needs to rotate */
+	AVLInsert(tree, arr+6);
+	get_height = AVLHeight(tree);
+	if (3 != get_height)
+	{
+		AddFailedTest("TestInsert8\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	/*	insert 100 */
+	AVLInsert(tree, arr+7);
+	get_height = AVLHeight(tree);
+	if (4 != get_height)
+	{
+		AddFailedTest("TestInsert9\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	count = AVLCount(tree);
+	if (8 != count)
+	{
+		AddFailedTest("TestInsert10\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	AVLDestroy(tree);
 	return 0;
 }
 
-void TestCreateDestroy(void)
+static int TestRemove(void)
 {
-	avl_t *avl = AVLCreate(&Compare);
-	if (NULL == avl)
+	avl_t *tree = NULL;
+	int arr[15] = {10, 2, 3100, 4, 50, 30, 70, 40, 60, 35, 65, 7, 8, 9, 1};
+	int get_height = 0;
+	size_t count = 0;
+	size_t loop_count = 0;
+	
+	/*create tree*/
+	tree = AVLCreate(Compare);
+	
+	for(; loop_count < 15; ++loop_count)
 	{
-		printf("FAILED TestCreateDestroy\n");
-		++checker;
-		
-		return;
-	}
-	
-	AVLDestroy(avl);
-	
-	printf("PASSED TestCreateDestroy!!\n");
-}
-
-void TestCount(void)
-{
-	size_t size = 0;
-	avl_t *avl = AVLCreate(&Compare);
-	
-	size = AVLCount(avl);
-	
-	if (0 != size)
-	{
-		printf("FAILED TestCount\n");
-		++checker;
-		
-		return;
-	}
-	
-	AVLDestroy(avl);
-	
-	printf("PASSED TestCount!!\n");
-}
-
-void TestIsEmpty(void)
-{
-	avl_t *avl = AVLCreate(&Compare);
-	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
-	size_t i = 0;
-	size_t size_arr = sizeof(arr) / sizeof(int);
-	
-	if (!AVLIsEmpty(avl))
-	{
-		printf("FAILED TestIsEmpty\n");
-		++checker;
-		
-		return;
+		AVLInsert(tree, arr+loop_count);
 	}
 
-	for (; i < size_arr; ++i)
+	/*	remove 1 */
+	AVLRemove(tree, arr + 14);
+	count = AVLCount(tree);
+	if (14 != count)
 	{
-		AVLInsert(avl, arr + i);
+		AddFailedTest("TestRemove1\n");
+		AVLDestroy(tree);
+		return 1;
 	}
 	
-	if (AVLIsEmpty(avl))
+	/*	remove 9 */
+	AVLRemove(tree, arr + 13);
+	/*	remove 8 */
+	AVLRemove(tree, arr + 12);
+	/*	remove 7 */
+	AVLRemove(tree, arr + 11);
+	/*	remove 2, needs to rotate */
+	AVLRemove(tree, arr + 1);
+	/*	remove 4, needs to rotate */
+	AVLRemove(tree, arr + 3);
+	/*	remove 10, needs to rotate */
+	AVLRemove(tree, arr);
+	
+	count = AVLCount(tree);
+	if (8 != count)
 	{
-		printf("FAILED TestIsEmpty2\n");
-		++checker;
-		
-		return;
+		AddFailedTest("TestRemove2\n");
+		AVLDestroy(tree);
+		return 1;
 	}
 	
-	AVLDestroy(avl);
-	
-	printf("PASSED TestIsEmpty!!\n");
+	AVLDestroy(tree);
+	return 0;
 }
 
-void TestInsert(void)
+
+static int TestForEach(void)
 {
-	size_t size_avl = 0;
-	avl_t *avl = AVLCreate(&Compare);
-	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
-	size_t i = 3;
-	size_t size_arr = sizeof(arr) / sizeof(int);
+	avl_t *tree = NULL;
+	int arr[15] = {10, 2, 3100, 4, 50, 30, 70, 40, 60, 35, 65, 7, 8, 9, 1};
+	int sum = 0;
+	int status = 0;
+	size_t count = 0;
+	size_t loop_count = 0;
 	
-	/* insert 20 */
-	AVLInsert(avl, arr);
+	/*create tree*/
+	tree = AVLCreate(Compare);
 	
-	size_avl = AVLCount(avl);
-	
-	if (1 != size_avl)
+	for(; loop_count < 15; ++loop_count)
 	{
-		printf("FAILED TestInsert\n");
-		++checker;
-		
-		return;
+		AVLInsert(tree, arr+loop_count);
 	}
 	
-	/* insert 15 */
-	AVLInsert(avl, arr + 1);
+	AVLRemove(tree, arr + 3);
 	
-	/* insert 30 */
-	AVLInsert(avl, arr + 2);
+	status = AVLForEach(tree, Sum, &sum);
 	
-	size_avl = AVLCount(avl);
-	
-	if (3 != size_avl)
+	if (SumArray(arr, 15) - arr[3] != sum)
 	{
-		printf("FAILED TestInsert2\n");
-		++checker;
-		
-		return;
+		AddFailedTest("TestForEach\n");
+		AVLDestroy(tree);
+		return 1;
 	}
 	
-	for (; i < size_arr; ++i)
-	{
-		AVLInsert(avl, arr + i);
-	}
-	
-	size_avl = AVLCount(avl);
-	
-	if (size_avl != size_arr)
-	{
-		printf("FAILED TestInsert3\n");
-		++checker;
-		
-		return;
-	}
-	
-	AVLDestroy(avl);
-	
-	printf("PASSED TestInsert!!\n");
+	AVLDestroy(tree);
+	return 0;
 }
 
-void TestFind(void)
+static int TestCount(void)
 {
-	avl_t *avl = AVLCreate(&Compare);
-	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
-	size_t i = 0;
-	size_t size_arr = sizeof(arr) / sizeof(int);
-	int elem_not_in_avl = 100;
+	avl_t *tree = NULL;
+	int arr[8] = {50, 40, 25, 70, 80, 60, 10, 100};
+	int get_element = 0;
+	size_t count = 0;
+	int get_height = 0;
 	
-	for (; i < size_arr; ++i)
+	/*create tree*/
+	tree = AVLCreate(Compare);
+	count = AVLCount(tree);
+	if (0 != count)
 	{
-		AVLInsert(avl, arr + i);
+		AddFailedTest("TestCount1\n");
+		AVLDestroy(tree);
+		return 1;
 	}
 	
-	for (i = 0; i < size_arr; ++i)
+	/*	insert 50 */
+	AVLInsert(tree, arr);
+	count = AVLCount(tree);
+	if (1 != count)
 	{
-		if (arr[i] != *(int*)AVLFind(avl, arr + i))
-		{
-			printf("FAILED TestFind\n");
-			++checker;
-			
-			return;
-		}
+		AddFailedTest("TestCount2\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	/*	insert 40 */
+	AVLInsert(tree, arr+1);
+	count = AVLCount(tree);
+	if (2 != count)
+	{
+		AddFailedTest("TestCount3\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	/*	insert 25, needs to rotate */
+	AVLInsert(tree, arr+2);
+	count = AVLCount(tree);
+	if (3 != count)
+	{
+		AddFailedTest("TestCount4\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+
+	/*	insert 70 */
+	AVLInsert(tree, arr+3);	
+	count = AVLCount(tree);
+	if (4 != count)
+	{
+		AddFailedTest("TestCount5\n");
+		AVLDestroy(tree);
+		return 1;
 	}
 	
-	if (NULL != AVLFind(avl, &elem_not_in_avl))
+	/* remove 25 */
+	AVLRemove(tree, arr + 2);
+	count = AVLCount(tree);
+	if (3 != count)
 	{
-		printf("FAILED TestFind2\n");
-		++checker;
-		
-		return;
+		AddFailedTest("TestCount6\n");
+		AVLDestroy(tree);
+		return 1;
 	}
 	
-	AVLDestroy(avl);
+	/* remove 50 */
+	AVLRemove(tree, arr);
+	count = AVLCount(tree);
+	if (2 != count)
+	{
+		AddFailedTest("TestCount7\n");
+		AVLDestroy(tree);
+		return 1;
+	}
 	
-	printf("PASSED TestFind!!\n");
+	/* remove 40 */
+	AVLRemove(tree, arr + 1);
+	count = AVLCount(tree);
+	if (1 != count)
+	{
+		AddFailedTest("TestCount8\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	/* remove 70 */
+	AVLRemove(tree, arr + 3);
+	count = AVLCount(tree);
+	if (0 != count)
+	{
+		AddFailedTest("TestCount9\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	AVLDestroy(tree);
+	return 0;
 }
 
-void TestForEach(void)
+
+static int TestIsEmpty(void)
 {
-	avl_t *avl = AVLCreate(&Compare);
-	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
-	size_t i = 0;
-	size_t size_arr = sizeof(arr) / sizeof(int);
-	int params = 100;
+	avl_t *tree = NULL;
+	int arr[8] = {50, 40, 25, 70, 80, 60, 10, 100};
+	int get_element = 0;
+	size_t count = 0;
+	int get_height = 0;
 	
-	for (; i < size_arr; ++i)
+	/*create tree*/
+	tree = AVLCreate(Compare);
+
+	if (!AVLIsEmpty(tree))
 	{
-		AVLInsert(avl, arr + i);
+		AddFailedTest("TestIsEmpty1\n");
+		AVLDestroy(tree);
+		return 1;
 	}
 	
-	printf("Test ForEach:(should print elements in accending order)\n[");
-	if (0 != AVLForEach(avl, &PrintElements, &params))
+	/*	insert 50 */
+	AVLInsert(tree, arr);
+	
+	if (AVLIsEmpty(tree))
 	{
-		printf("FAILED TestForEach\n");
-		++checker;
-		
-		return;
+		AddFailedTest("TestIsEmpty2\n");
+		AVLDestroy(tree);
+		return 1;
 	}
-	printf("]\n");
 	
-	AVLDestroy(avl);
+	/*	remove 50 */
+	AVLRemove(tree, arr);
 	
-	printf("PASSED TestForEach!!\n");
+	if (!AVLIsEmpty(tree))
+	{
+		AddFailedTest("TestIsEmpty3\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	AVLDestroy(tree);
+	return 0;
 }
 
-void TestRemove(void)
+static int TestFind(void)
 {
-	avl_t *avl = AVLCreate(&Compare);
-	int arr[] = {20, 15, 30, 10, 5, 12, 7, 6, 25, 35, 40, 37, 39, 11};
-	size_t i = 0;
-	size_t size_arr = sizeof(arr) / sizeof(int);
+	avl_t *tree = NULL;
+	int arr[15] = {10, 2, 3100, 4, 50, 30, 70, 40, 60, 35, 65, 7, 8, 9, 1};
+	void *find_data = NULL;
+	size_t count = 0;
+	size_t loop_count = 0;
 	
-	for (; i < size_arr; ++i)
+	/*create tree*/
+	tree = AVLCreate(Compare);
+	
+	for(; loop_count < 14; ++loop_count)
 	{
-		AVLInsert(avl, arr + i);
+		AVLInsert(tree, arr+loop_count);
 	}
 	
-	for (i = 0; i < size_arr; ++i)
+	find_data = AVLFind(tree, arr+8);
+	
+	if (*(int *)find_data != arr[8])
 	{
-		AVLRemove(avl, arr + i);
+		AddFailedTest("TestFind1\n");
+		AVLDestroy(tree);
+		return 1;
 	}
 	
-	if (0 != AVLCount(avl))
+	AVLRemove(tree, arr+8);
+	
+	find_data = AVLFind(tree, arr+8);
+	
+	if (find_data)
 	{
-		printf("FAILED TestRemove\n");
-		++checker;
-		
-		return;
+		AddFailedTest("TestFind2\n");
+		AVLDestroy(tree);
+		return 1;
 	}
 	
-	AVLDestroy(avl);
-	printf("PASSED TestRemove!!\n");
+	find_data = AVLFind(tree, arr+2);
+	
+	if (*(int *)find_data != arr[2])
+	{
+		AddFailedTest("TestFind3\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	find_data = AVLFind(tree, arr+14);
+	
+	if (find_data)
+	{
+		AddFailedTest("TestFind4\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	AVLDestroy(tree);
+	return 0;
 }
+
+static int TestHeight(void)
+{
+	avl_t *tree = NULL;
+	int arr[16] = {10, 2, 3100, 4, 50, 30, 70, 40, 60, 35, 65, 7, 8, 9, 1, 300};
+	int get_height = 0;
+	size_t count = 0;
+	size_t loop_count = 0;
+	
+	/*create tree*/
+	tree = AVLCreate(Compare);
+	get_height = AVLHeight(tree);
+	if (0 != get_height)
+	{
+		AddFailedTest("TestHeight1\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	AVLInsert(tree, arr);
+	get_height = AVLHeight(tree);
+	if (1 != get_height)
+	{
+		AddFailedTest("TestHeight2\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	AVLInsert(tree, arr+1);
+	get_height = AVLHeight(tree);
+	if (2 != get_height)
+	{
+		AddFailedTest("TestHeight3\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	AVLInsert(tree, arr+2);
+	AVLInsert(tree, arr+3);
+	get_height = AVLHeight(tree);
+	if (3 != get_height)
+	{
+		AddFailedTest("TestHeight4\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	for(loop_count = 4; loop_count < 8; ++loop_count)
+	{
+		AVLInsert(tree, arr+loop_count);
+	}
+	
+	get_height = AVLHeight(tree);
+	if (4 != get_height)
+	{
+		AddFailedTest("TestHeight5\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	for(; loop_count < 16; ++loop_count)
+	{
+		AVLInsert(tree, arr+loop_count);
+	}
+	
+	get_height = AVLHeight(tree);
+	if (5 != get_height)
+	{
+		AddFailedTest("TestHeight6\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	AVLRemove(tree, arr+15);
+	AVLRemove(tree, arr+14);
+	AVLRemove(tree, arr+13);
+	AVLRemove(tree, arr+12);
+	AVLRemove(tree, arr+11);
+	
+	get_height = AVLHeight(tree);
+	if (4 != get_height)
+	{
+		AddFailedTest("TestHeight7\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	for(loop_count = 5; loop_count < 11; ++loop_count)
+	{
+		AVLRemove(tree, arr+loop_count);
+	}
+	
+	get_height = AVLHeight(tree);
+	if (3 != get_height)
+	{
+		AddFailedTest("TestHeight8\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	for(loop_count = 3; loop_count < 5; ++loop_count)
+	{
+		AVLRemove(tree, arr+loop_count);
+	}
+	
+	get_height = AVLHeight(tree);
+	if (2 != get_height)
+	{
+		AddFailedTest("TestHeight9\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	AVLRemove(tree, arr+2);
+	AVLRemove(tree, arr+1);
+	
+	get_height = AVLHeight(tree);
+	if (1 != get_height)
+	{
+		AddFailedTest("TestHeight10\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	AVLRemove(tree, arr);
+	
+	get_height = AVLHeight(tree);
+	if (0 != get_height)
+	{
+		AddFailedTest("TestHeight11\n");
+		AVLDestroy(tree);
+		return 1;
+	}
+	
+	AVLDestroy(tree);
+	return 0;
+}
+
+
+
+
+
