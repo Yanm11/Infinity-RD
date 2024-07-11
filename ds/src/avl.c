@@ -461,7 +461,7 @@ static node_t *BalanceNode(node_t *node)
         /* left-right case */
         if (GetBalanceFactor(GoToChild(node,LEFT)) < 0)
         {
-            node->children[LEFT] = Rotate(GoToChild(node,LEFT), LEFT);
+            SetChildOfNode(node, Rotate(GoToChild(node,LEFT), LEFT), LEFT);
         }
         /* left-left case */
         return Rotate(node, RIGHT);
@@ -473,7 +473,7 @@ static node_t *BalanceNode(node_t *node)
         /* right-left case */
         if (GetBalanceFactor(GoToChild(node,RIGHT)) > 0)
         {
-            node->children[RIGHT] = Rotate(GoToChild(node,RIGHT), RIGHT);
+            SetChildOfNode(node, Rotate(GoToChild(node,RIGHT), RIGHT), RIGHT);
         }
         /* right-right case */
         return Rotate(node, LEFT);
