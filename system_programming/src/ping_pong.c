@@ -24,6 +24,8 @@ int main(void)
 	pid_t pid = 0;
 	
 	sa.sa_handler = handle_sigusr;
+	sa.sa_flags = 0; 
+	sigemptyset(&sa.sa_mask); /* empty mask */
 
     if (sigaction(SIGUSR1, &sa, NULL) == -1)
     {

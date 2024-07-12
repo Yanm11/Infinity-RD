@@ -9,14 +9,17 @@
 
 #define NUMBER_OF_CHARS 50
 
+static volatile int g_flag = 0;
+static volatile pid_t g_pid = 0;
+
 /*Signal handler function */
 void handle_sigusr2(int sig, siginfo_t *siginfo, void *context)
 {
 	(void)sig;
 	(void)context;
-    printf("Pong\n");
-    sleep(1);
-    kill(siginfo->si_pid, SIGUSR1);
+	
+    g_flag = 1;
+	g_pid = siginfo->si_pid;
 }
 
 int main(void)
@@ -41,7 +44,22 @@ int main(void)
 	
 	while (1)
 	{
-		pause();	
+		if (g_flag)
+		{
+			g_flag = 0;
+			
+			printf("Pong\n\n");
+			sleep(1);
+			if (kill(g_pid, SIGUSR1) == -1)
+			{
+				perror("kill");
+				exit(EXIT_FAILURE);
+			}
+		}
+		else
+		{
+			sleep(10);
+		}
 	}
 	
 	return 0;

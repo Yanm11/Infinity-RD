@@ -22,6 +22,9 @@ int main(void)
 	struct sigaction sa = {0};
 
 	sa.sa_handler = handle_sigusr2;
+	sa.sa_flags = 0; 
+	sigemptyset(&sa.sa_mask); /* empty mask */
+
 	/* handle SIGUSR2 */
     if (sigaction(SIGUSR2, &sa, NULL) == -1)
     {

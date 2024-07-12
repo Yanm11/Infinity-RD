@@ -24,7 +24,9 @@ int main(void)
 	char *args[] = {"./bin/debug/pong", NULL};
 	
 	sa.sa_handler = handle_sigusr1;
-	
+	sa.sa_flags = 0; 
+	sigemptyset(&sa.sa_mask); /* empty mask */
+
 	/* handle SIGUSR1 */
     if (sigaction(SIGUSR1, &sa, NULL) == -1)
     {
