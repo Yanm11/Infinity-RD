@@ -1,16 +1,18 @@
+/* approved by yarden */
+
 #define _POSIX_C_SOURCE 200809L
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <unistd.h>
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* EXIT_FAILURE exit */
+#include <signal.h> /* sigemptyset sigaction */
+#include <unistd.h>	/* sleep */
 #include <sys/wait.h> /* waitpd pid_t */
 
 static volatile int g_flag = 0;
 static volatile pid_t g_pid = 0;
 
 /*Signal handler function */
-void handle_sigusr1(int sig, siginfo_t *siginfo, void *context)
+void HandleSigusr1(int sig, siginfo_t *siginfo, void *context)
 {
 	(void)sig;
 	(void)context;
@@ -23,7 +25,7 @@ int main(void)
 {
 	struct sigaction sa = {0};
 	
-	sa.sa_sigaction = handle_sigusr1;
+	sa.sa_sigaction = HandleSigusr1;
 	sa.sa_flags = SA_SIGINFO;
 	 
     if (sigaction(SIGUSR1, &sa, NULL) == -1)

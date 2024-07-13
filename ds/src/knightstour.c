@@ -57,7 +57,9 @@ knights_tour_status_e RunKnightsTour(position_t path[PATH_LENGTH],
 	int x = POS_TO_X(starting_position);
 	int y = POS_TO_Y(starting_position);
 	int index_to_move_to = XY_TO_INDEX(x, y);
-/*	position_t position = 0;*/
+	position_t position = 0;
+	
+	size_t i = 0;
 	(void)use_heuristic;
 	(void)time_limit;
 	
@@ -67,23 +69,167 @@ knights_tour_status_e RunKnightsTour(position_t path[PATH_LENGTH],
 	/* updating bitarr */
 	bitarr = bitarr | (1 << index_to_move_to);
 	
-/*	printf("moves: %lu\n", moves);*/
-/*	printf("index_to_move_to: %d\n", index_to_move_to);*/
-/*	PrintBits(bitarr, 25);*/
+/*	moves = 2;*/
+/*	i = 0;*/
 /*	*/
-/*	x = INDEX_TO_X(index_to_move_to);*/
-/*	y = INDEX_TO_Y(index_to_move_to);*/
-/*	printf("x: %d\ny: %d\n", x, y);*/
-/*	position = XY_TO_POS(x,y);*/
-/*	printf("pos: %d\n", position);*/
-/*	printf("starting_position: %d\n", starting_position);*/
-/*	index_to_move_to = lut_moves[5](x,y);*/
-/*	printf("index_to_move_to: %d\n", index_to_move_to);*/
+/*	if (Valid(i, bitarr, x, y, moves))*/
+/*	{*/
+/*		index_to_move_to = lut_moves[i](x,y);*/
+/*		bitarr = bitarr | (1 << index_to_move_to);*/
+/*		*/
+/*		x = INDEX_TO_X(index_to_move_to);*/
+/*		y = INDEX_TO_Y(index_to_move_to);*/
+/*		position = XY_TO_POS(x,y);*/
+/*		*/
+/*		x = POS_TO_X(position);*/
+/*	    y = POS_TO_Y(position);*/
+/*	    */
+/*		printf("----\nmoves: %lu\ni: %lu\n", moves, i);*/
+/*		printf("index_to_move_to: %d\n", index_to_move_to);*/
+/*		printf("Moving to: (x: %d, y: %d)\n----\n", x, y);*/
+/*	}*/
+/*	*/
+/*	moves = 3;*/
+/*	i = 6;*/
+/*	*/
+/*	if (Valid(i, bitarr, x, y, moves))*/
+/*	{*/
+/*		index_to_move_to = lut_moves[i](x,y);*/
+/*		bitarr = bitarr | (1 << index_to_move_to);*/
+/*		*/
+/*		x = INDEX_TO_X(index_to_move_to);*/
+/*		y = INDEX_TO_Y(index_to_move_to);*/
+/*		position = XY_TO_POS(x,y);*/
+/*		*/
+/*		x = POS_TO_X(position);*/
+/*	    y = POS_TO_Y(position);*/
+/*	    */
+/*		printf("----\nmoves: %lu\ni: %lu\n", moves, i);*/
+/*		printf("index_to_move_to: %d\n", index_to_move_to);*/
+/*		printf("Moving to: (x: %d, y: %d)\n----\n", x, y);*/
+/*	}*/
+/*	*/
+/*	moves = 4;*/
+/*	i = 4;*/
+/*	*/
+/*	if (Valid(i, bitarr, x, y, moves))*/
+/*	{*/
+/*		index_to_move_to = lut_moves[i](x,y);*/
+/*		bitarr = bitarr | (1 << index_to_move_to);*/
+/*		*/
+/*		x = INDEX_TO_X(index_to_move_to);*/
+/*		y = INDEX_TO_Y(index_to_move_to);*/
+/*		position = XY_TO_POS(x,y);*/
+/*		*/
+/*		x = POS_TO_X(position);*/
+/*	    y = POS_TO_Y(position);*/
+/*	    */
+/*		printf("----\nmoves: %lu\ni: %lu\n", moves, i);*/
+/*		printf("index_to_move_to: %d\n", index_to_move_to);*/
+/*		printf("Moving to: (x: %d, y: %d)\n----\n", x, y);*/
+/*	}*/
+
+/*	moves = 5;*/
+/*	i = 1;*/
+/*	*/
+/*	if (Valid(i, bitarr, x, y, moves))*/
+/*	{*/
+/*		index_to_move_to = lut_moves[i](x,y);*/
+/*		bitarr = bitarr | (1 << index_to_move_to);*/
+/*		*/
+/*		x = INDEX_TO_X(index_to_move_to);*/
+/*		y = INDEX_TO_Y(index_to_move_to);*/
+/*		position = XY_TO_POS(x,y);*/
+/*		*/
+/*		x = POS_TO_X(position);*/
+/*	    y = POS_TO_Y(position);*/
+/*	    */
+/*		printf("----\nmoves: %lu\ni: %lu\n", moves, i);*/
+/*		printf("index_to_move_to: %d\n", index_to_move_to);*/
+/*		printf("Moving to: (x: %d, y: %d)\n----\n", x, y);*/
+/*	}*/
+/*	*/
+/*	moves = 6;*/
+/*	i = 2;*/
+/*	*/
+/*	if (Valid(i, bitarr, x, y, moves))*/
+/*	{*/
+/*		index_to_move_to = lut_moves[i](x,y);*/
+/*		bitarr = bitarr | (1 << index_to_move_to);*/
+/*		*/
+/*		x = INDEX_TO_X(index_to_move_to);*/
+/*		y = INDEX_TO_Y(index_to_move_to);*/
+/*		position = XY_TO_POS(x,y);*/
+/*		*/
+/*		x = POS_TO_X(position);*/
+/*	    y = POS_TO_Y(position);*/
+/*	    */
+/*		printf("----\nmoves: %lu\ni: %lu\n", moves, i);*/
+/*		printf("index_to_move_to: %d\n", index_to_move_to);*/
+/*		printf("Moving to: (x: %d, y: %d)\n----\n", x, y);*/
+/*	}*/
+/*	*/
+/*	moves = 7;*/
+/*	i = 2;*/
+/*	*/
+/*	if (Valid(i, bitarr, x, y, moves))*/
+/*	{*/
+/*		index_to_move_to = lut_moves[i](x,y);*/
+/*		bitarr = bitarr | (1 << index_to_move_to);*/
+/*		*/
+/*		x = INDEX_TO_X(index_to_move_to);*/
+/*		y = INDEX_TO_Y(index_to_move_to);*/
+/*		position = XY_TO_POS(x,y);*/
+/*		*/
+/*		x = POS_TO_X(position);*/
+/*	    y = POS_TO_Y(position);*/
+/*	    */
+/*		printf("----\nmoves: %lu\ni: %lu\n", moves, i);*/
+/*		printf("index_to_move_to: %d\n", index_to_move_to);*/
+/*		printf("Moving to: (x: %d, y: %d)\n----\n", x, y);*/
+/*	}*/
+/*	*/
+/*	moves = 8;*/
+/*	i = 1;*/
+/*	*/
+/*	if (Valid(i, bitarr, x, y, moves))*/
+/*	{*/
+/*		index_to_move_to = lut_moves[i](x,y);*/
+/*		bitarr = bitarr | (1 << index_to_move_to);*/
+/*		*/
+/*		x = INDEX_TO_X(index_to_move_to);*/
+/*		y = INDEX_TO_Y(index_to_move_to);*/
+/*		position = XY_TO_POS(x,y);*/
+/*		*/
+/*		x = POS_TO_X(position);*/
+/*	    y = POS_TO_Y(position);*/
+/*	    */
+/*		printf("----\nmoves: %lu\ni: %lu\n", moves, i);*/
+/*		printf("index_to_move_to: %d\n", index_to_move_to);*/
+/*		printf("Moving to: (x: %d, y: %d)\n----\n", x, y);*/
+/*	}*/
+/*	*/
+/*	moves = 9;*/
+/*	i = 5;*/
+/*	*/
+/*	if (Valid(i, bitarr, x, y, moves))*/
+/*	{*/
+/*		index_to_move_to = lut_moves[i](x,y);*/
+/*		bitarr = bitarr | (1 << index_to_move_to);*/
+/*		*/
+/*		x = INDEX_TO_X(index_to_move_to);*/
+/*		y = INDEX_TO_Y(index_to_move_to);*/
+/*		position = XY_TO_POS(x,y);*/
+/*		*/
+/*		x = POS_TO_X(position);*/
+/*	    y = POS_TO_Y(position);*/
+/*	    */
+/*		printf("----\nmoves: %lu\ni: %lu\n", moves, i);*/
+/*		printf("index_to_move_to: %d\n", index_to_move_to);*/
+/*		printf("Moving to: (x: %d, y: %d)\n----\n", x, y);*/
+/*	}*/
+/*	*/
 	status = SearchPath(path, bitarr, starting_position, moves);
-	
-/*	printf("----\nmoves: %lu\ni: %lu\n", moves, 0);*/
-/*	printf("index_to_move_to: %d\n", index_to_move_to);*/
-/*	printf("Moving to: %d (x: %d, y: %d)\n----\n", position, x, y);*/
 	PrintBits(bitarr, PATH_LENGTH);
 	if (0 == status)
 	{
@@ -142,11 +288,11 @@ static int SearchPath(position_t *path,
 			{
 				printf("----\nmoves: %lu\ni: %lu\n", moves, i);
 				printf("index_to_move_to: %d\n", index_to_move_to);
-				printf("Moving to: %d (x: %d, y: %d)\n----\n", position, x, y);
+				printf("Moving to: (x: %d, y: %d)\n----\n", x, y);
 /*				PrintBits(bitarr, PATH_LENGTH);*/
 				return 0;
 			}
-			bitarr = bitarr & ~(1 << index_to_move_to);
+			bitarr = bitarr & (~(1 << index_to_move_to));
 		}
 	}
 	

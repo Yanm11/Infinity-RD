@@ -1,9 +1,11 @@
+/* approved by yarden */
+
 #define _POSIX_C_SOURCE 200809L
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <unistd.h>
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* EXIT_FAILURE exit */
+#include <signal.h> /* sigemptyset sigaction */
+#include <unistd.h>	/* sleep */
 #include <sys/wait.h> /* waitpd pid_t */
 
 void Loop(pid_t pid, int sig, const char print_word[]);
@@ -11,7 +13,7 @@ void Loop(pid_t pid, int sig, const char print_word[]);
 static volatile int g_flag = 0;
 
 /*Signal handler function */
-void handle_sigusr(int sig) 
+void HandleSigusr(int sig) 
 {
 	(void)sig;
 	g_flag = 1;
@@ -23,7 +25,7 @@ int main(void)
 	struct sigaction sa_prev = {0};
 	pid_t pid = 0;
 	
-	sa.sa_handler = handle_sigusr;
+	sa.sa_handler = HandleSigusr;
 	sa.sa_flags = 0; 
 	sigemptyset(&sa.sa_mask); /* empty mask */
 
@@ -73,6 +75,7 @@ int main(void)
 	
 	return 0;
 }
+
 
 void Loop(pid_t pid, int sig, const char print_word[])
 {
