@@ -67,8 +67,8 @@ void TestBuildPosition(void)
 
 void TestKnightsTour5x5(void)
 {
-	unsigned char x = 0;
-	unsigned char y = 0;
+	unsigned char x = 1;
+	unsigned char y = 3;
 	position_t pos =  BuildPosition(x,y);
 	position_t path[PATH_LENGTH] = {0};
 	knights_tour_status_e status = 0;

@@ -6,8 +6,8 @@
 #define NUM_OF_MOVES 8 
 #define END_RESULT 0x1FFFFFF /* 5*5 -> 25th 1 in binary 33554431 decimal */
 #define POS_TO_X(position) (position>> 4)
-#define POS_TO_Y(position) (position & 0x0F)
-#define XY_TO_POS(x, y) ((x << 4) + y)
+#define POS_TO_Y(position) (position & 7)
+/*#define XY_TO_POS(x, y) ((x << 4) + y)*/
 #define XY_TO_INDEX(x,y) (x * NUM_OF_ROWS + y)
 #define INDEX_TO_X(index) (index / NUM_OF_ROWS)
 #define INDEX_TO_Y(index) (index % NUM_OF_ROWS)
@@ -33,6 +33,11 @@ static func_ptr lut_moves[NUM_OF_MOVES] = {&DownRight, &DownLeft,
 										   &RightUp, &RightDown,
 										   &UpLeft, &UpRight, 
 										   &LeftDown, &LeftUp};
+
+position_t XY_TO_POS(int x, int y)
+{
+	return ((((unsigned char)x)<<4) + (unsigned char)y);
+}
 
 void PrintBits(size_t num, int bits);
 
@@ -79,7 +84,7 @@ knights_tour_status_e RunKnightsTour(position_t path[PATH_LENGTH],
 /*	printf("----\nmoves: %lu\ni: %lu\n", moves, 0);*/
 /*	printf("index_to_move_to: %d\n", index_to_move_to);*/
 /*	printf("Moving to: %d (x: %d, y: %d)\n----\n", position, x, y);*/
-/*	PrintBits(bitarr, PATH_LENGTH);*/
+	PrintBits(bitarr, PATH_LENGTH);
 	if (0 == status)
 	{
 		return SUCCESS;
@@ -135,9 +140,9 @@ static int SearchPath(position_t *path,
 			status = SearchPath(path, bitarr, position, moves);
 			if (0 == status)
 			{
-/*				printf("----\nmoves: %lu\ni: %lu\n", moves, i);*/
-/*				printf("index_to_move_to: %d\n", index_to_move_to);*/
-/*				printf("Moving to: %d (x: %d, y: %d)\n----\n", position, x, y);*/
+				printf("----\nmoves: %lu\ni: %lu\n", moves, i);
+				printf("index_to_move_to: %d\n", index_to_move_to);
+				printf("Moving to: %d (x: %d, y: %d)\n----\n", position, x, y);
 /*				PrintBits(bitarr, PATH_LENGTH);*/
 				return 0;
 			}
