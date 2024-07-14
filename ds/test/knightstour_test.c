@@ -6,14 +6,19 @@
 #define POS_TO_Y(position) (position & 0x0F)
 
 void TestBuildPosition(void);
-void TestKnightsTour5x5(void);
+void TestKnightsTour8x8(void);
+void TestKnightsTour8x8Wandrof(void);
+void TestKnightsTour8x8Time(void);
+
 void PrintPath(position_t *path);
 static int checker = 0;
 
 int main(void)
 {
 	TestBuildPosition();
-	TestKnightsTour5x5();
+	TestKnightsTour8x8();
+	TestKnightsTour8x8Wandrof();
+	TestKnightsTour8x8Time();
 	if (checker)
 	{
 		printf("In Total Failed %d Tests\n", checker);
@@ -65,33 +70,72 @@ void TestBuildPosition(void)
 	printf("PASSED TestBuildPosition!!\n");
 }
 
-void TestKnightsTour5x5(void)
+void TestKnightsTour8x8(void)
 {
-	unsigned char x = 1;
-	unsigned char y = 3;
+	unsigned char x = 0;
+	unsigned char y = 0;
 	position_t pos =  BuildPosition(x,y);
 	position_t path[PATH_LENGTH] = {0};
 	knights_tour_status_e status = 0;
+	unsigned int time_limit = 100;	
 	
-/*	if (0 != pos)*/
-/*	{*/
-/*		printf("FAILED TestKnightsTour5x5\npos: %c\n", pos);*/
-/*		++checker;*/
-/*		*/
-/*		return;*/
-/*	}*/
-	
-	status = RunKnightsTour(path, pos, 0,0);
+	status = RunKnightsTour(path, pos, 0,time_limit);
 	
 	if (SUCCESS != status)
 	{
-		printf("FAILED TestKnightsTour5x5\n");
+		printf("FAILED TestKnightsTour8x8\n");
 		++checker;
-		
+
 		return;
 	}
 	
+	printf("\nPASSED TestKnightsTour8x8!!\n\n");
 /*	PrintPath(path);*/
+}
+
+void TestKnightsTour8x8Wandrof(void)
+{
+	unsigned char x = 0;
+	unsigned char y = 0;
+	position_t pos =  BuildPosition(x,y);
+	position_t path[PATH_LENGTH] = {0};
+	knights_tour_status_e status = 0;
+	unsigned int time_limit = 100;	
+	
+	status = RunKnightsTour(path, pos, 1,time_limit);
+	
+	if (SUCCESS != status)
+	{
+		printf("FAILED TestKnightsTour8x8Wandrof\n");
+		++checker;
+
+		return;
+	}
+	
+	printf("PASSED TestKnightsTour8x8Wandrof!!\n\n");
+/*	PrintPath(path);*/
+}
+
+void TestKnightsTour8x8Time(void)
+{
+	unsigned char x = 7;
+	unsigned char y = 5;
+	position_t pos =  BuildPosition(x,y);
+	position_t path[PATH_LENGTH] = {0};
+	knights_tour_status_e status = 0;
+	unsigned int time_limit = 1;
+	
+	status = RunKnightsTour(path, pos, 0,time_limit);
+	
+	if (TIME_EXCEEDED != status)
+	{
+		printf("FAILED TestKnightsTour8x8Time\n");
+		++checker;
+
+		return;
+	}
+	
+	printf("PASSED TestKnightsTour8x8Time!!\n\n");
 }
 
 void PrintPath(position_t *path)

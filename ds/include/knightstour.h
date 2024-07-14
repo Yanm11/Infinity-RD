@@ -1,7 +1,7 @@
 #ifndef __KNIGHTS_TOUR_H__
 #define __KNIGHTS_TOUR_H__
 
-#define NUM_OF_ROWS 5
+#define NUM_OF_ROWS 8
 #define PATH_LENGTH NUM_OF_ROWS * NUM_OF_ROWS
 
 typedef enum knights_tour_status_e {
@@ -12,7 +12,7 @@ typedef enum knights_tour_status_e {
 
 typedef unsigned char position_t;
 
-/*
+/*dededefefedfff
 RunKnightsTour
 description: A function that finds a knight tour on a 8x8 board and returns the path of the order of square visits.
 input: Points on 8x8 board , time limit in seconds.
