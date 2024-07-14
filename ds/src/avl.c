@@ -1,6 +1,9 @@
+/* approved by uriah */
+
 #include <assert.h> /* assert */
 #include <stdlib.h> /* malloc free*/
 #include <stdio.h> /* printf */
+
 #include "avl.h"
 
 #define NUM_CHILDREN 2
@@ -456,10 +459,10 @@ static node_t *BalanceNode(node_t *node)
     balance = GetBalanceFactor(node);
     
     /* left heavy */
-    if (balance > 1)
+    if (1 < balance)
     {
         /* left-right case */
-        if (GetBalanceFactor(GoToChild(node,LEFT)) < 0)
+        if (0 > GetBalanceFactor(GoToChild(node,LEFT)))
         {
             SetChildOfNode(node, Rotate(GoToChild(node,LEFT), LEFT), LEFT);
         }
@@ -468,10 +471,10 @@ static node_t *BalanceNode(node_t *node)
     }
     
     /* right heavy */
-    if (balance < -1)
+    if (-1 > balance)
     {
         /* right-left case */
-        if (GetBalanceFactor(GoToChild(node,RIGHT)) > 0)
+        if (0 < GetBalanceFactor(GoToChild(node,RIGHT)))
         {
             SetChildOfNode(node, Rotate(GoToChild(node,RIGHT), RIGHT), RIGHT);
         }
