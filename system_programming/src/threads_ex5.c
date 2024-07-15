@@ -3,7 +3,7 @@
 #include <pthread.h> /* pthread_create pthread_detach */
 #include <errno.h>
 
-#define NUM_THREADS 32000
+#define NUM_THREADS 4
 #define INPUT 10000000000
 #define CHUNK_SIZE (INPUT / NUM_THREADS)
 
