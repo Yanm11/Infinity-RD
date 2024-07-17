@@ -150,7 +150,8 @@ void StatusHandling(int status)
 		}
 		else
 		{
-			fprintf(stderr, "\nCommand exited with non-zero status: %d\n", WEXITSTATUS(status));
+			fprintf(stderr, "\nCommand exited with non-zero status: %d\n",
+			WEXITSTATUS(status));
 		}
 	} 
 	else if (WIFSIGNALED(status)) 
