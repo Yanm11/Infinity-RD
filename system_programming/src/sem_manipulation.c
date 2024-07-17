@@ -1,9 +1,10 @@
 #define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h> /* printf */
 #include <string.h> /* memcpy strcmp strcspn strtok */
 #include <fcntl.h> /* O_CREAT */
-#include <semaphore.h> /* sem_open sem_post sem_wait sem_getvalue */
-#include <sys/stat.h> /* S_IRWXU S_IRWXG S_IRWXO */
+#include <semaphore.h> /* sem_open sem_post sem_wait sem_getvalue sem_close */
+#include <sys/stat.h> /* S_IRWXU */
 #include <stdlib.h> /* atoi maloc free */
 #include <assert.h> /* assert */
 
