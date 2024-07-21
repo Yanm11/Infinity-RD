@@ -1,7 +1,6 @@
 #include <stdio.h> /* printf */
 #include <stddef.h> /* size_t */
 #include <pthread.h> /* pthread_t pthread_create pthread_join */
-#include <stdatomic.h> /* atomic type and functions */
 #include <stdlib.h> /* exit */
 #include <fcntl.h> /* O_CREAT */
 #include <semaphore.h> /* sem_open sem_post sem_wait sem_getvalue sem_close */
@@ -15,13 +14,13 @@
 #define MIN_VALUE_SEM 0
 #define MAX_VALUE_SEM 15
 
-void *Producer(void *list); 
-void *Consumer(void *list); 
+void *Producer(void *buffer); 
+void *Consumer(void *buffer); 
 
 /* initialize global variables mutex and semaphore */
 pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER; 
-sem_t g_semaphore_empty;
-sem_t g_semaphore_full;
+sem_t g_semaphore_read;
+sem_t g_semaphore_write;
 
 int main() 
 {
@@ -31,12 +30,12 @@ int main()
 	cbuffer_t *cbuffer = NULL;
 	
     /* Initialize the semaphores */
-    if (0 != sem_init(&g_semaphore_empty, 0, MIN_VALUE_SEM)) 
+    if (0 != sem_init(&g_semaphore_read, 0, MIN_VALUE_SEM)) 
     {
         printf("failed initializing a semaphore\n");
 		exit(1);
     }
-    if (0 != sem_init(&g_semaphore_full, 0, MAX_VALUE_SEM)) 
+    if (0 != sem_init(&g_semaphore_write, 0, MAX_VALUE_SEM)) 
     {
         printf("failed initializing a semaphore\n");
 		exit(1);
@@ -46,14 +45,14 @@ int main()
 	cbuffer = CBuffCreate(sizeof(int) * MAX_VALUE_SEM);
 	if (NULL == cbuffer)
 	{
-		printf("failed creating a list\n");
+		printf("failed creating a cbuffer\n");
 		exit(1);
 	}
 	
 	/* creating all the producers threads */
     for (; i < NUM_PRODUCERS; ++i)
     {
-        if (0 != pthread_create(&arr_producers[i], NULL, Producer, list)) 
+        if (0 != pthread_create(&arr_producers[i], NULL, Producer, cbuffer)) 
         {
             fprintf(stderr, "Failed to create  producer thread %lu\n", i);
             exit(1);
@@ -63,7 +62,7 @@ int main()
     /* creating all the consumers threads */
     for (i = 0; i < NUM_CONSUMERS; ++i)
     {
-        if (0 != pthread_create(&arr_consumers[i], NULL, Consumer, list)) 
+        if (0 != pthread_create(&arr_consumers[i], NULL, Consumer, cbuffer)) 
         {
             fprintf(stderr, "Failed to create  consumer thread %lu\n", i);
             exit(1);
@@ -91,9 +90,12 @@ int main()
         }
     }
     
-    sem_destroy(&g_semaphore);
+    sem_destroy(&g_semaphore_read);
+    sem_destroy(&g_semaphore_write);
     
-	SllistDestroy(list);
+    pthread_mutex_destroy(&g_lock);
+    
+	CBuffDestroy(cbuffer);
 	
     printf("All done!\n");
     
@@ -101,43 +103,33 @@ int main()
 }
 
 
-void *Producer(void* list) 
+void *Producer(void *buffer) 
 {
-	sllist_t *sllist = (sllist_t*)list;
-	sllist_iter_t iter = NULL;
-	int *element_value = NULL;
+	cbuffer_t *cbuffer = (cbuffer_t*)buffer;
 	int arr_inputs[NUMBER_OF_MESSEGES] = {1, 2, 3, 4, 5};
 	size_t i = 0;
 	
     while (i < NUMBER_OF_MESSEGES)
     {
-		    /* thread is locking the mutex */
+		/* decrement the write semaphore */
+	   	if (-1 == sem_wait(&g_semaphore_write))
+		{
+			printf("faieled to decrement semaphore\n");
+			exit(1);
+		}
+		
+		/* thread is locking the mutex */
         if (0 != pthread_mutex_lock(&g_lock))
         {
         	printf("erroe while locking\n");
         	exit(1);
         }
-		
-		/* assigning addresses to save the data in them */
-    	element_value = (int*)malloc(sizeof(int));
-        if (NULL == element_value)
-		{
-			printf("malloc failed\n");
-			exit(1);
-		}
-		
-        *element_value = arr_inputs[i];
 
-		/* insert and checking for errors */
-		iter = SllistInsertBefore(sllist, element_value, SllistEnd(sllist));
-       	if (SllistIterIsEqual(iter, SllistEnd(sllist)))
-       	{
-       		printf("faieled to insert\n");
-       		exit(1);
-       	}
+		/* write to buffer */
+		CBuffWrite(cbuffer, arr_inputs + i, sizeof(int));
        	
-       	/* increment the semaphore */
-       	if (-1 == sem_post(&g_semaphore))
+       	/* increment the read semaphore */
+       	if (-1 == sem_post(&g_semaphore_read))
 		{
 			printf("faieled to increment semaphore\n");
 			exit(1);
@@ -156,56 +148,58 @@ void *Producer(void* list)
     return NULL;
 }
 
-void *Consumer(void* list) 
+void *Consumer(void *buffer) 
 {
-	sllist_t *sllist = (sllist_t*)list;
-	sllist_iter_t iter = NULL;
-	int *element_value = NULL;
-	int value = 0;
+	cbuffer_t *cbuffer = (cbuffer_t*)buffer;
+	int *element_value = (int*)malloc(sizeof(int));
 	size_t i = 0;
+	
+	if (NULL == element_value)
+	{
+		printf("failed to allocate memory\n");
+		exit(1);
+	}
 
     while (i < NUMBER_OF_MESSEGES)
     {
-    	/* get the value of the semaphore to indicate the list is not empty */
-		if (-1 == sem_getvalue(&g_semaphore, &value))
+		/* decrement the read semaphore */
+	   	if (-1 == sem_wait(&g_semaphore_read))
 		{
-			printf("faieled to getvalue of semaphore\n");
+			printf("faieled to decrement semaphore\n");
 			exit(1);
 		}
 		
-		if (0 < value)
+		
+		/* thread is locking the mutex */
+        if (0 != pthread_mutex_lock(&g_lock))
         {
-		    pthread_mutex_lock(&g_lock);
-		    
-		    /* double checking the semaphore value */
-		    if (-1 == sem_getvalue(&g_semaphore, &value))
-			{
-				printf("faieled to getvalue of semaphore\n");
-				exit(1);
-			}
-			
-			if (0 < value) 
-			{
-				iter = SllistBegin(sllist);
-		    	element_value = (int*)SllistGetData(iter);
-		    	SllistRemove(iter);
-		    	
-		    	/* decrement the semaphore */
-			   	if (-1 == sem_wait(&g_semaphore))
-				{
-					printf("faieled to decrement semaphore\n");
-					exit(1);
-				}
-				
-		    	++i;
-		    }
-			
-		    printf("value: %d\n", *element_value);
-		    free(element_value);
-		    
-	        pthread_mutex_unlock(&g_lock);
+        	printf("erroe while locking\n");
+        	exit(1);
+        }
+        
+		/* read from buffer */
+		CBuffRead(cbuffer, element_value, sizeof(int));
+    	
+    	/* increment the write semaphore */
+	   	if (-1 == sem_post(&g_semaphore_write))
+		{
+			printf("faieled to decrement semaphore\n");
+			exit(1);
+		}
+		
+    	++i;
+	    	
+	    printf("value: %d\n", *element_value);
+	    
+        /* thread is unlocking the mutex */
+        if (0 != pthread_mutex_unlock(&g_lock))
+        {
+        	printf("erroe while unlocking\n");
+        	exit(1);
         }
     }
+    
+    free(element_value);
 
     return NULL;
 }
