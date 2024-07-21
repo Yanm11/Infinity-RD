@@ -32,7 +32,11 @@ cbuffer_t *CBuffCreate(size_t capacity)
     assert(0 < capacity);
     
     cbuffer = (cbuffer_t*)malloc(offsetof(cbuffer_t, buff_data) +
-    							 (capacity * sizeof(char)));
+    							(capacity * sizeof(char)));
+	if (NULL == cbuffer)
+	{
+		return NULL;
+	}
     
     cbuffer->write_offset = 0;
     cbuffer->read_offset = 0;
