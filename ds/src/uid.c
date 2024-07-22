@@ -10,9 +10,11 @@
 
 #include <time.h> /* time */
 #include <unistd.h> /* getpid */
+#include <pthread.h> /* PTHREAD_MUTEX_INITIALIZER  pthread_mutex_lock*/
 
 #include "uid.h" 
 
+static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER; 
 const ilrd_uid_t BadUID = {0};
 
 
@@ -21,17 +23,34 @@ ilrd_uid_t UIDCreate(void)
 	ilrd_uid_t UID = {0};
 	static size_t counter = 1;
 	
+
+    
 	UID.timestamp = time(NULL);
 	if ((time_t)-1 == UID.timestamp)
 	{
+		 /* unlocking the mutex */
+		pthread_mutex_unlock(&g_lock);
+		
 		return BadUID;
 	}
 	
-	UID.counter = counter;
-	UID.pid = getpid();
-	
+	/* locking the mutex */
+    if (0 != pthread_mutex_lock(&g_lock))
+    {
+    	return BadUID;
+    }
+    
+	UID.counter = counter;	
 	++counter;
 	
+	/* unlocking the mutex */
+    if (0 != pthread_mutex_unlock(&g_lock))
+    {
+    	return BadUID;
+    }
+    
+	UID.pid = getpid();
+
 	return UID;
 }
 

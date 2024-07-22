@@ -51,7 +51,6 @@ int main()
             fprintf(stderr, "Failed to create  producer thread %lu\n", i);
             exit(1);
         }
-        
     }
     
     /* creating all the consumers threads */
@@ -155,60 +154,40 @@ void *Consumer(void* list)
 	sllist_t *sllist = (sllist_t*)list;
 	sllist_iter_t iter = NULL;
 	int *element_value = NULL;
-	int value = 0;
 	size_t i = 0;
 
     while (i < NUMBER_OF_MESSEGES)
     {
-    	/* get the value of the semaphore to indicate the list is not empty */
-		if (-1 == sem_getvalue(&g_semaphore, &value))
+    	/* decrement the semaphore */
+	   	if (-1 == sem_wait(&g_semaphore))
 		{
-			printf("faieled to getvalue of semaphore\n");
+			printf("faieled to decrement semaphore\n");
 			exit(1);
 		}
+	
+	    /* thread is locking the mutex */
+    	if (0 != pthread_mutex_lock(&g_lock))
+    	{
+    		printf("erroe while locking\n");
+    		exit(1);
+    	}
 		
-		if (0 < value)
-        {
-		    /* thread is locking the mutex */
-        	if (0 != pthread_mutex_lock(&g_lock))
-        	{
-        		printf("erroe while locking\n");
-        		exit(1);
-        	}
-        	
-		    /* double checking the semaphore value */
-		    if (-1 == sem_getvalue(&g_semaphore, &value))
-			{
-				printf("faieled to getvalue of semaphore\n");
-				exit(1);
-			}
-			
-			if (0 < value) 
-			{
-				iter = SllistBegin(sllist);
-		    	element_value = (int*)SllistGetData(iter);
-		    	SllistRemove(iter);
-		    	
-		    	/* decrement the semaphore */
-			   	if (-1 == sem_wait(&g_semaphore))
-				{
-					printf("faieled to decrement semaphore\n");
-					exit(1);
-				}
-				
-		    	++i;
-		    }
-			
-		    printf("value: %d\n", *element_value);
-		    free(element_value);
+		/* read the value, remove it from rhe list, print it and free it */
+		iter = SllistBegin(sllist);
+    	element_value = (int*)SllistGetData(iter);
+    	SllistRemove(iter);
+    
+    	++i;
 		    
-	        /* thread is unlocking the mutex */
-			if (0 != pthread_mutex_unlock(&g_lock))
-			{
-				printf("erroe while unlocking\n");
-				exit(1);
-			}
-        }
+	    printf("value: %d\n", *element_value);
+	    free(element_value);
+	    
+        /* thread is unlocking the mutex */
+		if (0 != pthread_mutex_unlock(&g_lock))
+		{
+			printf("erroe while unlocking\n");
+			exit(1);
+		}
     }
 
     return NULL;
