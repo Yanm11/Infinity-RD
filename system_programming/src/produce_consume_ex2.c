@@ -16,7 +16,7 @@ void *Consumer(void *list);
 /* initialize global variables */
 pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER; 
 
-int main() 
+int main(void) 
 {
 	pthread_t arr_producers[NUM_PRODUCERS] = {0};
 	pthread_t arr_consumers[NUM_CONSUMERS] = {0};
@@ -30,6 +30,7 @@ int main()
 		exit(1);
 	}
 	
+	/* creating all the produceres threads */
     for (; i < NUM_PRODUCERS; ++i)
     {
         if (pthread_create(&arr_producers[i], NULL, Producer, list) != 0) 
@@ -39,7 +40,7 @@ int main()
         }
         
     }
-    
+    /* creating all the consumers threads */
     for (i = 0; i < NUM_CONSUMERS; ++i)
     {
         if (pthread_create(&arr_consumers[i], NULL, Consumer, list) != 0) 
@@ -49,7 +50,8 @@ int main()
         }
         
     }
-	
+    
+	/* joining all the producers threads */
 	for (i = 0; i < NUM_PRODUCERS; ++i)
     {
         if (pthread_join(arr_producers[i], NULL) != 0) 
@@ -59,6 +61,7 @@ int main()
         }
     }
     
+    /* joining all the consumers threads */
 	for (i = 0; i < NUM_CONSUMERS; ++i)
     {
         if (pthread_join(arr_consumers[i], NULL) != 0) 
@@ -67,6 +70,7 @@ int main()
             exit(1);
         }
     }
+    
 	SllistDestroy(list);
 	
     printf("All done!\n");
@@ -85,7 +89,7 @@ void *Producer(void* list)
 	
     while (i < NUMBER_OF_MESSEGES)
     {
-		    /* thread is locking the mutex */
+		/* thread is locking the mutex */
         if (0 != pthread_mutex_lock(&g_lock))
         {
         	printf("erroe while locking\n");

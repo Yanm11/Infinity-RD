@@ -16,7 +16,7 @@ atomic_int g_message = ATOMIC_VAR_INIT(MESSAGE_INITIAL_VALUE);
 atomic_int g_done = ATOMIC_VAR_INIT(0);	 		   
 atomic_flag g_lock = ATOMIC_FLAG_INIT;
 
-int main() 
+int main(void) 
 {
     pthread_t producer_thread = 0;
     pthread_t consumer_thread = 0;
@@ -40,12 +40,12 @@ int main()
     return 0;
 }
 
-void AcquireLock(atomic_flag* lock) 
+void AcquireLock(atomic_flag *lock) 
 {
     while (atomic_flag_test_and_set(lock)) {}
 }
 
-void ReleaseLock(atomic_flag* lock) 
+void ReleaseLock(atomic_flag *lock) 
 {
     atomic_flag_clear(lock);
 }
