@@ -18,7 +18,7 @@ void *Consumer(void *list);
 /* initialize global variables */
 pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER; 
 pthread_cond_t g_condition = PTHREAD_COND_INITIALIZER;
-sem_t g_semaphore;
+sem_t g_semaphore_thread_2_main;
 
 int main() 
 {
@@ -35,7 +35,7 @@ int main()
 	}
 	
 	/* Initialize the semaphore */
-    if (0 != sem_init(&g_semaphore, 0, STARTING_VALUE_SEM)) 
+    if (0 != sem_init(&g_semaphore_thread_2_main, 0, STARTING_VALUE_SEM)) 
     {
         printf("failed initializing a semaphore\n");
 		exit(1);
@@ -126,7 +126,7 @@ void *Producer(void *list)
         while (NUM_CONSUMERS > j) 
         {
 			/* increment the semaphore to indicate a message was written */
-			if (-1 == sem_post(&g_semaphore))
+			if (-1 == sem_post(&g_semaphore_thread_2_main))
 			{
 				printf("faieled to decrement the semaphore\n");
 				exit(1);
@@ -144,7 +144,7 @@ void *Producer(void *list)
             /* send a signal to the consumers to read */
    			pthread_cond_broadcast(&g_condition);
             
-            sem_getvalue(&g_semaphore, &sem_value);
+            sem_getvalue(&g_semaphore_thread_2_main, &sem_value);
         }
 
         /* thread is unlocking the mutex */
@@ -171,7 +171,7 @@ void *Consumer(void *list)
     while (i < NUMBER_OF_MESSEGES)
     {    
     	/* decrement the semaphore to make sure it is not empty */
-		if (-1 == sem_wait(&g_semaphore))
+		if (-1 == sem_wait(&g_semaphore_thread_2_main))
 		{
 			printf("faieled to decrement the semaphore\n");
 			exit(1);

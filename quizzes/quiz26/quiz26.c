@@ -13,7 +13,7 @@ int main(void)
 	int target = 1;
     size_t size = sizeof(arr) / sizeof(int);
 
-	printf("num: %d is in index: %d\n", target,
+	printf("num: %d is in index: %ld\n", target,
                                         SearchForElement(arr,
                                                          size,
                                                          target));

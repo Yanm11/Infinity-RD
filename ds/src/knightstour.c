@@ -1,3 +1,5 @@
+/* evelin code review */
+
 #include <assert.h>  /* assert */
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* abs */

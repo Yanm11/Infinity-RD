@@ -19,7 +19,7 @@ void *Consumer(void *list);
 
 /* initialize global variables mutex and semaphore */
 pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER; 
-sem_t g_semaphore;
+sem_t g_semaphore_thread_2_main;
 
 int main() 
 {
@@ -29,7 +29,7 @@ int main()
 	sllist_t *list = NULL;
 	
     /* Initialize the semaphore */
-    if (0 != sem_init(&g_semaphore, 0, STARTING_VALUE_SEM)) 
+    if (0 != sem_init(&g_semaphore_thread_2_main, 0, STARTING_VALUE_SEM)) 
     {
         printf("failed initializing a semaphore\n");
 		exit(1);
@@ -84,7 +84,7 @@ int main()
         }
     }
     
-    sem_destroy(&g_semaphore);
+    sem_destroy(&g_semaphore_thread_2_main);
     
 	SllistDestroy(list);
 	
@@ -130,7 +130,7 @@ void *Producer(void* list)
        	}
        	
        	/* increment the semaphore */
-       	if (-1 == sem_post(&g_semaphore))
+       	if (-1 == sem_post(&g_semaphore_thread_2_main))
 		{
 			printf("faieled to increment semaphore\n");
 			exit(1);
@@ -159,7 +159,7 @@ void *Consumer(void* list)
     while (i < NUMBER_OF_MESSEGES)
     {
     	/* decrement the semaphore */
-	   	if (-1 == sem_wait(&g_semaphore))
+	   	if (-1 == sem_wait(&g_semaphore_thread_2_main))
 		{
 			printf("faieled to decrement semaphore\n");
 			exit(1);

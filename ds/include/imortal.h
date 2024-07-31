@@ -1,9 +1,32 @@
 #ifndef __WATCH_DOG_H__
 #define __WATCH_DOG_H__
+#define NUM_ARGS_TO_WD 20
 
 #include <stddef.h> /* size_t */
+#include <time.h> /* time_t */
+#include <sys/wait.h> /* waitpd pid_t */
+#include "hscheduler.h"
+#include <semaphore.h>
+#include <unistd.h>
+typedef struct shared_data
+{
+	int reps;
+	time_t interval_seconds;
+	int shmid;
+	char **file_name_and_commands;
+}shared_data_t;
 
-typedef struct shared_data shared_data_t;
+typedef struct task_data
+{
+	pid_t pid;
+	shared_data_t *shared_data;
+	char *word;
+	char **args;
+    hscheduler_t *scheduler;
+}task_data_t;
+
+extern sem_t *g_semaphore_thread_2_wd;
+
 /*
 MMI(MakeMeImortal)
 description: will activaate a watchdog process that will execute the client 
