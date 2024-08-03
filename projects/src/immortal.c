@@ -1,19 +1,16 @@
+/* approved by jorge */
 #define _POSIX_C_SOURCE 200809L
 
-#include <stdio.h> /* perror printf sprintf strtoul */
-#include <stdlib.h> /* malloc free EXIT_FAILURE exit */
-#include <errno.h>
+#include <stdio.h> /*  printf sprintf strtoul */
+#include <stdlib.h> /* malloc free */
 #include <assert.h> /* assert */
 #include <signal.h> /* sigemptyset sigaction */
-#include <pthread.h> /* pthread_create pthread_detach */
+#include <pthread.h> /* pthread_create pthread_join */
 #include <stdatomic.h> /* atomic type and functions */
 #include <semaphore.h> /* sem_wait sem_post sem_init sem_destroy */
 #include <unistd.h>	/* fork exec */
 #include <time.h> /* time_t */
 #include <sys/wait.h> /* waitpd pid_t */
-#include <sys/ipc.h> /* ftok */
-#include <sys/types.h> /* key_t */
-#include <sys/shm.h> /* shmget shmat shmdt hmctr*/
 #include <sys/stat.h> /* S_IRWXU */
 #include <fcntl.h> /* S_IRWXU */
 #include <signal.h> /* pthread_sigmask */
@@ -29,9 +26,9 @@
 #define MAX_LENGHT_OF_STRING 50
 #define PATH_TO_WD "./watchdog"
 
-atomic_int g_count = ATOMIC_VAR_INIT(0);
-atomic_int g_stop_run = ATOMIC_VAR_INIT(0);
-static sem_t g_semaphore_thread_2_main;
+static atomic_int g_count = ATOMIC_VAR_INIT(0);
+static atomic_int g_stop_run = ATOMIC_VAR_INIT(0);
+sem_t g_semaphore_thread_2_main;
 sem_t *g_semaphore_thread_2_wd =  NULL;
 pthread_t g_immortal_thread = 0;
 int g_status = SUCCESS;
@@ -68,8 +65,8 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 
 	/* Insert to a args all variable required for exec of watchdog */
 	args[0] = PATH_TO_WD;
-	args[INTERVAL_INDEX] = (char*)interval_str;
-	args[REPS_INDEX] = (char*)reps_str;
+	args[INTERVAL_INDEX] = interval_str;
+	args[REPS_INDEX] = reps_str;
 
 	while (NULL != argv[i] && MAX_ARGS_TO_WD > (i + 3))
 	{
@@ -92,6 +89,16 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
     	return FAILED;
 	}
 
+	/* Blocking both SIGUSR1/2 from the main thread */
+	if ( 0 != MaskSignal(SIGUSR1, SIG_BLOCK))
+	{
+		return FAILED;
+	}
+	if ( 0 != MaskSignal(SIGUSR2, SIG_BLOCK))
+	{
+		return FAILED;
+	}
+
     /* Creating the thread*/
     if (0 != pthread_create(&g_immortal_thread, NULL, Immortal, args))
 	{	
@@ -104,7 +111,7 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 		return FAILED;
     }
 	
-	/* cleaning */
+	/* Cleaning */
 	sem_destroy(&g_semaphore_thread_2_main);
 
 	return g_status;
@@ -112,10 +119,15 @@ int MMI(size_t interval_in_seconds, size_t repetitions, char **argv)
 
 void DNR(void)
 {
-	/* stop the current thread */
-	raise(SIGUSR2);
+	/* Stop the immortal thread and wd */
+	kill(g_pid_to_send_to,SIGUSR2);
+	kill(getpid(), SIGUSR2);
 
 	pthread_join(g_immortal_thread,NULL);
+
+	/* Unblocking both SIGUSR1/2 for the main thread */
+	MaskSignal(SIGUSR1, SIG_UNBLOCK);
+	MaskSignal(SIGUSR2, SIG_UNBLOCK);
 }
 
 
@@ -159,27 +171,22 @@ int SignalInit(struct sigaction *sa, struct sigaction *sa_prev, int sig)
 	return SUCCESS;
 }
 
-void BlockSig(int sig)
+int MaskSignal(int sig, int sig_block)
 {
 	sigset_t set = {0};
-    int result = 0;
 
     /* Initialize the signal set */
     sigemptyset(&set);
     
-    /* Add SIGUSR1 to the set */
+    /* Add SIG to the set */
     sigaddset(&set, sig);
 
-    /* Block SIGUSR1 */
-    result = pthread_sigmask(SIG_BLOCK, &set, NULL);
-    if (result != 0) 
-	{
-        printf("coud not block\n");
-    }
+    /* Block / Unblock SIG */
+    return pthread_sigmask(sig_block, &set, NULL);
 }
 
 
-/*************************** THREAD ROUTINE & FUNCTIONS **********************/
+/*************************** THREAD ROUTINE  **********************/
 
 
 void *Immortal(void *args_to_thread)
@@ -187,6 +194,7 @@ void *Immortal(void *args_to_thread)
 	char **args = (char**)args_to_thread;
 	time_t interval_in_sec = 0;
 	hscheduler_t *scheduler = HSchedulerCreate();
+	ilrd_uid_t uid = {0};
 
 	/* Initialize 2 sigaction structers and 2 other to keep the old vlues */
 	struct sigaction sa_1 = {0};
@@ -199,51 +207,40 @@ void *Immortal(void *args_to_thread)
 	/* Check scheduler was created successfuly */
 	if (NULL == scheduler)
 	{
-		g_status = FAILED;
+		return ErrorHandling(NULL, NULL, NULL);
+	}
 
-		sem_post(&g_semaphore_thread_2_main);
-		
-		return NULL;
+	/* Unblocking both SIGUSR1/2 for the thread */
+	if ( 0 != MaskSignal(SIGUSR1, SIG_UNBLOCK))
+	{
+		return ErrorHandling(scheduler, NULL, NULL);
+	}
+	if ( 0 != MaskSignal(SIGUSR2, SIG_UNBLOCK))
+	{
+		return ErrorHandling(scheduler, NULL, NULL);
 	}
 
 	/* Initialize SIGUSR 1 & 2 */
 	if (FAILED == SignalInit(&sa_1, &sa_1_prev, SIGUSR1))
 	{
-		g_status = FAILED;
-
-		sem_post(&g_semaphore_thread_2_main);
-		
-		return NULL;
+		return ErrorHandling(scheduler, NULL, NULL);
 	}
 	
 	if (FAILED == SignalInit(&sa_2, &sa_2_prev, SIGUSR2))
 	{
-		g_status = FAILED;
-
-		sem_post(&g_semaphore_thread_2_main);
-		
-		return NULL;
+		return ErrorHandling(scheduler, &sa_1_prev, NULL);
 	}
 	
 	/* Check if env variable exist if not create the wd process else get pid */
 	if (NULL == getenv(ENV_NAME))
 	{
-		printf("first time here\n");
-
-		/* Creating child process and checking for error */
+		/* Creating wd process and checking for error */
 		g_pid_to_send_to = CreateChildProcess(args);
-
-		printf("pid: %d\n", g_pid_to_send_to);
 
 		if (FAILED == g_pid_to_send_to)
 		{
-			g_status = FAILED;
-
-			sem_post(&g_semaphore_thread_2_main);
-			
-			return NULL;
+			return ErrorHandling(scheduler, &sa_1_prev, &sa_2_prev);
 		}
-
 	}
 	else
 	{
@@ -252,66 +249,59 @@ void *Immortal(void *args_to_thread)
 		/* Releasing the lock for wd to continue */
 		if (-1 == sem_post(g_semaphore_thread_2_wd))
 		{
-			g_status = FAILED;
-
-			sem_post(&g_semaphore_thread_2_main);
-
-			return NULL;
+			return ErrorHandling(scheduler, &sa_1_prev, &sa_2_prev);
 		}
-	}
-
-	/* Releasing the MMI function so it can return to client */
-	if (-1 == sem_post(&g_semaphore_thread_2_main))
-	{
-		g_status = FAILED;
-
-		return NULL;
 	}
 
 	/* Changing back from str to time_t */
 	interval_in_sec = (time_t)StrToSizeT(args[INTERVAL_INDEX]);
-	
+	if ((time_t)0 == interval_in_sec)
+	{
+		return ErrorHandling(scheduler, &sa_1_prev, &sa_2_prev);
+	}
+
 	/* Adding all the tasks to the scheduler */
-	HSchedulerAdd(scheduler,time(NULL) + interval_in_sec,
-				  interval_in_sec, CheckIfDNR, scheduler);
+	uid = HSchedulerAdd(scheduler,time(NULL) + interval_in_sec,
+				  		interval_in_sec, CheckIfDNR, scheduler);
+	if (IsSameUID(uid, BadUID))
+	{
+		return ErrorHandling(scheduler, &sa_1_prev, &sa_2_prev);
+	}
 	
-	HSchedulerAdd(scheduler,time(NULL) + interval_in_sec,
-				  interval_in_sec, CheckIfAlive, args);
+	uid = HSchedulerAdd(scheduler,time(NULL) + interval_in_sec,
+				  		interval_in_sec, CheckIfAlive, args);
+	if (IsSameUID(uid, BadUID))
+	{
+		return ErrorHandling(scheduler, &sa_1_prev, &sa_2_prev);
+	}	
 	
-	HSchedulerAdd(scheduler,time(NULL) + interval_in_sec,
+	uid = HSchedulerAdd(scheduler,time(NULL) + interval_in_sec,
 				  interval_in_sec, RaiseCounter, "immortal");
+	if (IsSameUID(uid, BadUID))
+	{
+		return ErrorHandling(scheduler, &sa_1_prev, &sa_2_prev);
+	}
+	
+	/* Releasing the MMI function so it can return to client */
+	if (-1 == sem_post(&g_semaphore_thread_2_main))
+	{	
+		return ErrorHandling(scheduler, &sa_1_prev, &sa_2_prev);
+		
+		return NULL;
+	}
 	
 	HSchedulerRun(scheduler);
 
-	kill(g_pid_to_send_to,SIGUSR2);
-
-	/* BlockSig(SIGUSR1); */
-
 	sem_wait(g_semaphore_thread_2_wd);
 	
-	HSchedulerDestroy(scheduler);
-
-	sem_close(g_semaphore_thread_2_wd);
-	sem_unlink(SEM_NAME);
-
-	/* Return SIGUSR1 to preference */
-	if (sigaction(SIGUSR1, &sa_1_prev, NULL) == -1)
-	{
-		g_status = FAILED;
-
-		return NULL;
-	}
-	
-	/* Return SIGUSR2 to old preference */
-	if (sigaction(SIGUSR2, &sa_2_prev, NULL) == -1)
-	{
-		g_status = FAILED;
-
-		return NULL;
-	}
+	CleanUp(scheduler, &sa_1_prev, &sa_2_prev);
 
 	return NULL;
 }
+
+
+/*************************** THREAD HELPER FUNCTIONS  **********************/
+
 
 pid_t CreateChildProcess(char *args[])
 {
@@ -337,7 +327,6 @@ pid_t CreateChildProcess(char *args[])
 	/* Waiting for child procss to be ready */
 	if (-1 == sem_wait(g_semaphore_thread_2_wd))
 	{
-		printf("here\n");
 		return FAILED;
 	}
 
@@ -362,10 +351,49 @@ size_t StrToSizeT(const char *str)
 
 	if ('\0' != *endptr)
 	{
-		result = -1;
+		result = 0;
 	}
 
 	return (size_t)result;
+}
+
+void CleanUp(hscheduler_t *scheduler, 
+			 struct sigaction *sa_1_prev,
+			 struct sigaction *sa_2_prev)
+{
+	if (NULL != scheduler)
+	{
+		HSchedulerDestroy(scheduler);
+	}
+
+	/* Closing & deleting the semaphore */
+	sem_close(g_semaphore_thread_2_wd);
+	sem_unlink(SEM_NAME);
+
+	/* Return SIGUSR1 to  old preference */
+	if (NULL != sa_1_prev)
+	{
+		sigaction(SIGUSR1, sa_1_prev, NULL);
+	}
+	
+	/* Return SIGUSR2 to old preference */
+	if (NULL != sa_2_prev)
+	{
+		sigaction(SIGUSR2, sa_2_prev, NULL);
+	}
+}
+
+void *ErrorHandling(hscheduler_t *scheduler, 
+				   struct sigaction *sa_1_prev,
+				   struct sigaction *sa_2_prev)
+{
+	g_status = FAILED;
+	
+	sem_post(&g_semaphore_thread_2_main);
+
+	CleanUp(scheduler, sa_1_prev, sa_2_prev);
+	
+	return NULL;
 }
 
 
@@ -382,7 +410,7 @@ void RaiseCounter(void *word)
 		/* Sending the signal */
 		kill(g_pid_to_send_to, SIGUSR1);
 		
-		/* Increase the reptions */
+		/* Increase the reption's counter */
 		atomic_fetch_add(&g_count, 1);
 	}
 }
@@ -392,7 +420,7 @@ void CheckIfAlive(void *args)
 	assert(args);
 
 	/* If the counter passed the reps lim we need to revive the other process */
-	if (atomic_load(&g_count) > (int)g_num_reps)
+	if (atomic_load(&g_count) >= (int)g_num_reps)
 	{
 		atomic_store(&g_count, 0);
 		printf("revive\n");
@@ -411,6 +439,5 @@ void CheckIfDNR(void *scheduler)
 		HSchedulerStop((hscheduler_t*)scheduler);
 	}
 }  
-
 
 

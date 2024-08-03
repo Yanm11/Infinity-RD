@@ -23,9 +23,15 @@ pid_t CreateChildProcess(char *args[]);
 void RaiseCounter(void *word);
 void CheckIfAlive(void *args);
 void CheckIfDNR(void *scheduler);
-void BlockSig(int sig);
+int MaskSignal(int sig, int sig_block);
 int SignalInit(struct sigaction *sa, struct sigaction *sa_prev, int sig);
 void SetEnvVarInt(const char *name, int value); 
 size_t StrToSizeT(const char *str);
+void CleanUp(hscheduler_t *scheduler, 
+			 struct sigaction *sa_1_prev,
+			 struct sigaction *sa_2_prev);
+void *ErrorHandling(hscheduler_t *scheduler, 
+				    struct sigaction *sa_1_prev,
+				    struct sigaction *sa_2_prev);
 
 #endif /*__IMMORTAL_H__ */
