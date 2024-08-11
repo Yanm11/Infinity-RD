@@ -15,10 +15,10 @@ public class SinglyLinkedList{
     }
 
     public Object popFront(){
-        Node temp = head;
+        Object data = head.data;
         head = head.next;
 
-        return temp.data;
+        return data;
     }
 
     public int size(){
@@ -81,10 +81,10 @@ public class SinglyLinkedList{
 
         @Override
         public Object next(){
-            Node temp = node;
+            Object data = node.data;
             node = node.next;
 
-            return temp.data;
+            return data;
         }
     }
 }

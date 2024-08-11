@@ -35,7 +35,7 @@ int main(void)
 {
     unsigned int x = 1;
 
-    printf("max consecutive 1s is: %d\n", MaxConsecutive1s(x));
+    printf("max consecutive 1s is: %ld\n", MaxConsecutive1s(x));
 
     return 0;
 }

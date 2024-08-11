@@ -19,3 +19,5 @@ alias gcco='gcc -O -c'
 
 export LD_LIBRARY_PATH=:~/git/ds/include/:$LD_LIBRARY_PATH
 
+alias inteli='/home/parallels/Downloads/ideaIU-2024.1.4-aarch64/idea-IU-241.18034.62/bin/idea.sh &'
+
