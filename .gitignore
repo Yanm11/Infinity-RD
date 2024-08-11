@@ -9,4 +9,5 @@
 !*.h
 !*.sh
 !*.md
+!*.java
 !Makefile
