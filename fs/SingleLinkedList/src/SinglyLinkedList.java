@@ -1,3 +1,6 @@
+// yan meiri
+// 11.8.2024
+// approved by itai
 
 public class SinglyLinkedList{
 //    -------- private field(s) --------

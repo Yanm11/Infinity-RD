@@ -1,5 +1,3 @@
-import java.awt.*;
-
 public class Square extends Rectangle {
 
     //constructors
