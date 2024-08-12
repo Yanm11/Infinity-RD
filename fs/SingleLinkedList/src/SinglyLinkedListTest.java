@@ -1,16 +1,29 @@
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 public class SinglyLinkedListTest {
-    private SinglyLinkedList list;
-    private int[] arr;
+    SinglyLinkedList list;
+    int[] arr = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    int[] arrResult = {9, 8, 7, 6, 5, 4, 3, 2, 1};
+
+    @BeforeClass
+    public static void printBeforeClass() {
+        System.out.println("Starting Tests...");
+    }
 
     @Before
     public void setUp() {
         list = new SinglyLinkedList();
-        arr = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    }
+
+    @AfterClass
+    public static void printAfterClass() {
+        System.out.println("\nFinished Tests successfully!");
     }
 
     @Test
@@ -26,15 +39,16 @@ public class SinglyLinkedListTest {
 
     @Test
     public void testPushFront() {
-        for (int i = arr.length - 1; i >= 0; --i) {
+        for (int i = 0; i < arr.length; ++i) {
             list.pushFront(arr[i]);
-            assertEquals("Size should increase after pushFront", arr.length - i, list.size());
+
+            assertEquals("Size should increase after pushFront", i + 1, list.size());
         }
 
         ListIterator iter = list.begin();
-        for (int i = 0; i < arr.length; i++) {
+        for (int value: arrResult) {
             assertTrue("Iterator should have next", iter.hasNext());
-            assertEquals("Elements should be in correct order", arr[i], iter.next());
+            assertEquals("Elements should be in correct order", value, iter.next());
         }
         assertFalse("Iterator should not have next after last element", iter.hasNext());
     }
@@ -45,9 +59,14 @@ public class SinglyLinkedListTest {
             list.pushFront(value);
         }
 
-        ListIterator iter = list.find(arr[0]);
-        assertNotNull("Should find existing element", iter);
-        assertEquals("Found element should match", arr[0], iter.next());
+        ListIterator iter = list.begin();
+
+        for (int value : arrResult) {
+            iter = list.find(value);
+
+            assertNotNull("Should find existing element", iter);
+            assertEquals("Found element should match", value, iter.next());
+        }
 
         iter = list.find(20);
         assertNull("Should not find non-existing element", iter);
@@ -59,9 +78,14 @@ public class SinglyLinkedListTest {
             list.pushFront(value);
         }
 
-        for (int i = 0; i < arr.length; i++) {
-            assertEquals("PopFront should return correct element", arr[arr.length - 1 - i], list.popFront());
-            assertEquals("Size should decrease after popFront", arr.length - 1 - i, list.size());
+        int size = arr.length;
+
+        for (int value : arrResult) {
+            assertEquals("PopFront should return correct element", value, list.popFront());
+
+            --size;
+
+            assertEquals("Size should decrease after popFront", size, list.size());
         }
 
         assertTrue("List should be empty after popping all elements", list.isEmpty());
