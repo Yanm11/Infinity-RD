@@ -28,13 +28,12 @@ size_t FindRotations(int arr[], size_t size)
         {
             return (size - mid);
         }
-
         /* Decide whether to go to the left half or the right half */
         else if (arr[mid] <= arr[high]) 
         {
             high = mid - 1;
         }
-        else if (arr[mid] >= arr[low]) 
+        else
         {
             low = mid + 1;
         }
@@ -43,7 +42,7 @@ size_t FindRotations(int arr[], size_t size)
 
 int main(void) 
 {
-    int arr[] = {7, 8, 11,2,3,4};
+    int arr[] = {5, 6, 7,8,3,4};
     int n = sizeof(arr) / sizeof(arr[0]);
 
     int rotations = FindRotations(arr, n);
