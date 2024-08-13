@@ -25,15 +25,15 @@ public class SinglyLinkedList{
     }
 
     public int size(){
-        int list_size = 0;
-        Node curr_node = head;
+        int listSize = 0;
+        ListIterator iter = begin();
 
-        while(curr_node != null){
-            ++list_size;
-            curr_node = curr_node.next;
+        while(iter.hasNext()){
+            ++listSize;
+            iter.next();
         }
 
-        return list_size;
+        return listSize;
     }
 
     public boolean isEmpty(){
@@ -45,13 +45,14 @@ public class SinglyLinkedList{
     }
 
     public ListIterator find(Object dataToMatch){
-        Node curr_node = head;
+        ListIterator iterFirst = begin();
+        ListIterator iterSecond = begin();
 
-        while(curr_node != null){
-            if(curr_node.data.equals(dataToMatch)){
-                return new ListIteratorIMP(curr_node);
+        while(iterFirst.hasNext()){
+            if(dataToMatch.equals(iterFirst.next())){
+                return iterSecond;
             }
-            curr_node = curr_node.next;
+            iterSecond.next();
         }
 
         return null;
