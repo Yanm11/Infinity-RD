@@ -1,3 +1,7 @@
+// yan meiri
+// 14.8.2024
+// approved by hadad
+
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -115,13 +119,12 @@ public class ComplexNumber implements Comparable<ComplexNumber> {
         if (o instanceof ComplexNumber) {
             ComplexNumber other = (ComplexNumber) o;
 
-            double otherReal = other.getReal();
-            double otherImaginary = other.getImaginary();
-            double thisReal = this.getReal();
-            double thisImaginary = this.getImaginary();
+            Double otherReal = other.getReal();
+            Double otherImaginary = other.getImaginary();
+            Double thisReal = this.getReal();
+            Double thisImaginary = this.getImaginary();
 
-            return Double.compare(thisReal, otherReal) == 0 &&
-                   Double.compare(thisImaginary, otherImaginary) == 0;
+            return thisReal.equals(otherReal) && thisImaginary.equals(otherImaginary);
         }
         return false;
     }
