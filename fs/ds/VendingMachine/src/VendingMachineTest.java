@@ -3,6 +3,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class VendingMachineTest {
@@ -148,5 +150,29 @@ class VendingMachineTest {
 
         // Ensure the credit is not deducted for out-of-stock product
         assertEquals(500, vendingMachine.getCredit());
+    }
+
+    @Test
+    void invalidIndex(){
+        vendingMachine.selectProduct(6);
+        assertEquals("Invalid slot index", getOutput());
+    }
+
+    @Test
+    void testTimeout() throws InterruptedException {
+        vendingMachine.turnOn();
+        vendingMachine.selectProduct(0); // Assuming Coke is at index 0
+
+        // Wait for the timeout
+        TimeUnit.SECONDS.sleep(6); // Wait for 6 seconds to ensure timeout occurs
+
+        assertEquals("Please pay:250\nTo purchase:Coke\nTimeout: Transaction cancelled Refunding:\n0", getOutput().trim());
+        assertEquals(0, vendingMachine.getCredit());
+
+        // Verify that the machine is ready for a new selection and the timeout is canceled
+        vendingMachine.insertCoin(Coin.FIVE_SHEKEL);
+        vendingMachine.selectProduct(0);
+        assertTrue(getOutput().contains("Here is the product you requested:Coke"));
+
     }
 }
