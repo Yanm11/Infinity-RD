@@ -7,22 +7,19 @@ import java.util.TimerTask;
 
 public class VendingMachine {
 
-    private VendingMachineState state;
-    private int credit;
+    private VendingMachineState state = VendingMachineState.OFF;;
+    private int credit = 0;
     private Monitor monitor;
     private VendingSlot[] slots;
     private static final int DEFAULT_INITIAL_SIZE = 10;
     private Product chosenProduct;
     private int chosenProductCode;
 
-    private Timer inactivityTimer;
+    private Timer inactivityTimer;;
     private static final long TIMEOUT_DURATION = 5000; // 5 seconds
 
     public VendingMachine(Monitor monitor, Product[] productList) {
         this.monitor = monitor;
-        this.credit = 0;
-        this.state = VendingMachineState.OFF;
-        this.inactivityTimer = new Timer();
 
         this.slots = new VendingSlot[productList.length];
         for (int i = 0; i < this.slots.length; ++i) {
@@ -59,6 +56,7 @@ public class VendingMachine {
 
     // timer functions
     private void startInactivityTimer() {
+        this.inactivityTimer = new Timer();
         inactivityTimer.schedule(
                 new TimerTask() {
                     @Override
@@ -69,7 +67,9 @@ public class VendingMachine {
     }
 
     private void cancelInactivityTimer() {
-        inactivityTimer.cancel();
+        if (inactivityTimer != null) {
+            inactivityTimer.cancel();
+        }
     }
 
     private void timeoutAction() {
@@ -141,6 +141,7 @@ public class VendingMachine {
             @Override
             public void insertCoin(VendingMachine vm, Coin coin) {
                 vm.credit += coin.getValue();
+                vm.inactivityTimer.cancel();
                 vm.state.selectProduct(vm, vm.chosenProduct);
             }
 
