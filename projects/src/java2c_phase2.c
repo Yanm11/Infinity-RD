@@ -70,15 +70,14 @@ typedef void (*say_hello_func_ptr_t)(animal_t*);
 typedef int (*num_masters_func_ptr_t)(animal_t*);
 
 /* Declerations */
+
 /* object class */
 object_t *ObjectInit(void);
 void ObjectCtorClassObj(class_t *class, object_t *object);
-void ObjectDestroyerObj(object_t *object);
-class_t *ObjectGetClassObj(object_t *this);
 int ObjectHashCodeObj(object_t *this);
-int ObjectEqualsObjObj(object_t *this, object_t *other); 
 char *ObjectToStringObject(object_t *object);
 void ObjectFinalizeObject(object_t *object);
+
 /* animal class */
 animal_t *AnimalInit(void);
 animal_t *AnimalInitInt(int num_masters);
@@ -92,6 +91,7 @@ int AnimalGetNumMastersAnimal(animal_t *animal);
 void AnimalStaticBlocks(void);
 char *AnimalToStringAnimal(object_t *object);
 void AnimalFinalizeObject(object_t *object);
+
 /* dog class */
 dog_t *DogInit(void);
 void DogCtorClassDog(class_t *class, dog_t *dog);
@@ -99,6 +99,7 @@ void DogSayHelloDog(dog_t *dog);
 char *DogToStringDog(object_t *object);
 void DogStaticBlocks(void);
 void DogFinalizeObject(object_t *object);
+
 /* cat class */
 cat_t *CatInit(void);
 cat_t *CatInitString(char *color);
@@ -107,6 +108,7 @@ void CatCtorClassCatString(class_t *class, cat_t *cat, char *color);
 void CatStaticBlocks(void);
 char *CatToStringCat(object_t *object);
 void CatFinalizeObject(object_t *object);
+
 /* legendary animal class */
 legendary_animal_t *LegendaryAnimalInit(void);
 void LegendaryAnimalCtorClassLa(class_t *class, legendary_animal_t *la);
@@ -114,6 +116,7 @@ void LegendaryAnimalStaticBlocks(void);
 void LegendaryAnimalSayHelloLegendaryAnimal(legendary_animal_t *la);
 char *LegendaryAnimalToStringLegendaryAnimal(object_t *object);
 void LegenderyAnimalFinalizeObject(object_t *object);
+
 
 /* global variables - and classes initializations */
 int counter = 0;
