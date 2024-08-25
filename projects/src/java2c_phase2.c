@@ -1,3 +1,8 @@
+/* 
+approved by avshalom !
+25/08/2024 
+*/
+
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc free */
 #include <string.h> /* strcmp strcat */
@@ -160,27 +165,30 @@ method_ptr_t vtable_legendary_animal[] = {(method_ptr_t)ObjectGetClassObj,
                     (method_ptr_t)AnimalShowCounter,
                     (method_ptr_t)AnimalGetNumMastersAnimal};
 
-class_t object_class = {"Object", NULL, sizeof(object_t), &vtable_object};
+class_t object_class = {"Object",
+                        NULL,
+                        sizeof(object_t),
+                        vtable_object};
 
 class_t animal_class = {"Animal",
                         &object_class,
                         sizeof(animal_t),
-                        &vtable_animal};
+                        vtable_animal};
 
 class_t dog_class = {"Dog",
                         &animal_class,
                         sizeof(dog_t),
-                        &vtable_dog};
+                        vtable_dog};
 
 class_t cat_class = {"Cat",
                         &animal_class,
                         sizeof(cat_t),
-                        &vtable_cat};
+                        vtable_cat};
 
 class_t legendary_animal_class = {"Legendary Animal",
                                    &cat_class,
                                    sizeof(legendary_animal_t),
-                                   &vtable_legendary_animal};
+                                   vtable_legendary_animal};
 
 /******************************** OBJECT CLASS ***************************/
 
@@ -256,7 +264,7 @@ char *ObjectToStringObject(object_t *object)
 /* finalize method */
 void ObjectFinalizeObject(object_t *object)
 {
-    return;
+    free(object);
 }
 
 /************************** ANIMAL CLASS *************************/
@@ -271,7 +279,10 @@ animal_t *AnimalInit(void)
     }
 
     /* doing static blocks if neccecary */
-    AnimalStaticBlocks();
+    if (flag_static_block_animal)
+    {
+        AnimalStaticBlocks();
+    }
 
     AnimalCtorClassAnimal(&animal_class, animal);
 
@@ -288,7 +299,10 @@ animal_t *AnimalInitInt(int num_masters)
     }
 
     /* doing static blocks if neccecary */
-    AnimalStaticBlocks();
+    if (flag_static_block_animal)
+    {
+        AnimalStaticBlocks();
+    }
 
     AnimalCtorClassAnimalInt(&animal_class, animal, num_masters);
 
@@ -313,7 +327,7 @@ void AnimalCtorClassAnimal(class_t *class, animal_t *animal)
     ((say_hello_func_ptr_t)class->vtable[SAY_HELLO_INDX])(animal);
     AnimalShowCounter();
 
-    printf("%s\n", ((to_string_func_ptr_t)class->vtable[TO_STR_INDX])(animal));
+    printf("%s\n", ((to_string_func_ptr_t)class->vtable[TO_STR_INDX])((object_t*)animal));
     printf("%s\n", ObjectToStringObject((object_t*)animal));
 }
 
@@ -349,7 +363,10 @@ void AnimalSayHelloAnimal(animal_t *animal)
 void AnimalShowCounter(void)
 {
     /* doing static blocks if neccecary */
-    AnimalStaticBlocks();
+    if (flag_static_block_animal)
+    {
+        AnimalStaticBlocks();
+    }
 
     printf("%d\n", counter);
 }
@@ -357,13 +374,10 @@ void AnimalShowCounter(void)
 /* static blocks of animal class */
 void AnimalStaticBlocks(void)
 {
-    if (flag_static_block_animal)
-    {
-        flag_static_block_animal = 0;
+    flag_static_block_animal = 0;
 
-        printf("Static block Animal 1\n");
-        printf("Static block Animal 2\n");
-    }
+    printf("Static block Animal 1\n");
+    printf("Static block Animal 2\n");
 }
 
 /* animal toString method */
@@ -390,7 +404,8 @@ int AnimalGetNumMastersAnimal(animal_t *animal)
 void AnimalFinalizeObject(object_t *object)
 {
     printf("finalize Animal with ID:%d\n", ((animal_t*)object)->ID);
-    return;
+    ((finalized_func_ptr_t)(animal_class.parent_class->
+                                            vtable[FINALIZED_INDX]))(object);
 }
 
 /************************** DOG CLASS *************************/
@@ -404,9 +419,15 @@ dog_t *DogInit(void)
     }
 
     /* doing static blocks of parent and child if neccecary */
-    AnimalStaticBlocks();
-    DogStaticBlocks();
-
+    if (flag_static_block_animal)
+    {
+        AnimalStaticBlocks();
+    }
+    if (flag_static_block_dog)
+    {
+        DogStaticBlocks();
+    }   
+    
     DogCtorClassDog(&dog_class, dog);
 
     return dog;
@@ -435,12 +456,9 @@ void DogSayHelloDog(dog_t *dog)
 /* static blocks of static class */
 void DogStaticBlocks(void)
 {
-    if (flag_static_block_dog)
-    {
-        flag_static_block_dog = 0;
+    flag_static_block_dog = 0;
 
-        printf("Static block Dog\n");
-    }
+    printf("Static block Dog\n");
 }
 
 /* dog toString method */
@@ -461,9 +479,8 @@ char *DogToStringDog(object_t *object)
 void DogFinalizeObject(object_t *object)
 {
     printf("finalize Dog with ID:%d\n", ((animal_t*)object)->ID);
-    ((finalized_func_ptr_t)(object->class->
-                            parent_class->vtable[FINALIZED_INDX]))(object);
-    return;
+    ((finalized_func_ptr_t)(dog_class.parent_class->
+                                            vtable[FINALIZED_INDX]))(object);
 }
 
 /************************** CAT CLASS *************************/
@@ -478,8 +495,14 @@ cat_t *CatInit(void)
     }
 
     /* doing static blocks of parent and child if neccecary */
-    AnimalStaticBlocks();
-    CatStaticBlocks();
+    if (flag_static_block_animal)
+    {
+        AnimalStaticBlocks();
+    }
+    if (flag_static_block_cat)
+    {
+        CatStaticBlocks();
+    }  
 
     /* calling the constroctors */
     CatCtorClassCat(&cat_class, cat);
@@ -497,8 +520,14 @@ cat_t *CatInitString(char *color)
     }
 
     /* doing static blocks of parent and child if neccecary */
-    AnimalStaticBlocks();
-    CatStaticBlocks();
+    if (flag_static_block_animal)
+    {
+        AnimalStaticBlocks();
+    }
+    if (flag_static_block_cat)
+    {
+        CatStaticBlocks();
+    } 
 
     /* calling the constroctors */
     CatCtorClassCatString(&cat_class, cat, color);
@@ -534,12 +563,9 @@ void CatCtorClassCatString(class_t *class, cat_t *cat, char *color)
 /* static blocks of static class */
 void CatStaticBlocks(void)
 {
-    if (flag_static_block_cat)
-    {
-        flag_static_block_cat = 0;
+    flag_static_block_cat = 0;
 
-        printf("Static block Cat\n");
-    }
+    printf("Static block Cat\n");
 }
 
 /* cat toString method */
@@ -560,9 +586,8 @@ char *CatToStringCat(object_t *object)
 void CatFinalizeObject(object_t *object)
 {
     printf("finalize Cat with ID:%d\n", ((animal_t*)object)->ID);
-    ((finalized_func_ptr_t)(object->class->
-                            parent_class->vtable[FINALIZED_INDX]))(object);
-    return;
+    ((finalized_func_ptr_t)(cat_class.parent_class->
+                                            vtable[FINALIZED_INDX]))(object);
 }
 
 /************************** LEGENDARY ANIMAL CLASS *************************/
@@ -579,9 +604,18 @@ legendary_animal_t *LegendaryAnimalInit(void)
     }
 
     /* doing static blocks of parent and child if neccecary */
-    AnimalStaticBlocks();
-    CatStaticBlocks();
-    LegendaryAnimalStaticBlocks();
+    if (flag_static_block_animal)
+    {
+        AnimalStaticBlocks();
+    }
+    if (flag_static_block_cat)
+    {
+        CatStaticBlocks();
+    }
+    if (flag_static_block_legenderay_animal)
+    {
+        LegendaryAnimalStaticBlocks();
+    }
 
     /* calling the constroctors */
     LegendaryAnimalCtorClassLa(&legendary_animal_class, la);
@@ -601,12 +635,9 @@ void LegendaryAnimalCtorClassLa(class_t *class, legendary_animal_t *la)
 /* static blocks of static class */
 void LegendaryAnimalStaticBlocks(void)
 {
-    if (flag_static_block_legenderay_animal)
-    {
-        flag_static_block_legenderay_animal = 0;
+    flag_static_block_legenderay_animal = 0;
 
-        printf("Static block Legendary Animal\n");
-    }
+    printf("Static block Legendary Animal\n");
 }
 
 /* sayHello method */
@@ -633,9 +664,8 @@ char *LegendaryAnimalToStringLegendaryAnimal(object_t *object)
 void LegenderyAnimalFinalizeObject(object_t *object)
 {
     printf("finalize LegendaryAnimal with ID:%d\n", ((animal_t*)object)->ID);
-    ((finalized_func_ptr_t)(object->class->
-                            parent_class->vtable[FINALIZED_INDX]))(object);
-    return;
+    ((finalized_func_ptr_t)(legendary_animal_class.parent_class->
+                                            vtable[FINALIZED_INDX]))(object);
 }
 
 /********************************* MAIN ****************************/
@@ -654,7 +684,8 @@ int main(void)
     dog_t *dog = DogInit();
     cat_t *cat = CatInit();
     legendary_animal_t *la = LegendaryAnimalInit();
-    
+    animal_t *array[5] = {NULL};
+
     AnimalShowCounter();
 
     printf("%d\n", animal->ID);
@@ -662,11 +693,11 @@ int main(void)
     printf("%d\n", ((animal_t*)cat)->ID);
     printf("%d\n", ((animal_t*)la)->ID);
 
-    animal_t *array[] = {(animal_t*)DogInit(),
-                        (animal_t*)CatInit(),
-                        (animal_t*)CatInitString("white"),
-                        (animal_t*)LegendaryAnimalInit(),
-                        AnimalInit()};
+    array[0] = (animal_t*)(DogInit());
+    array[1] = (animal_t*)(CatInit());
+    array[2] = (animal_t*)(CatInitString("white"));  
+    array[3] = (animal_t*)(LegendaryAnimalInit());                  
+    array[4] = AnimalInit();
     
     for (; i < 5; ++i)
     {
@@ -682,9 +713,15 @@ int main(void)
      for (i = 0; i < 5; ++i)
     {
         Foo(array[i]);
+        ((finalized_func_ptr_t)((array[i])->object.class->
+                                vtable[FINALIZED_INDX]))((object_t*)(array[i]));
     }
-
-
+    
+    AnimalFinalizeObject((object_t*)animal);
+    DogFinalizeObject((object_t*)dog);
+    CatFinalizeObject((object_t*)cat);
+    LegenderyAnimalFinalizeObject((object_t*)la);
+    
 
     return 0;
 }
