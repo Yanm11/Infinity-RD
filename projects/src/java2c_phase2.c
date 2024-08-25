@@ -11,10 +11,10 @@ approved by avshalom !
 /****************** defenitions declerations and typedefs *******************/
 
 #define MAX_SIZE_STR 100
-#define TO_STR_INDX 3
-#define FINALIZED_INDX 4
-#define SAY_HELLO_INDX 5
-#define NUM_MASTERS_INDX 7
+#define TO_STR_INDX 1
+#define FINALIZED_INDX 2
+#define SAY_HELLO_INDX 3
+#define NUM_MASTERS_INDX 5
 
 typedef void (*method_ptr_t)(void);
 
@@ -123,42 +123,32 @@ int flag_static_block_cat = 1;
 int flag_static_block_legenderay_animal = 1;
 char g_str[MAX_SIZE_STR] = {0};
 
-method_ptr_t vtable_object[] = {(method_ptr_t)ObjectGetClassObj,
-                                (method_ptr_t)ObjectHashCodeObj,
-                                (method_ptr_t)ObjectEqualsObjObj,
+method_ptr_t vtable_object[] = {(method_ptr_t)ObjectHashCodeObj,
                                 (method_ptr_t)ObjectToStringObject,
                                 (method_ptr_t)ObjectFinalizeObject};
 
-method_ptr_t vtable_animal[] = {(method_ptr_t)ObjectGetClassObj,
-                                (method_ptr_t)ObjectHashCodeObj,
-                                (method_ptr_t)ObjectEqualsObjObj,
+method_ptr_t vtable_animal[] = {(method_ptr_t)ObjectHashCodeObj,
                                 (method_ptr_t)AnimalToStringAnimal,
                                 (method_ptr_t)AnimalFinalizeObject,
                                 (method_ptr_t)AnimalSayHelloAnimal,
                                 (method_ptr_t)AnimalShowCounter,
                                 (method_ptr_t)AnimalGetNumMastersAnimal};
 
-method_ptr_t vtable_dog[] = {(method_ptr_t)ObjectGetClassObj,
-                                (method_ptr_t)ObjectHashCodeObj,
-                                (method_ptr_t)ObjectEqualsObjObj,
+method_ptr_t vtable_dog[] = {(method_ptr_t)ObjectHashCodeObj,
                                 (method_ptr_t)DogToStringDog,
                                 (method_ptr_t)DogFinalizeObject,
                                 (method_ptr_t)DogSayHelloDog,
                                 (method_ptr_t)AnimalShowCounter,
                                 (method_ptr_t)AnimalGetNumMastersAnimal};
 
-method_ptr_t vtable_cat[] = {(method_ptr_t)ObjectGetClassObj,
-                                (method_ptr_t)ObjectHashCodeObj,
-                                (method_ptr_t)ObjectEqualsObjObj,
+method_ptr_t vtable_cat[] = {(method_ptr_t)ObjectHashCodeObj,
                                 (method_ptr_t)CatToStringCat,
                                 (method_ptr_t)CatFinalizeObject,
                                 (method_ptr_t)AnimalSayHelloAnimal,
                                 (method_ptr_t)AnimalShowCounter,
                                 (method_ptr_t)AnimalGetNumMastersAnimal};
 
-method_ptr_t vtable_legendary_animal[] = {(method_ptr_t)ObjectGetClassObj,
-                    (method_ptr_t)ObjectHashCodeObj,
-                    (method_ptr_t)ObjectEqualsObjObj,
+method_ptr_t vtable_legendary_animal[] = {(method_ptr_t)ObjectHashCodeObj,
                     (method_ptr_t)LegendaryAnimalToStringLegendaryAnimal,
                     (method_ptr_t)LegenderyAnimalFinalizeObject,
                     (method_ptr_t)LegendaryAnimalSayHelloLegendaryAnimal,
@@ -212,23 +202,6 @@ void ObjectCtorClassObj(class_t *class, object_t *object)
     object->class = class;
 }
 
-/* object free method */
-void ObjectDestroyerObj(object_t *object)
-{
-    free(object);
-}
-
-/* getClass method */
-class_t *ObjectGetClassObj(object_t *this) 
-{
-    if (this == NULL)
-    {
-        return NULL;
-    }
-
-    return this->class;
-}
-
 /* hashCode method */
 int ObjectHashCodeObj(object_t *this) 
 {
@@ -240,12 +213,6 @@ int ObjectHashCodeObj(object_t *this)
     return (int)((size_t)this);
 }
 
-/* equals method */
-int ObjectEqualsObjObj(object_t *this, object_t *other) 
-{
-    return this == other;
-}
-
 /* object toString method */
 char *ObjectToStringObject(object_t *object)
 {
@@ -254,7 +221,7 @@ char *ObjectToStringObject(object_t *object)
     strncpy(g_str, reset, MAX_SIZE_STR);
 
     /* build the string */
-    strcpy(g_str, ObjectGetClassObj(object)->class_name);
+    strcpy(g_str, object->class->class_name);
     strcat(g_str, "@");
     sprintf(g_str + strlen(g_str), "%d", ObjectHashCodeObj(object));
 
@@ -327,8 +294,10 @@ void AnimalCtorClassAnimal(class_t *class, animal_t *animal)
     ((say_hello_func_ptr_t)class->vtable[SAY_HELLO_INDX])(animal);
     AnimalShowCounter();
 
-    printf("%s\n", ((to_string_func_ptr_t)class->vtable[TO_STR_INDX])((object_t*)animal));
-    printf("%s\n", ObjectToStringObject((object_t*)animal));
+    printf("%s\n", ((to_string_func_ptr_t)class->
+                                    vtable[TO_STR_INDX])((object_t*)animal));
+    printf("%s\n", ((to_string_func_ptr_t)animal_class.parent_class->
+                                    vtable[TO_STR_INDX])((object_t*)animal));
 }
 
 /* animal int ctor*/
