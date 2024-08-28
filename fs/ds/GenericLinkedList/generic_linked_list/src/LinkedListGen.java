@@ -1,3 +1,4 @@
+// approved by ido
 
 import java.util.ConcurrentModificationException;
 import java.util.EmptyStackException;
@@ -37,7 +38,7 @@ public class LinkedListGen<T> implements Iterable<T> {
         }
 
         synchronized ("modCount") {
-            --modCount;
+            ++modCount;
         }
 
         return data;
@@ -88,6 +89,12 @@ public class LinkedListGen<T> implements Iterable<T> {
         list1.tail = null;
         list2.head = null;
         list2.tail = null;
+
+        // increment modCount for list 1 and 2
+        synchronized ("modCount update") {
+            ++list1.modCount;
+            ++list2.modCount;
+        }
 
         return newList;
     }
