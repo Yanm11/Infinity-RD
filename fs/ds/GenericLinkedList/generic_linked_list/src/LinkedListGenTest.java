@@ -5,7 +5,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 
 import static org.junit.Assert.*;
@@ -189,5 +191,8 @@ public class LinkedListGenTest {
         Iterator<Integer> iter = list1.iterator();
         assertTrue(iter.hasNext());
         assertEquals(iter.next(), arr[8]);
+
+        list1.popFront();
+        assertThrows(ConcurrentModificationException.class, iter::next);
     }
 }
