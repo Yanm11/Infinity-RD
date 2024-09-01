@@ -67,9 +67,6 @@ public class PrimirtiveIntArray {
         for (Map.Entry<String,Integer> enrty : mapDO.entrySet()) {
             System.out.println(enrty.getKey() + ":" + enrty.getValue());
         }
-
-
-
     }
 }
 
