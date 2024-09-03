@@ -53,7 +53,11 @@ public class PairTest {
     @org.junit.Test
     public void testEquals() {
         assertNotEquals(pair1, pair2);
-        assertEquals(pair1, pair4);
+        assertNotEquals(pair1, pair4);
+        Pair<Integer,Integer> pairNull = null;
+        assertNotEquals(pair1, pairNull);
+        assertEquals(pair1,pair1);
+
     }
 
     @org.junit.Test
