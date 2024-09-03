@@ -195,7 +195,6 @@ public class HashMap<K, V> implements Map<K, V> {
                 }
                 for (int i = bucketIndex + 1; i < capacity; ++i) {
                     if (!hashmap.get(i).isEmpty()) {
-                        //iter = hashmap.get(i).iterator();
                         return true;
                     }
                 }
