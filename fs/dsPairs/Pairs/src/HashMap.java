@@ -1,3 +1,6 @@
+// approved by avshalom!
+// 3/09/2024
+
 import java.util.*;
 
 public class HashMap<K, V> implements Map<K, V> {
