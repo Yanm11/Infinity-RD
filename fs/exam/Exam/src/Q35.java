@@ -33,7 +33,7 @@ class C {
     }
 
     void foo2() {
-        private static String s1 = "hello";
+         String s1 = "hello";
     }
 }
 
