@@ -22,6 +22,7 @@ public class Tree {
             return;
         }
 
+        Arrays.sort(files);
         for (File singleFile : files) {
             //for proper indentation
             StringBuilder indent = new StringBuilder();
