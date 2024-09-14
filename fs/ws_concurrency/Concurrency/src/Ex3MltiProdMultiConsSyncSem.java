@@ -35,7 +35,6 @@ public class Ex3MltiProdMultiConsSyncSem {
         } catch (InterruptedException ignored) {
         }
 
-
         //creating producer threads
         for (int i = 0; i < 5; ++i) {
             Thread producer =  new Thread() {
