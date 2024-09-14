@@ -177,12 +177,13 @@ public class HashMap<K, V> implements Map<K, V> {
         }
 
         private class EntriesIterator  implements Iterator<Map.Entry<K,V>> {
-            private Iterator<Map.Entry<K,V> > iter;
-            private int bucketIndex = 0;
+            private Iterator<List<Map.Entry<K,V>>> iterBuckets;
+            private Iterator<Map.Entry<K,V>> iterList;
             private final int expectedModCount;
 
             private EntriesIterator() {
-                iter = hashmap.get(bucketIndex).iterator();
+                iterBuckets = hashmap.iterator();
+                iterList = iterBuckets.next().iterator();
                 expectedModCount = modCount;
             }
 
@@ -193,11 +194,15 @@ public class HashMap<K, V> implements Map<K, V> {
                     throw new ConcurrentModificationException();
                 }
 
-                if (iter.hasNext()){
+                if (iterList.hasNext()){
                     return true;
                 }
-                for (int i = bucketIndex + 1; i < capacity; ++i) {
-                    if (!hashmap.get(i).isEmpty()) {
+
+                while (iterBuckets.hasNext()) {
+                    List<Map.Entry<K,V>> tmpList = iterBuckets.next();
+                    if (!tmpList.isEmpty()) {
+                        iterList = tmpList.iterator();
+
                         return true;
                     }
                 }
@@ -211,19 +216,10 @@ public class HashMap<K, V> implements Map<K, V> {
                 if (modCount != expectedModCount) {
                     throw new ConcurrentModificationException();
                 }
+                //moves to the next available element
+                hasNext();
 
-                if (!iter.hasNext()) {
-                    for (int i = bucketIndex + 1; i < capacity; ++i) {
-                        if (!hashmap.get(i).isEmpty()){
-                            iter = hashmap.get(i).iterator();
-                            bucketIndex = i;
-
-                            return iter.next();
-                        }
-                    }
-                }
-
-                return iter.next();
+                return iterList.next();
             }
         }
     }
