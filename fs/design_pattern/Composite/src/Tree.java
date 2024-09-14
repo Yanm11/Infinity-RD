@@ -1,44 +1,51 @@
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.io.File;
 
-public class Tree {
-    private File file;
+public class Tree implements FilePrint {
+    private String name;
+    private ArrayList<FilePrint> files = new ArrayList<>();
 
-    public Tree(String path) {
-        file = new File(path);
+    public Tree(String path) throws FileNotFoundException {
+       File file = new File(path);
+
+       if (!file.exists()) {
+           throw new FileNotFoundException("Path is not correct");
+       }
+
+       name = file.getName();
+
+       if(!file.isDirectory()){
+            throw new IllegalArgumentException("Not a directory");
+       }
+
+       File[] filesArr = file.listFiles();
+       Arrays.sort(filesArr);
+
+       for (File f : filesArr) {
+           if(f.isDirectory()){
+               files.add(new Tree(f.getPath()));
+           }
+           else{
+               files.add(new SingleFile(f.getPath()));
+           }
+       }
     }
 
-    public void print() {
-        printFiles(file, 0);
-    }
-
-    // helper function
-    private void printFiles(File file, int tabLevel) {
-        File[] files = file.listFiles();
-
-        if (files == null) {
-            return;
+    public void print(String s) {
+        System.out.println(s + name);
+        for(FilePrint f : files){
+            f.print(s + "\t");
         }
 
-        Arrays.sort(files);
-        for (File singleFile : files) {
-            //for proper indentation
-            StringBuilder indent = new StringBuilder();
-            for (int i = 0; i < tabLevel; i++) {
-                indent.append("\t");
-            }
-
-            System.out.println(indent + singleFile.getName());
-            printFiles(singleFile , tabLevel + 1);
-        }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException{
         Tree tree = new Tree(".");
 
-        tree.print();
+        tree.print("");
     }
 
 }
