@@ -1,4 +1,4 @@
-public interface FilePrint {
+public interface Print {
     void print(String s);
 }
 

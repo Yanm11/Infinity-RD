@@ -1,14 +1,14 @@
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.io.File;
 
-public class Tree implements FilePrint {
+public class Directory implements Print {
     private String name;
-    private ArrayList<FilePrint> files = new ArrayList<>();
+    private ArrayList<Print> files = new ArrayList<>();
 
-    public Tree(String path) throws FileNotFoundException {
+    public Directory(String path) throws FileNotFoundException {
        File file = new File(path);
 
        if (!file.exists()) {
@@ -26,7 +26,7 @@ public class Tree implements FilePrint {
 
        for (File f : filesArr) {
            if(f.isDirectory()){
-               files.add(new Tree(f.getPath()));
+               files.add(new Directory(f.getPath()));
            }
            else{
                files.add(new SingleFile(f.getPath()));
@@ -36,16 +36,14 @@ public class Tree implements FilePrint {
 
     public void print(String s) {
         System.out.println(s + name);
-        for(FilePrint f : files){
+        for(Print f : files){
             f.print(s + "\t");
         }
 
     }
 
     public static void main(String[] args) throws FileNotFoundException{
-        Tree tree = new Tree(".");
 
-        tree.print("");
     }
 
 }

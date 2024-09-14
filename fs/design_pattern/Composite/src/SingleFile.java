@@ -1,6 +1,6 @@
 import java.io.File;
 
-public class SingleFile implements FilePrint {
+public class SingleFile implements Print {
     private File file;
 
     public SingleFile(String path) {
