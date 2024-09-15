@@ -1,5 +1,6 @@
 package il.co.ilrd.ThreadPool.src;
 
+import java.util.ArrayList;
 import java.util.concurrent.*;
 import il.co.ilrd.WaitablePQ.src.WaitablePQ;
 import java.lang.Thread;
@@ -8,7 +9,9 @@ public class ThreadPool implements Executor {
     //private fileds
     private WaitablePQ<Task<?>> taskPQ;
     private int numberOfThreads;
-    private boolean stopRun = false;
+    private boolean shutdown = false;
+    private Semaphore pauseSem;
+    private ArrayList<Future<Void>> shutDownFutures;
 
     //ctor
     // Default numberOfThreads depend on number of cores
@@ -18,8 +21,14 @@ public class ThreadPool implements Executor {
 
     //receives the original number of threads
     public ThreadPool(int numberOfThreads) {
+        //exception handling
+        if (numberOfThreads <= 0) {
+            throw new IllegalArgumentException();
+        }
+
         taskPQ = new WaitablePQ<>();
         this.numberOfThreads = numberOfThreads;
+        pauseSem = new Semaphore(numberOfThreads);
 
         //creating new threads and assigning them the first task
         createNewThreads(numberOfThreads);
@@ -40,6 +49,10 @@ public class ThreadPool implements Executor {
     }
 
     public <T> Future<T> submit(Runnable command, Priority p, T value){
+        if (command == null) {
+            throw new NullPointerException();
+        }
+
         // wrap a runnable inside a callable
         Callable<T> callable = new Callable<T>() {
             @Override
@@ -57,7 +70,6 @@ public class ThreadPool implements Executor {
         return submit(command, Priority.MEDIUM);
     }
 
-
     public <T> Future<T> submit(Callable<T> command, Priority p){
         return enqueueTask(command, p.getValue());
     }
@@ -65,52 +77,135 @@ public class ThreadPool implements Executor {
     // setter
     // if threads are removed, they should be the first threads that not running
     public void setNumOfThreads(int numOfThreads) {
+        //exception handling
+        if (numOfThreads <= 0) {
+            throw new IllegalArgumentException();
+        }
+
+        //if we increase
         if (numOfThreads > this.numberOfThreads) {
-            createNewThreads(numOfThreads - this.numberOfThreads);
+            int increaseNumberOfThreadsBy = numOfThreads - this.numberOfThreads;
+            pauseSem.release(increaseNumberOfThreadsBy);
+            createNewThreads(increaseNumberOfThreadsBy);
         }
+        //if we decrease
         else if (numOfThreads < this.numberOfThreads) {
-            Callable<Void> command = new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    stopRun = true;
-
-                    return null;
-                }
-            };
-
             int threadsToRemove = this.numberOfThreads - numOfThreads;
-            for (int i = 0; i < threadsToRemove; ++i) {
-                enqueueTask(command, Priority.HIGH.getValue() + 1);
-            }
+
+            //inserting posiend apples to shut down the threads
+            enqueuePoisonedTasks(threadsToRemove, Priority.HIGH.getValue() + 1);
         }
 
+        //update num of threads
         this.numberOfThreads = numOfThreads;
     }
 
     //operations
-    public void pause(){}
-    public void resume(){}
-    public void shutdown(){}
-    public void awaitTermination(){}
-    public boolean awaitTermination(long timeout,TimeUnit unit){return true;}
+    public void pause(){
+        Callable<Void> sleepingPill = new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                try {
+                    pauseSem.acquire();
+                }
+                catch (InterruptedException ignored) {}
 
-    // helper function
+                return null;
+            }
+        };
+
+        for (int i = 0; i < this.numberOfThreads; ++i) {
+            enqueueTask(sleepingPill, Priority.HIGH.getValue() + 1);
+        }
+    }
+
+    public void resume(){
+        pauseSem.release(this.numberOfThreads);
+    }
+
+    public void shutdown(){
+        //inserting poisoned pills to shut down the threads and keep a reference to their futures
+        shutDownFutures =  enqueuePoisonedTasks(this.numberOfThreads, Priority.LOW.getValue() - 1);
+
+        //rejecting new submissions
+        this.shutdown = true;
+
+        //updating number of threads
+        this.numberOfThreads = 0;
+    }
+
+    public void awaitTermination() throws InterruptedException{
+        try {
+            for (Future<?> future : shutDownFutures) {
+                future.get();
+            }
+        }
+        catch (InterruptedException | ExecutionException e) {
+            throw new InterruptedException();
+        }
+    }
+
+    public boolean awaitTermination(long timeout,TimeUnit unit) throws InterruptedException {
+        try {
+            for (Future<?> future : shutDownFutures) {
+                future.get(timeout, unit);
+            }
+        }
+        catch (InterruptedException | ExecutionException e) {
+            throw new InterruptedException();
+        }
+        catch (TimeoutException e) {
+            return false;
+        }
+        return true;
+    }
+
+    /* ********************************************* helper function *********************************************** */
     private <T> Future<T> enqueueTask(Callable<T> command, int priority) {
+        if (command == null) {
+            throw new NullPointerException();
+        }
+        if (shutdown) {
+            throw new RejectedExecutionException("Can not enqueue new tasks...shutdown initiated");
+        }
+
         // adding a new task to the queue
         Task<T> task = new Task<>(command, priority);
         taskPQ.enqueue(task);
 
         return task.getFuture();
     }
+
+    //overloading
+    private <T> Future<T> enqueueTask(Callable<T> command, int priority, boolean isPoisoned) {
+        if (shutdown) {
+            throw new RejectedExecutionException("Can not enqueue new tasks...shutdown initiated");
+        }
+
+        // adding a new task to the queue
+        Task<T> task = new Task<>(command, priority);
+        task.setIsPoisoned(isPoisoned);
+        taskPQ.enqueue(task);
+
+        return task.getFuture();
+    }
+
     private void createNewThreads(int numberOfThreads) {
         //creating new threads and assigning them the first task
         for (int i = 0; i < numberOfThreads; ++i) {
             Thread thread = new Thread() {
                 @Override
                 public void run() {
-                    while (!stopRun) {
+                    try {
+                        pauseSem.acquire();
+                    }
+                    catch (InterruptedException ignored) {}
+
+                    boolean isPoisoned = false;
+                    while (!isPoisoned) {
                         Task<?> task = taskPQ.dequeue();
                         task.executeTask();
+                        isPoisoned = task.getIsPoisoned();
                     }
                 }
             };
@@ -118,14 +213,41 @@ public class ThreadPool implements Executor {
         }
     }
 
+    private ArrayList<Future<Void>> enqueuePoisonedTasks(int numberOfThreadsToKill,int priority) {
+        //instancing an empty command
+        Callable<Void> command = new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                return null;
+            }
+        };
+
+        //enqueue the tasks
+        ArrayList<Future<Void>> futures = new ArrayList<>();
+        for (int i = 0; i < numberOfThreadsToKill; ++i) {
+            futures.add(enqueueTask(command, priority, true));
+        }
+
+        return futures;
+    }
+    /* ************************************************************************************************************* */
+
     private class Task<E> implements Comparable<Task<E>> {
+        // Main instance variables
         private final Callable<E> command;
         private final int priority;
         private final Future<E> future;
+        private E result = null;
+
+        // Flags
         private boolean hadStarted = false;
         private boolean hadException = false;
         private boolean completed = false;
-        private E result = null;
+        private boolean isPoisoned = false;
+
+        // Synchronization
+        private final Object lock = new Object();
+        private Thread currThread = null;
 
         public Task(Callable<E> command, int priority) {
             this.command = command;
@@ -147,22 +269,26 @@ public class ThreadPool implements Executor {
             return future;
         }
 
-        public Callable<E> getCommand() {
-            return this.command;
+        public boolean getIsPoisoned() {
+            return isPoisoned;
         }
 
-        synchronized public void executeTask() {
-            try {
-                hadStarted = true;
-                 result = command.call();
-            }
-            catch (Exception e){
-                hadException = true;
-            }
+        public void setIsPoisoned(boolean isPoisoned) {
+            this.isPoisoned = isPoisoned;
+        }
 
-            finally {
-                completed = true;
-                notifyAll();
+        public void executeTask() {
+            synchronized (lock) {
+                try {
+                    hadStarted = true;
+                    currThread = Thread.currentThread();
+                    result = command.call();
+                } catch (Exception e) {
+                    hadException = true;
+                } finally {
+                    completed = true;
+                    lock.notifyAll();
+                }
             }
         }
 
@@ -175,14 +301,14 @@ public class ThreadPool implements Executor {
                     return false;
                 }
                 else if (hadStarted && mayInterruptIfRunning) {
-                    // send interrupt to do..
+                    currThread.interrupt();
                 }
+
                 //cancel the execution of the task by removing it from the queue
                 cancelled = taskPQ.remove(Task.this);
                 completed = cancelled;
 
                 return cancelled;
-
             }
 
             @Override
@@ -196,19 +322,20 @@ public class ThreadPool implements Executor {
             }
 
             @Override
-            synchronized public E get() throws InterruptedException, ExecutionException {
-                while (!completed && !cancelled) {
-                    wait();
+            public E get() throws InterruptedException, ExecutionException {
+               synchronized (lock) {
+                   while (!completed && !cancelled) {
+                       lock.wait();
+                   }
+               }
 
-                    if (Thread.interrupted()) {
-                        throw new InterruptedException("Task was interrupted");
-                    }
-                }
-
+               if (Thread.interrupted()) {
+                   throw new InterruptedException("Task was interrupted");
+               }
                 if (cancelled) {
                     throw new CancellationException("Task was canceled");
                 }
-                else if (hadException) {
+                if (hadException) {
                     throw new ExecutionException(new Exception("Task had an exception"));
                 }
 
@@ -216,27 +343,25 @@ public class ThreadPool implements Executor {
             }
 
             @Override
-            synchronized public E get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+            public E get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
                 long endTime = System.currentTimeMillis() + unit.toMillis(timeout);
-                boolean passedTimeout = System.currentTimeMillis() > endTime;
 
-                while (!completed && !cancelled && !passedTimeout) {
-                    wait();
-
-                    if (Thread.interrupted()) {
-                        throw new InterruptedException("Task was interrupted");
+                synchronized (lock) {
+                    while (!completed && !cancelled && System.currentTimeMillis() <= endTime) {
+                        lock.wait(endTime - System.currentTimeMillis());
                     }
-
-                    passedTimeout = System.currentTimeMillis() > endTime;
                 }
 
+                if (Thread.interrupted()) {
+                    throw new InterruptedException("Task was interrupted");
+                }
                 if (cancelled) {
                     throw new CancellationException("Task was canceled");
                 }
-                else if (passedTimeout) {
+                if (System.currentTimeMillis() > endTime) {
                     throw new TimeoutException("Task timed out");
                 }
-                else if (hadException) {
+                if (hadException) {
                     throw new ExecutionException(new Exception("Task had an exception"));
                 }
 

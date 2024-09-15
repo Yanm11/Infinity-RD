@@ -1,3 +1,4 @@
+//approve by avshalom
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.Lock;
@@ -10,6 +11,7 @@ public class Ex3OneProdMultiCons {
     private static final Lock lock = new ReentrantLock();
     private static final Condition consumed  = lock.newCondition();
     private static volatile int countConsumed = 0;
+    private static boolean wroteMessege = true;
 
     public static void main(String[] args) {
         Thread producer = new Thread() {
@@ -19,6 +21,7 @@ public class Ex3OneProdMultiCons {
                     lock.lock();
                         // produce the data
                         ++data;
+                        wroteMessege = true;
 
                         //raise the semaphore to number of threads and counter for consumed meseeges
                         readDataSem.release(NUM_OF_THREADS);
@@ -34,6 +37,8 @@ public class Ex3OneProdMultiCons {
                             }
                             catch (InterruptedException ignored) {}
                         }
+                        wroteMessege = false;
+
                     lock.unlock();
                 }
             }
@@ -63,11 +68,12 @@ public class Ex3OneProdMultiCons {
                         }
 
                         //wait until a new message is ready
-                        try {
-                            consumed.await();
-                        } catch (InterruptedException ignored) {
+                        while (!wroteMessege) {
+                            try {
+                                consumed.await();
+                            } catch (InterruptedException ignored) {
+                            }
                         }
-
                         lock.unlock();
 
                         //slow down the printing

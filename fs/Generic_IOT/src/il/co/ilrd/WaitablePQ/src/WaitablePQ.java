@@ -1,3 +1,6 @@
+//approved by amit
+//15.09.2024
+
 package il.co.ilrd.WaitablePQ.src;
 
 import java.util.PriorityQueue;
@@ -29,7 +32,9 @@ public class WaitablePQ<E> {
         try {
             elemInQueueSem.acquire();
         }
-        catch (InterruptedException ignored) {}
+        catch (InterruptedException e) {
+            throw new RuntimeException();
+        }
 
         synchronized (pq) {
             return pq.poll();
@@ -49,7 +54,9 @@ public class WaitablePQ<E> {
              try {
                  elemInQueueSem.acquire();
              }
-             catch (InterruptedException ignored) {}
+             catch (InterruptedException e) {
+                 throw new RuntimeException();
+             }
 
              return true;
          }

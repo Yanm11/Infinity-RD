@@ -1,3 +1,6 @@
+//approved by amit
+//15.09.2024
+
 package il.co.ilrd.WaitablePQ.src;
 
 import java.util.Comparator;
@@ -36,7 +39,9 @@ public class WaitablePQBounded<E> {
             notEmpty.signalAll();
         }
 
-        catch (InterruptedException ignored) {}
+        catch (InterruptedException e) {
+            throw new RuntimeException();
+        }
 
         finally {
             lock.unlock();
@@ -57,7 +62,9 @@ public class WaitablePQBounded<E> {
             notFull.signalAll();
         }
 
-        catch (InterruptedException ignored) {}
+        catch (InterruptedException e) {
+            throw new RuntimeException();
+        }
 
         finally {
             lock.unlock();
