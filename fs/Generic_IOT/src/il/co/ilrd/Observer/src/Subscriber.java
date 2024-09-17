@@ -1,45 +1,31 @@
-import sun.rmi.server.Dispatcher;
+package il.co.ilrd.Observer.src;
 
 import java.util.function.Consumer;
 
-abstract public class Subscriber<T> {
-    //private fields
+public class Subscriber<T> {
+    private final Callback<T> callback;
+    private T data;
 
-    public void register(Publisher publisher){}
+    public Subscriber(Consumer<T> consumer, Runnable stopUpdateRunnable) {
+        Consumer<T> defaultConsumer = (data) -> this.data = data;
+        this.callback = new Callback<>(defaultConsumer.andThen(consumer), stopUpdateRunnable);
+    }
 
-    public void unRegister(){}
+    public void register(Publisher<T> publisher) {
+        publisher.register(callback);
+    }
 
-    public T getData(){}
+    public void unregister() {
+        callback.unregister();
+    }
 
+    public T getData() {
+        return data;
+    }
 }
 
-abstract class Publisher {
-    //private fields
 
-    public <T> void register(Subscriber<T> subscriber){}
 
-    public void produce(T data) {}
 
-    public void close(){}
-}
 
-class CallBack<T> {
-    //private fields
-
-    //ctor
-    public CallBack(Consumer<T> consumer){}
-
-    public void unRegister(){}
-
-    public void update(T data){}
-
-    public void stopUpdate(){}
-
-    public void setDecpatcher(Dispatcher<T> dispatcher){}
-
-}
-
-class Dispatcher<T> {
-
-}
 

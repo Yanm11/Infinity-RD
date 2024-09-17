@@ -31,7 +31,7 @@ public class ThreadPool implements Executor {
         pauseSem = new Semaphore(numberOfThreads);
 
         //creating new threads and assigning them the first task
-        createNewThreads(numberOfThreads);
+        startNewThreads(numberOfThreads);
     }
 
     //add task methods
@@ -63,7 +63,7 @@ public class ThreadPool implements Executor {
             }
         };
 
-        return enqueueTask(callable, p.getValue());
+        return submit(callable, p);
     }
 
     public <T> Future<T> submit(Callable<T> command){
@@ -86,7 +86,7 @@ public class ThreadPool implements Executor {
         if (numOfThreads > this.numberOfThreads) {
             int increaseNumberOfThreadsBy = numOfThreads - this.numberOfThreads;
             pauseSem.release(increaseNumberOfThreadsBy);
-            createNewThreads(increaseNumberOfThreadsBy);
+            startNewThreads(increaseNumberOfThreadsBy);
         }
         //if we decrease
         else if (numOfThreads < this.numberOfThreads) {
@@ -143,12 +143,17 @@ public class ThreadPool implements Executor {
         catch (InterruptedException | ExecutionException e) {
             throw new InterruptedException();
         }
+        catch (NullPointerException e) {
+            throw new NullPointerException("did not call shut down before awaitTermination");
+        }
     }
 
     public boolean awaitTermination(long timeout,TimeUnit unit) throws InterruptedException {
+        long endTime = System.currentTimeMillis() + unit.toMillis(timeout);
+
         try {
             for (Future<?> future : shutDownFutures) {
-                future.get(timeout, unit);
+                future.get(endTime - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
             }
         }
         catch (InterruptedException | ExecutionException e) {
@@ -157,27 +162,23 @@ public class ThreadPool implements Executor {
         catch (TimeoutException e) {
             return false;
         }
+        catch (NullPointerException e) {
+            throw new NullPointerException("did not call shut down before awaitTermination");
+        }
         return true;
     }
 
     /* ********************************************* helper function *********************************************** */
     private <T> Future<T> enqueueTask(Callable<T> command, int priority) {
-        if (command == null) {
-            throw new NullPointerException();
-        }
-        if (shutdown) {
-            throw new RejectedExecutionException("Can not enqueue new tasks...shutdown initiated");
-        }
-
-        // adding a new task to the queue
-        Task<T> task = new Task<>(command, priority);
-        taskPQ.enqueue(task);
-
-        return task.getFuture();
+        return enqueueTask(command,priority,false);
     }
 
     //overloading
     private <T> Future<T> enqueueTask(Callable<T> command, int priority, boolean isPoisoned) {
+        if (command == null) {
+            throw new NullPointerException();
+        }
+
         if (shutdown) {
             throw new RejectedExecutionException("Can not enqueue new tasks...shutdown initiated");
         }
@@ -190,7 +191,7 @@ public class ThreadPool implements Executor {
         return task.getFuture();
     }
 
-    private void createNewThreads(int numberOfThreads) {
+    private void startNewThreads(int numberOfThreads) {
         //creating new threads and assigning them the first task
         for (int i = 0; i < numberOfThreads; ++i) {
             Thread thread = new Thread() {
@@ -199,7 +200,9 @@ public class ThreadPool implements Executor {
                     try {
                         pauseSem.acquire();
                     }
-                    catch (InterruptedException ignored) {}
+                    catch (InterruptedException e) {
+                        throw new RuntimeException();
+                    }
 
                     boolean isPoisoned = false;
                     while (!isPoisoned) {
